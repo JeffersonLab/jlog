@@ -1,6 +1,7 @@
 package org.jlab.elog;
 
 import java.io.IOException;
+import java.util.ResourceBundle;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
@@ -14,11 +15,18 @@ import org.xml.sax.SAXException;
  */
 public class LogEntry extends LogItem {
 
+    public static final String LOG_ENTRY_SCHEMA_URL;    
+    
     protected final XPathExpression titleExpression;
     protected final XPathExpression logbooksExpression;
     protected final XPathExpression logbookListExpression;
     protected final XPathExpression entrymakersExpression;
     protected final XPathExpression usernameListExpression;
+    
+    static {
+        ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
+        LOG_ENTRY_SCHEMA_URL = bundle.getString("LOG_ENTRY_SCHEMA_URL");        
+    }
     
     {
         try {
@@ -163,4 +171,9 @@ public class LogEntry extends LogItem {
         
         return entrymakers;
     }    
+
+    @Override
+    protected String getSchemaURL() {
+        return LOG_ENTRY_SCHEMA_URL;
+    }
 }

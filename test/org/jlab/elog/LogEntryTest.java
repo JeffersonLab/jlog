@@ -2,6 +2,8 @@ package org.jlab.elog;
 
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
+import org.jlab.elog.LogItem.Body;
+import org.jlab.elog.LogItem.ContentType;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -108,6 +110,18 @@ public class LogEntryTest {
         System.out.println("actual: " + actual);
         assertEquals(expected, actual);
     }      
+    
+    @Test
+    public void testBody() throws LogException {
+        System.out.println("Body test");
+        Body expected = new Body(ContentType.HTML, "<b>I like to make bold statements.</b>");
+        entry.setTitle("<b>Title!</b>");
+        entry.setBody(expected);
+        Body actual = entry.getBody();
+        System.out.println(entry.getXML());
+        assertEquals(expected.getContent(), actual.getContent());
+        assertEquals(expected.getType(), actual.getType());
+    }
     
     @Test
     public void testGetXML() throws LogException {

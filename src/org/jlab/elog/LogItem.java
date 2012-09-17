@@ -34,6 +34,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -45,15 +46,11 @@ import org.xml.sax.SAXException;
  */
 abstract class LogItem {
 
-    public static final String LOG_ENTRY_SCHEMA_URL;
-    public static final String COMMENT_SCHEMA_URL;
     public static final String SUBMIT_URL;
     public static final String QUEUE_PATH;
 
     static {
         ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
-        LOG_ENTRY_SCHEMA_URL = bundle.getString("LOG_ENTRY_SCHEMA_URL");
-        COMMENT_SCHEMA_URL = bundle.getString("COMMENT_SCHEMA_URL");
         SUBMIT_URL = bundle.getString("SUBMIT_URL");
         QUEUE_PATH = bundle.getString("QUEUE_PATH");
     }
@@ -62,6 +59,24 @@ abstract class LogItem {
 
         TEXT, HTML
     };
+
+    public static class Body {
+        private final ContentType type;
+        private final String content;
+
+        public Body(ContentType type, String content) {
+            this.type = type;
+            this.content = content;
+        }
+
+        public ContentType getType() {
+            return type;
+        }
+
+        public String getContent() {
+            return content;
+        }
+    }
     protected Document doc;
     protected Element root;
     protected DatatypeFactory typeFactory;
@@ -70,6 +85,7 @@ abstract class LogItem {
     protected XPathExpression lognumberExpression;
     protected XPathExpression lognumberTextExpression;
     protected XPathExpression createdExpression;
+    protected XPathExpression bodyExpression;
 
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -93,6 +109,7 @@ abstract class LogItem {
             lognumberExpression = xpath.compile("/Logentry/lognumber");
             lognumberTextExpression = xpath.compile("/Logentry/lognumber/text()");
             createdExpression = xpath.compile("/Logentry/created");
+            bodyExpression = xpath.compile("/Logentry/body");
         } catch (XPathExpressionException e) {
             throw new LogException("Unable to construct XML XPath query", e);
         }
@@ -229,6 +246,58 @@ abstract class LogItem {
         return created;
     }
 
+    public Body getBody() throws LogException {
+        Body body = null;
+        
+        try {
+            Element bodyElement = (Element) bodyExpression.evaluate(doc, XPathConstants.NODE);
+
+            if (bodyElement != null) {
+                String content = bodyElement.getTextContent();
+                String typeStr = bodyElement.getAttribute("type");
+                ContentType type = ContentType.TEXT;
+                
+                if(typeStr != null) {
+                    type = ContentType.valueOf(typeStr.toUpperCase());
+                }
+                
+                body = new Body(type, content);
+            }
+        } catch (XPathExpressionException e) {
+            throw new LogException("Unable to traverse XML DOM.", e);
+        } catch(IllegalArgumentException e) {
+            throw new LogException("Unexpected ContentType in XML body", e);
+        }
+        
+        return body;
+    }
+
+    public void setBody(Body body) throws LogException {
+
+        try {
+            Element bodyElement = (Element) bodyExpression.evaluate(doc, XPathConstants.NODE);
+
+            if (bodyElement != null) {
+                root.removeChild(bodyElement);
+            }
+
+            if (body.getContent() != null && !body.getContent().isEmpty()) {
+                bodyElement = doc.createElement("body");
+                root.appendChild(bodyElement);
+
+                if (body.getType() == ContentType.HTML) {
+                    bodyElement.setAttribute("type", "html");
+                }
+
+                CDATASection data = doc.createCDATASection(body.getContent());
+                bodyElement.appendChild(data);
+            }
+        } catch (XPathExpressionException e) {
+            throw new LogException("Unable to traverse XML DOM.", e);
+        }
+
+    }
+
     public String getXML() throws LogException {
         String xml = null;
         TransformerFactory factory = TransformerFactory.newInstance();
@@ -251,12 +320,14 @@ abstract class LogItem {
         return xml;
     }
 
+    protected abstract String getSchemaURL();
+
     public boolean validate() throws LogException {
         boolean obtainedSchema = false;
         Schema schema = null;
 
         try {
-            URL schemaURL = new URL(LOG_ENTRY_SCHEMA_URL); // TODO: may be comment!
+            URL schemaURL = new URL(getSchemaURL());
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             schema = factory.newSchema(schemaURL);
             obtainedSchema = true;
@@ -307,7 +378,7 @@ abstract class LogItem {
      *
      * @return The pid of the running JVM, or null if unable to obtain it.
      */
-    public Integer getJVMProcessId() {
+    protected Integer getJVMProcessId() {
         Integer id = null;
 
         String name = ManagementFactory.getRuntimeMXBean().getName();
@@ -325,7 +396,7 @@ abstract class LogItem {
         return id;
     }
 
-    public String getHostname() {
+    protected String getHostname() {
         String hostname = null;
 
         try {
@@ -356,7 +427,7 @@ abstract class LogItem {
             hostname = "unknown";
         }
 
-        int random = (int)(Math.random() * 10000);
+        int random = (int) (Math.random() * 10000);
 
         filenameBuilder.append(date);
         filenameBuilder.append(pid);
@@ -379,7 +450,7 @@ abstract class LogItem {
 
         try {
             writer = new FileWriter(new File(QUEUE_PATH, filename));
-            
+
             writer.write(xml);
         } catch (IOException e) {
             throw new LogException("Unable to write XML file.", e);
