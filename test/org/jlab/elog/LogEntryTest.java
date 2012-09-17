@@ -122,4 +122,10 @@ public class LogEntryTest {
         boolean obtainedSchema = entry.validate();
         System.out.println("Obtained Schema: " + obtainedSchema);        
     }
+    
+    @Test
+    public void testQueue() throws LogException {
+        System.out.println("Queue Test");
+        entry.queue();
+    }
 }

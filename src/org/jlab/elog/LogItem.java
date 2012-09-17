@@ -1,5 +1,6 @@
 package org.jlab.elog;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -336,7 +337,7 @@ abstract class LogItem {
         return hostname;
     }
 
-    protected String generateFilename() {
+    protected String generateXMLFilename() {
         StringBuilder filenameBuilder = new StringBuilder();
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HHmmss_");
@@ -355,7 +356,7 @@ abstract class LogItem {
             hostname = "unknown";
         }
 
-        Double random = Math.random() * 1000;
+        int random = (int)(Math.random() * 10000);
 
         filenameBuilder.append(date);
         filenameBuilder.append(pid);
@@ -363,6 +364,7 @@ abstract class LogItem {
         filenameBuilder.append(hostname);
         filenameBuilder.append("_");
         filenameBuilder.append(random);
+        filenameBuilder.append(".xml");
 
         return filenameBuilder.toString();
     }
@@ -372,12 +374,12 @@ abstract class LogItem {
 
         String xml = getXML();
 
-        String filename = generateFilename();
+        String filename = generateXMLFilename();
         FileWriter writer = null;
 
         try {
-            writer = new FileWriter(QUEUE_PATH + filename);
-
+            writer = new FileWriter(new File(QUEUE_PATH, filename));
+            
             writer.write(xml);
         } catch (IOException e) {
             throw new LogException("Unable to write XML file.", e);
