@@ -1,19 +1,43 @@
 package org.jlab.elog;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Security;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.ResourceBundle;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509KeyManager;
+import javax.net.ssl.X509TrustManager;
 import javax.xml.XMLConstants;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.DocumentBuilder;
@@ -34,6 +58,8 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMReader;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -61,6 +87,7 @@ abstract class LogItem {
     };
 
     public static class Body {
+
         private final ContentType type;
         private final String content;
 
@@ -248,7 +275,7 @@ abstract class LogItem {
 
     public Body getBody() throws LogException {
         Body body = null;
-        
+
         try {
             Element bodyElement = (Element) bodyExpression.evaluate(doc, XPathConstants.NODE);
 
@@ -256,19 +283,19 @@ abstract class LogItem {
                 String content = bodyElement.getTextContent();
                 String typeStr = bodyElement.getAttribute("type");
                 ContentType type = ContentType.TEXT;
-                
-                if(typeStr != null) {
+
+                if (typeStr != null) {
                     type = ContentType.valueOf(typeStr.toUpperCase());
                 }
-                
+
                 body = new Body(type, content);
             }
         } catch (XPathExpressionException e) {
             throw new LogException("Unable to traverse XML DOM.", e);
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new LogException("Unexpected ContentType in XML body", e);
         }
-        
+
         return body;
     }
 
@@ -358,8 +385,203 @@ abstract class LogItem {
         return obtainedSchema;
     }
 
-    public Long submit() {
-        return null;
+    public static class TrustyTrustManager implements X509TrustManager {
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] xcs, String string) throws CertificateException {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] xcs, String string) throws CertificateException {
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return null;
+        }
+    }
+
+    protected static SSLSocketFactory getTrustySocketFactory() throws NoSuchAlgorithmException, KeyManagementException {
+        SSLContext context = SSLContext.getInstance("TLS");
+
+        context.init(null, new TrustManager[]{new TrustyTrustManager()}, null);
+
+        return context.getSocketFactory();
+    }
+
+    protected static SSLSocketFactory getSocketFactoryPEM(String pemPath) throws NoSuchAlgorithmException, IOException, KeyStoreException, CertificateException, UnrecoverableKeyException, KeyManagementException {        
+        Security.addProvider(new BouncyCastleProvider());
+        
+        SSLContext context = SSLContext.getInstance("TLS");
+        
+        byte[] certAndKey = fullyReadFile(new File(pemPath));
+        
+        String delimiter = "-----END CERTIFICATE-----";
+        String[] tokens = new String(certAndKey).split(delimiter);
+        
+        byte[] certBytes = tokens[0].concat(delimiter).getBytes();
+        byte[] keyBytes = tokens[1].getBytes();
+        
+        PEMReader reader;
+        
+        reader = new PEMReader(new InputStreamReader(new ByteArrayInputStream(certBytes)));
+        X509Certificate cert = (X509Certificate)reader.readObject();        
+        
+        reader = new PEMReader(new InputStreamReader(new ByteArrayInputStream(keyBytes)));
+        PrivateKey key = (PrivateKey)reader.readObject();        
+        
+        /*PEMReader reader = new PEMReader(new FileReader(pemPath));
+        X509Certificate cert = (X509Certificate)reader.readObject();        
+        
+        reader = new PEMReader(new FileReader("C:/Users/ryans/Desktop/key.pem"));
+        PrivateKey key = (PrivateKey)reader.readObject();*/
+        
+        KeyStore keystore = KeyStore.getInstance("JKS");
+        keystore.load(null);
+        keystore.setCertificateEntry("cert-alias", cert);
+        keystore.setKeyEntry("key-alias", key, "changeit".toCharArray(), new Certificate[] {cert});
+        
+        System.out.println("Keystore entry count: " + keystore.size());
+        System.out.println("Client Certificate: ");
+        System.out.println(keystore.getCertificate("alias"));
+        
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+        kmf.init(keystore, "changeit".toCharArray());
+        
+        KeyManager[] km = kmf.getKeyManagers(); 
+        
+        System.out.println("\n\n\n\n\n");
+        System.out.println("Length: " + km.length);
+        System.out.println("km[0]: " + km[0].toString());
+        System.out.println("\n\n\n\n\n");
+        
+        X509KeyManager xkm = (X509KeyManager)km[0];
+        System.out.println("Key: " + xkm.getPrivateKey("key-alias"));
+        X509Certificate[] chain = xkm.getCertificateChain("cert-alias");
+        
+        if(chain == null) {
+            chain = new X509Certificate[0];
+        }
+        
+        System.out.println("Chain Length: " + chain.length);
+        
+        for(X509Certificate c: chain) {
+            System.out.println(c);
+        }
+                
+        context.init(km, null, null);
+        
+        return context.getSocketFactory();
+    }    
+    
+    protected static SSLSocketFactory getSocketFactoryPKCS12(String p12Path) throws Exception {
+        SSLContext context = SSLContext.getInstance("TLS");
+        
+        KeyStore keystore = KeyStore.getInstance("PKCS12");
+        keystore.load(new FileInputStream(p12Path), "changeit".toCharArray());
+        
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+        kmf.init(keystore, "changeit".toCharArray());
+        
+        KeyManager[] km = kmf.getKeyManagers();
+        TrustManager[] tm = null; 
+        
+        context.init(km, tm, null);
+        
+        return context.getSocketFactory();
+    }    
+    
+    protected static SSLSocketFactory getSocketFactoryJKS(String keystorePath) throws Exception {
+        SSLContext context = SSLContext.getInstance("TLS");
+        
+        KeyStore keystore = KeyStore.getInstance("JKS");
+        keystore.load(new FileInputStream(keystorePath), "changeit".toCharArray());
+        
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+        kmf.init(keystore, "changeit".toCharArray());
+        
+        KeyManager[] km = kmf.getKeyManagers();
+        TrustManager[] tm = null; 
+        
+        context.init(km, tm, null);
+        
+        return context.getSocketFactory();
+    }
+
+    private static byte[] fullyReadFile(final File file) throws IOException
+    {
+        final DataInputStream dis = new DataInputStream(new FileInputStream(file));
+        final byte[] bytes = new byte[(int) file.length()];
+        dis.readFully(bytes);
+        dis.close();
+        return bytes;
+    }
+    
+    protected static byte[] pemToDer(byte[] pemBytes) {
+        String data = new String(pemBytes);
+        String[] tokens = data.split("-----BEGIN CERTIFICATE-----");
+        tokens = tokens[1].split("-----END CERTIFICATE-----");
+        System.out.println(tokens[0]);
+        return DatatypeConverter.parseBase64Binary(tokens[0]);
+    }
+
+    public Long submit() throws LogException {
+        Long id = null;
+        
+        String xml = getXML();
+
+        String certFilePath = "C:/Users/ryans/Desktop/ryans.pem";
+
+        HttpsURLConnection con;
+        OutputStreamWriter writer = null;
+        InputStreamReader reader = null;
+        
+        try {
+            URL url = new URL(SUBMIT_URL);
+            con = (HttpsURLConnection) url.openConnection();
+            con.setSSLSocketFactory(getSocketFactoryPEM(certFilePath));
+            con.setRequestMethod("POST");
+            con.setDoOutput(true);
+            con.connect();
+            writer = new OutputStreamWriter(con.getOutputStream());
+            writer.write(xml);
+            reader = new InputStreamReader(con.getInputStream());
+            // TODO: read response       
+        } catch (MalformedURLException e) {
+            throw new LogException("Invalid submission URL: check config file.", e);
+        } catch (IOException e) {
+            throw new LogException("Unable to write to ELOG server.", e);
+        } catch (ClassCastException e) {
+            throw new LogException("Expected HTTP URL; check config file.", e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new LogException("Invalid SSL certificate algorithm.", e);
+        } catch (CertificateException e) {
+            throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
+        } catch (KeyStoreException e) {
+            throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
+        } catch (KeyManagementException e) {
+            throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
+        } catch(UnrecoverableKeyException e) {
+            throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
+        } finally {
+            try {
+                if(writer != null) {
+                    writer.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            
+            try {
+                if(reader != null) {
+                    reader.close();   
+                }
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return id;
     }
 
     public Long submit(String certificatePath) {
