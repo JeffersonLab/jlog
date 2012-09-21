@@ -14,16 +14,19 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.security.KeyFactory;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -58,8 +61,6 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMReader;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -409,32 +410,15 @@ abstract class LogItem {
         return context.getSocketFactory();
     }
 
-    protected static SSLSocketFactory getSocketFactoryPEM(String pemPath) throws NoSuchAlgorithmException, IOException, KeyStoreException, CertificateException, UnrecoverableKeyException, KeyManagementException {        
-        Security.addProvider(new BouncyCastleProvider());
-        
+    protected static SSLSocketFactory getSocketFactoryPEM(String pemPath) throws NoSuchAlgorithmException, IOException, KeyStoreException, CertificateException, UnrecoverableKeyException, KeyManagementException, InvalidKeySpecException {        
         SSLContext context = SSLContext.getInstance("TLS");
         
-        byte[] certAndKey = fullyReadFile(new File(pemPath));
+        byte[] certAndKey = fileToBytes(new File(pemPath));
+        byte[] certBytes = parseDERFromPEM(certAndKey, "-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----");
+        byte[] keyBytes = parseDERFromPEM(certAndKey, "-----BEGIN PRIVATE KEY-----", "-----END PRIVATE KEY-----");
         
-        String delimiter = "-----END CERTIFICATE-----";
-        String[] tokens = new String(certAndKey).split(delimiter);
-        
-        byte[] certBytes = tokens[0].concat(delimiter).getBytes();
-        byte[] keyBytes = tokens[1].getBytes();
-        
-        PEMReader reader;
-        
-        reader = new PEMReader(new InputStreamReader(new ByteArrayInputStream(certBytes)));
-        X509Certificate cert = (X509Certificate)reader.readObject();        
-        
-        reader = new PEMReader(new InputStreamReader(new ByteArrayInputStream(keyBytes)));
-        PrivateKey key = (PrivateKey)reader.readObject();        
-        
-        /*PEMReader reader = new PEMReader(new FileReader(pemPath));
-        X509Certificate cert = (X509Certificate)reader.readObject();        
-        
-        reader = new PEMReader(new FileReader("C:/Users/ryans/Desktop/key.pem"));
-        PrivateKey key = (PrivateKey)reader.readObject();*/
+        X509Certificate cert = generateCertificateFromDER(certBytes);              
+        RSAPrivateKey key  = generatePrivateKeyFromDER(keyBytes);
         
         KeyStore keystore = KeyStore.getInstance("JKS");
         keystore.load(null);
@@ -443,7 +427,7 @@ abstract class LogItem {
         
         System.out.println("Keystore entry count: " + keystore.size());
         System.out.println("Client Certificate: ");
-        System.out.println(keystore.getCertificate("alias"));
+        System.out.println(keystore.getCertificate("cert-alias"));
         
         KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
         kmf.init(keystore, "changeit".toCharArray());
@@ -508,7 +492,7 @@ abstract class LogItem {
         return context.getSocketFactory();
     }
 
-    private static byte[] fullyReadFile(final File file) throws IOException
+    private static byte[] fileToBytes(final File file) throws IOException
     {
         final DataInputStream dis = new DataInputStream(new FileInputStream(file));
         final byte[] bytes = new byte[(int) file.length()];
@@ -517,12 +501,25 @@ abstract class LogItem {
         return bytes;
     }
     
-    protected static byte[] pemToDer(byte[] pemBytes) {
-        String data = new String(pemBytes);
-        String[] tokens = data.split("-----BEGIN CERTIFICATE-----");
-        tokens = tokens[1].split("-----END CERTIFICATE-----");
-        System.out.println(tokens[0]);
-        return DatatypeConverter.parseBase64Binary(tokens[0]);
+    protected static byte[] parseDERFromPEM(byte[] pem, String beginDelimiter, String endDelimiter) {
+        String data = new String(pem);
+        String[] tokens = data.split(beginDelimiter);
+        tokens = tokens[1].split(endDelimiter);
+        return DatatypeConverter.parseBase64Binary(tokens[0]);        
+    }
+    
+    protected static RSAPrivateKey generatePrivateKeyFromDER(byte[] keyBytes) throws InvalidKeySpecException, NoSuchAlgorithmException {
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+
+        KeyFactory factory = KeyFactory.getInstance("RSA");
+        
+        return (RSAPrivateKey)factory.generatePrivate(spec);        
+    }
+    
+    protected static X509Certificate generateCertificateFromDER(byte[] certBytes) throws CertificateException {
+        CertificateFactory factory = CertificateFactory.getInstance("X.509");
+        
+        return (X509Certificate)factory.generateCertificate(new ByteArrayInputStream(certBytes));      
     }
 
     public Long submit() throws LogException {
@@ -562,6 +559,8 @@ abstract class LogItem {
         } catch (KeyManagementException e) {
             throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
         } catch(UnrecoverableKeyException e) {
+            throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
+        } catch(InvalidKeySpecException e) {
             throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
         } finally {
             try {
