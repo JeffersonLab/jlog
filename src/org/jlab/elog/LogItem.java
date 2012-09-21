@@ -1,46 +1,26 @@
 package org.jlab.elog;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
-import java.lang.management.ManagementFactory;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.UnknownHostException;
-import java.security.KeyFactory;
 import java.security.KeyManagementException;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.ResourceBundle;
+import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509KeyManager;
-import javax.net.ssl.X509TrustManager;
 import javax.xml.XMLConstants;
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.DocumentBuilder;
@@ -64,7 +44,6 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
@@ -73,6 +52,8 @@ import org.xml.sax.SAXException;
  */
 abstract class LogItem {
 
+    private static final Logger logger = Logger.getLogger(LogItem.class.getName());
+    
     public static final String SUBMIT_URL;
     public static final String QUEUE_PATH;
 
@@ -153,61 +134,7 @@ abstract class LogItem {
         root = doc.createElement(rootTagName);
         doc.appendChild(root);
 
-        appendElementWithText(root, "created", toXMLFormat(new GregorianCalendar()));
-    }
-
-    protected final String toXMLFormat(GregorianCalendar calendar) {
-        return typeFactory.newXMLGregorianCalendar(calendar).normalize().toXMLFormat();
-    }
-
-    protected final GregorianCalendar toGregorianCalendar(String xmlDateTime) {
-        return typeFactory.newXMLGregorianCalendar(xmlDateTime).normalize().toGregorianCalendar();
-    }
-
-    protected final void appendElementWithText(Element parent, String tagName, String text) {
-        Element child = doc.createElement(tagName);
-        parent.appendChild(child);
-        child.setTextContent(text);
-        //Text textNode = doc.createTextNode(text);
-        //child.appendChild(textNode);
-    }
-
-    protected final void appendCommaDelimitedElementsWithText(Element parent, String tagName, String list) {
-        String[] tokens = list.split(",");
-
-        for (String token : tokens) {
-            appendElementWithText(parent, tagName, token.trim());
-        }
-    }
-
-    protected final void appendCommaDelimitedElementsWithGrandchildAndText(Element parent, String childTagName, String grandchildTagName, String list) {
-        String[] tokens = list.split(",");
-
-        for (String token : tokens) {
-            Element child = doc.createElement(childTagName);
-            parent.appendChild(child);
-            appendElementWithText(child, grandchildTagName, token.trim());
-        }
-    }
-
-    protected final String buildCommaDelimitedFromText(NodeList nodes) {
-        StringBuilder csvBuilder = new StringBuilder();
-
-        for (int i = 0; i < nodes.getLength(); i++) {
-            csvBuilder.append(nodes.item(i).getTextContent());
-            csvBuilder.append(",");
-        }
-
-        // Remove trailing comma
-        csvBuilder.deleteCharAt(csvBuilder.length() - 1);
-
-        return csvBuilder.toString();
-    }
-
-    protected final void removeChildren(Element parent) {
-        while (parent.hasChildNodes()) {
-            parent.removeChild(parent.getFirstChild());
-        }
+        XMLUtil.appendElementWithText(doc, root, "created", XMLUtil.toXMLFormat(new GregorianCalendar()));
     }
 
     public void addAttachment(String filename) throws LogException {
@@ -254,7 +181,7 @@ abstract class LogItem {
     public void setCreated(GregorianCalendar created) throws LogException {
         try {
             Element createdElement = (Element) createdExpression.evaluate(doc, XPathConstants.NODE);
-            createdElement.setTextContent(toXMLFormat(created));
+            createdElement.setTextContent(XMLUtil.toXMLFormat(created));
         } catch (XPathExpressionException e) {
             throw new LogException("Unable to traverse XML DOM.", e);
         }
@@ -266,7 +193,7 @@ abstract class LogItem {
         try {
             Element createdElement = (Element) createdExpression.evaluate(doc, XPathConstants.NODE);
             String createdStr = createdElement.getTextContent();
-            created = toGregorianCalendar(createdStr);
+            created = XMLUtil.toGregorianCalendar(createdStr);
         } catch (XPathExpressionException e) {
             throw new LogException("Unable to traverse XML DOM.", e);
         }
@@ -386,142 +313,6 @@ abstract class LogItem {
         return obtainedSchema;
     }
 
-    public static class TrustyTrustManager implements X509TrustManager {
-
-        @Override
-        public void checkClientTrusted(X509Certificate[] xcs, String string) throws CertificateException {
-        }
-
-        @Override
-        public void checkServerTrusted(X509Certificate[] xcs, String string) throws CertificateException {
-        }
-
-        @Override
-        public X509Certificate[] getAcceptedIssuers() {
-            return null;
-        }
-    }
-
-    protected static SSLSocketFactory getTrustySocketFactory() throws NoSuchAlgorithmException, KeyManagementException {
-        SSLContext context = SSLContext.getInstance("TLS");
-
-        context.init(null, new TrustManager[]{new TrustyTrustManager()}, null);
-
-        return context.getSocketFactory();
-    }
-
-    protected static SSLSocketFactory getSocketFactoryPEM(String pemPath) throws NoSuchAlgorithmException, IOException, KeyStoreException, CertificateException, UnrecoverableKeyException, KeyManagementException, InvalidKeySpecException {        
-        SSLContext context = SSLContext.getInstance("TLS");
-        
-        byte[] certAndKey = fileToBytes(new File(pemPath));
-        byte[] certBytes = parseDERFromPEM(certAndKey, "-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----");
-        byte[] keyBytes = parseDERFromPEM(certAndKey, "-----BEGIN PRIVATE KEY-----", "-----END PRIVATE KEY-----");
-        
-        X509Certificate cert = generateCertificateFromDER(certBytes);              
-        RSAPrivateKey key  = generatePrivateKeyFromDER(keyBytes);
-        
-        KeyStore keystore = KeyStore.getInstance("JKS");
-        keystore.load(null);
-        keystore.setCertificateEntry("cert-alias", cert);
-        keystore.setKeyEntry("key-alias", key, "changeit".toCharArray(), new Certificate[] {cert});
-        
-        System.out.println("Keystore entry count: " + keystore.size());
-        System.out.println("Client Certificate: ");
-        System.out.println(keystore.getCertificate("cert-alias"));
-        
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-        kmf.init(keystore, "changeit".toCharArray());
-        
-        KeyManager[] km = kmf.getKeyManagers(); 
-        
-        System.out.println("\n\n\n\n\n");
-        System.out.println("Length: " + km.length);
-        System.out.println("km[0]: " + km[0].toString());
-        System.out.println("\n\n\n\n\n");
-        
-        X509KeyManager xkm = (X509KeyManager)km[0];
-        System.out.println("Key: " + xkm.getPrivateKey("key-alias"));
-        X509Certificate[] chain = xkm.getCertificateChain("cert-alias");
-        
-        if(chain == null) {
-            chain = new X509Certificate[0];
-        }
-        
-        System.out.println("Chain Length: " + chain.length);
-        
-        for(X509Certificate c: chain) {
-            System.out.println(c);
-        }
-                
-        context.init(km, null, null);
-        
-        return context.getSocketFactory();
-    }    
-    
-    protected static SSLSocketFactory getSocketFactoryPKCS12(String p12Path) throws Exception {
-        SSLContext context = SSLContext.getInstance("TLS");
-        
-        KeyStore keystore = KeyStore.getInstance("PKCS12");
-        keystore.load(new FileInputStream(p12Path), "changeit".toCharArray());
-        
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-        kmf.init(keystore, "changeit".toCharArray());
-        
-        KeyManager[] km = kmf.getKeyManagers();
-        TrustManager[] tm = null; 
-        
-        context.init(km, tm, null);
-        
-        return context.getSocketFactory();
-    }    
-    
-    protected static SSLSocketFactory getSocketFactoryJKS(String keystorePath) throws Exception {
-        SSLContext context = SSLContext.getInstance("TLS");
-        
-        KeyStore keystore = KeyStore.getInstance("JKS");
-        keystore.load(new FileInputStream(keystorePath), "changeit".toCharArray());
-        
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-        kmf.init(keystore, "changeit".toCharArray());
-        
-        KeyManager[] km = kmf.getKeyManagers();
-        TrustManager[] tm = null; 
-        
-        context.init(km, tm, null);
-        
-        return context.getSocketFactory();
-    }
-
-    private static byte[] fileToBytes(final File file) throws IOException
-    {
-        final DataInputStream dis = new DataInputStream(new FileInputStream(file));
-        final byte[] bytes = new byte[(int) file.length()];
-        dis.readFully(bytes);
-        dis.close();
-        return bytes;
-    }
-    
-    protected static byte[] parseDERFromPEM(byte[] pem, String beginDelimiter, String endDelimiter) {
-        String data = new String(pem);
-        String[] tokens = data.split(beginDelimiter);
-        tokens = tokens[1].split(endDelimiter);
-        return DatatypeConverter.parseBase64Binary(tokens[0]);        
-    }
-    
-    protected static RSAPrivateKey generatePrivateKeyFromDER(byte[] keyBytes) throws InvalidKeySpecException, NoSuchAlgorithmException {
-        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-
-        KeyFactory factory = KeyFactory.getInstance("RSA");
-        
-        return (RSAPrivateKey)factory.generatePrivate(spec);        
-    }
-    
-    protected static X509Certificate generateCertificateFromDER(byte[] certBytes) throws CertificateException {
-        CertificateFactory factory = CertificateFactory.getInstance("X.509");
-        
-        return (X509Certificate)factory.generateCertificate(new ByteArrayInputStream(certBytes));      
-    }
-
     public Long submit() throws LogException {
         Long id = null;
         
@@ -536,7 +327,7 @@ abstract class LogItem {
         try {
             URL url = new URL(SUBMIT_URL);
             con = (HttpsURLConnection) url.openConnection();
-            con.setSSLSocketFactory(getSocketFactoryPEM(certFilePath));
+            con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(certFilePath, true));
             con.setRequestMethod("POST");
             con.setDoOutput(true);
             con.connect();
@@ -587,48 +378,6 @@ abstract class LogItem {
         return null;
     }
 
-    /**
-     * Attempt to obtain the process ID of the running JVM. Java has no official
-     * way to do this and this method will return null if unable to obtain the
-     * id.
-     *
-     * The approach used is to check the RuntimeMXBean name field, which often
-     * is in the form {pid}
-     *
-     * @{hostname}, but isn't required to be.
-     *
-     * @return The pid of the running JVM, or null if unable to obtain it.
-     */
-    protected Integer getJVMProcessId() {
-        Integer id = null;
-
-        String name = ManagementFactory.getRuntimeMXBean().getName();
-
-        String[] tokens = name.split("@");
-
-        if (tokens.length > 0) {
-            try {
-                id = Integer.parseInt(tokens[0]);
-            } catch (NumberFormatException e) {
-                // Oh well, we tried
-            }
-        }
-
-        return id;
-    }
-
-    protected String getHostname() {
-        String hostname = null;
-
-        try {
-            hostname = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            // Oh well, we tried;
-        }
-
-        return hostname;
-    }
-
     protected String generateXMLFilename() {
         StringBuilder filenameBuilder = new StringBuilder();
 
@@ -636,13 +385,13 @@ abstract class LogItem {
 
         String date = formatter.format(new Date());
 
-        Integer pid = getJVMProcessId();
+        Integer pid = SystemUtil.getJVMProcessId();
 
         if (pid == null) {
             pid = 0;
         }
 
-        String hostname = getHostname();
+        String hostname = SystemUtil.getHostname();
 
         if (hostname == null) {
             hostname = "unknown";

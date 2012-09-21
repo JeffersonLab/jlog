@@ -156,7 +156,7 @@ public class LogEntryTest {
 
         URL url = new URL(requestURL);
         con = (HttpsURLConnection) url.openConnection();
-        con.setSSLSocketFactory(LogItem.getTrustySocketFactory());
+        con.setSSLSocketFactory(SecurityUtil.getTrustySocketFactory());
         con.setRequestMethod("GET");
         con.setDoInput(true);
         BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
@@ -179,7 +179,7 @@ public class LogEntryTest {
 
         URL url = new URL(requestURL);
         con = (HttpsURLConnection) url.openConnection();
-        con.setSSLSocketFactory(LogItem.getSocketFactoryJKS(keystorePath));
+        con.setSSLSocketFactory(SecurityUtil.getSocketFactoryJKS(keystorePath));
         con.setRequestMethod("GET");
         con.setDoInput(true);
         con.setDoOutput(false);
@@ -206,7 +206,7 @@ public class LogEntryTest {
 
         URL url = new URL(requestURL);
         con = (HttpsURLConnection) url.openConnection();
-        con.setSSLSocketFactory(LogItem.getSocketFactoryPKCS12(p12Path));
+        con.setSSLSocketFactory(SecurityUtil.getSocketFactoryPKCS12(p12Path));
         con.setRequestMethod("GET");
         con.setDoInput(true);
         con.setDoOutput(false);
@@ -235,7 +235,7 @@ public class LogEntryTest {
         try {
             URL url = new URL(requestURL);
             con = (HttpsURLConnection) url.openConnection();
-            con.setSSLSocketFactory(LogItem.getSocketFactoryPEM(pemPath));
+            con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(pemPath, true));
             con.setRequestMethod("GET");
             con.setDoInput(true);
             con.setDoOutput(false);

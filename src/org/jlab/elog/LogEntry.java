@@ -45,17 +45,17 @@ public class LogEntry extends LogItem {
     public LogEntry(String title, String books) throws LogException {
         super("Logentry");
 
-        appendElementWithText(root, "title", title);
+        XMLUtil.appendElementWithText(doc, root, "title", title);
 
         Element logbooks = doc.createElement("Logbooks");
         root.appendChild(logbooks);
-        appendCommaDelimitedElementsWithText(logbooks, "logbook", books);
+        XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooks, "logbook", books);
 
         Element entrymakers = doc.createElement("Entrymakers");
         root.appendChild(entrymakers);
         Element entrymaker = doc.createElement("Entrymaker");
         entrymakers.appendChild(entrymaker);
-        appendElementWithText(entrymaker, "username", System.getProperty("user.name"));
+        XMLUtil.appendElementWithText(doc, entrymaker, "username", System.getProperty("user.name"));
     }
 
     public LogEntry(long id) throws LogException {
@@ -81,7 +81,7 @@ public class LogEntry extends LogItem {
     public void addLogbooks(String books) throws LogException {
         try {
             Element logbooksElement = (Element)logbooksExpression.evaluate(doc, XPathConstants.NODE);
-            appendCommaDelimitedElementsWithText(logbooksElement, "logbook", books);
+            XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, "logbook", books);
         }
         catch(XPathExpressionException e) {
             throw new LogException("Unable to traverse XML DOM.", e);
@@ -91,8 +91,8 @@ public class LogEntry extends LogItem {
     public void setLogbooks(String books) throws LogException {
         try {
             Element logbooksElement = (Element)logbooksExpression.evaluate(doc, XPathConstants.NODE);
-            removeChildren(logbooksElement);
-            appendCommaDelimitedElementsWithText(logbooksElement, "logbook", books);
+            XMLUtil.removeChildren(logbooksElement);
+            XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, "logbook", books);
         }
         catch(XPathExpressionException e) {
             throw new LogException("Unable to traverse XML DOM.", e);
@@ -104,7 +104,7 @@ public class LogEntry extends LogItem {
         
         try {
             NodeList logbookElements = (NodeList)logbookListExpression.evaluate(doc, XPathConstants.NODESET);
-            logbooks = buildCommaDelimitedFromText(logbookElements);
+            logbooks = XMLUtil.buildCommaDelimitedFromText(logbookElements);
         }
         catch(XPathExpressionException e) {
             throw new LogException("Unable to traverse XML DOM.", e);
@@ -140,7 +140,7 @@ public class LogEntry extends LogItem {
     public void addEntryMakers(String entrymakers) throws LogException {
         try {
             Element entrymakersElement = (Element)entrymakersExpression.evaluate(doc, XPathConstants.NODE);
-            appendCommaDelimitedElementsWithGrandchildAndText(entrymakersElement, "Entrymaker", "username", entrymakers);
+            XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
         }
         catch(XPathExpressionException e) {
             throw new LogException("Unable to traverse XML DOM.", e);
@@ -150,8 +150,8 @@ public class LogEntry extends LogItem {
     public void setEntryMakers(String entrymakers) throws LogException {
         try {
             Element entrymakersElement = (Element)entrymakersExpression.evaluate(doc, XPathConstants.NODE);
-            removeChildren(entrymakersElement);
-            appendCommaDelimitedElementsWithGrandchildAndText(entrymakersElement, "Entrymaker", "username", entrymakers);
+            XMLUtil.removeChildren(entrymakersElement);
+            XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
         }
         catch(XPathExpressionException e) {
             throw new LogException("Unable to traverse XML DOM.", e);
@@ -163,7 +163,7 @@ public class LogEntry extends LogItem {
         
         try {
             NodeList usernameElements = (NodeList)usernameListExpression.evaluate(doc, XPathConstants.NODESET);
-            entrymakers = buildCommaDelimitedFromText(usernameElements);
+            entrymakers = XMLUtil.buildCommaDelimitedFromText(usernameElements);
         }
         catch(XPathExpressionException e) {
             throw new LogException("Unable to traverse XML DOM.", e);

@@ -15,5 +15,8 @@ package org.jlab.elog;
  * @author ryans
  */
 public class LogRuntimeException extends RuntimeException {
-    
+
+    LogRuntimeException(String msg, Throwable t) {
+        super(msg, t);
+    }
 }
