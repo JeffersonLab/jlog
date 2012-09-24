@@ -1,5 +1,6 @@
 package org.jlab.elog;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -94,6 +95,10 @@ public class Attachment {
             } catch(IOException e) {
                 throw new LogException("Unable to open input stream.", e);
             }
+        } else {
+            String dataStr = dataElement.getTextContent();
+            byte[] data = XMLUtil.decodeBase64(dataStr);
+            is = new ByteArrayInputStream(data);
         }
 
         return is;
