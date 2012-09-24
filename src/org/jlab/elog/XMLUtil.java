@@ -1,10 +1,12 @@
 package org.jlab.elog;
 
 import java.util.GregorianCalendar;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
@@ -52,6 +54,26 @@ final class XMLUtil {
     }
 
     /**
+     * Encodes an array of bytes to base64.
+     * 
+     * @param data The bytes
+     * @return A base64 encoded String
+     */
+    public static String encodeBase64(byte[] data) {
+        return DatatypeConverter.printBase64Binary(data);
+    }
+    
+    /**
+     * Decodes a base64 String to an array of bytes.
+     * 
+     * @param data The base64 encoded String
+     * @return The bytes
+     */
+    public static byte[] decodeBase64(String data) {
+        return DatatypeConverter.parseBase64Binary(data);
+    }
+    
+    /**
      * Create a new element with child text node and append it to the specified
      * parent.
      *
@@ -59,14 +81,16 @@ final class XMLUtil {
      * @param parent The parent
      * @param tagName The new element tag name
      * @param text The child text node value
+     * @return The newly created Element
      */
-    public static void appendElementWithText(Document doc, Element parent,
+    public static Element appendElementWithText(Document doc, Element parent,
             String tagName, String text) {
         Element child = doc.createElement(tagName);
         parent.appendChild(child);
         child.setTextContent(text);
         //Text textNode = doc.createTextNode(text);
         //child.appendChild(textNode);
+        return child;
     }
 
     /**
@@ -140,4 +164,31 @@ final class XMLUtil {
             parent.removeChild(parent.getFirstChild());
         }
     }
+    
+    /**
+     * Returns the first occurrence of a child element with the specified tag
+     * name.  Note: only immediate children are candidates (not all 
+     * descendents).
+     * 
+     * @param parent The parent node
+     * @param tagName The child tag name
+     * @return The child Element or null if none found
+     */
+    public static Element getChildElementByName(Node parent, String tagName) {
+        Element child = null;
+
+        NodeList children = parent.getChildNodes();
+
+        for (int i = 0; i < children.getLength(); i++) {
+            if (children.item(i) instanceof Element) {
+                Element candidate = (Element) children.item(i);
+                if (candidate.getTagName().equals(tagName)) {
+                    child = candidate;
+                    break;
+                }
+            }
+        }
+
+        return child;
+    }    
 }
