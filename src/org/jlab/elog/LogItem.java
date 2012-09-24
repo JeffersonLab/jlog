@@ -15,8 +15,10 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
@@ -44,6 +46,7 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
@@ -53,7 +56,6 @@ import org.xml.sax.SAXException;
 abstract class LogItem {
 
     private static final Logger logger = Logger.getLogger(LogItem.class.getName());
-    
     public static final String SUBMIT_URL;
     public static final String QUEUE_PATH;
 
@@ -95,6 +97,7 @@ abstract class LogItem {
     protected XPathExpression lognumberTextExpression;
     protected XPathExpression createdExpression;
     protected XPathExpression bodyExpression;
+    protected XPathExpression attachmentsExpression;
 
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -115,10 +118,11 @@ abstract class LogItem {
         xpath = xpathFactory.newXPath();
 
         try {
-            lognumberExpression = xpath.compile("/Logentry/lognumber");
-            lognumberTextExpression = xpath.compile("/Logentry/lognumber/text()");
-            createdExpression = xpath.compile("/Logentry/created");
-            bodyExpression = xpath.compile("/Logentry/body");
+            lognumberExpression = xpath.compile("/*/lognumber");
+            lognumberTextExpression = xpath.compile("/*/lognumber/text()");
+            createdExpression = xpath.compile("/*/created");
+            bodyExpression = xpath.compile("/*/body");
+            attachmentsExpression = xpath.compile("/*/Attachments");
         } catch (XPathExpressionException e) {
             throw new LogException("Unable to construct XML XPath query", e);
         }
@@ -138,9 +142,47 @@ abstract class LogItem {
     }
 
     public void addAttachment(String filename) throws LogException {
+        addAttachment(filename, "", "");
     }
 
     public void addAttachment(String filename, String caption, String mimeType) throws LogException {
+
+        try {
+            String data = XMLUtil.encodeBase64(IOUtil.fileToBytes(new File(filename)));
+            Element attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
+
+            Element attachmentElement = doc.createElement("Attachment");
+            attachmentsElement.appendChild(attachmentElement);
+            XMLUtil.appendElementWithText(doc, attachmentElement, "caption", caption);
+            XMLUtil.appendElementWithText(doc, attachmentElement, "filename", filename);
+            XMLUtil.appendElementWithText(doc, attachmentElement, "type", mimeType);
+            Element dataElement = XMLUtil.appendElementWithText(doc, attachmentElement, "data", data);
+            dataElement.setAttribute("encoding", "base64");
+        } catch (IOException e) {
+            throw new LogException("Unable to access attachment file.", e);            
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to traverse XML DOM via XPath.", e);
+        }
+    }
+
+    public Attachment[] getAttachments() {
+        List<Attachment> attachments = new ArrayList<Attachment>();
+
+        try {
+            Element attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
+            NodeList children = attachmentsElement.getChildNodes();
+
+            for (int i = 0; i < children.getLength(); i++) {
+                attachments.add(new Attachment((Element) children.item(i)));
+            }
+
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to traverse XML DOM via XPath.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected Node type in XML DOM.", e);
+        }
+
+        return attachments.toArray(new Attachment[]{});
     }
 
     public void setLogNumber(Long lognumber) throws LogException {
@@ -315,7 +357,7 @@ abstract class LogItem {
 
     public Long submit() throws LogException {
         Long id = null;
-        
+
         String xml = getXML();
 
         String certFilePath = "C:/Users/ryans/Desktop/ryans.pem";
@@ -323,7 +365,7 @@ abstract class LogItem {
         HttpsURLConnection con;
         OutputStreamWriter writer = null;
         InputStreamReader reader = null;
-        
+
         try {
             URL url = new URL(SUBMIT_URL);
             con = (HttpsURLConnection) url.openConnection();
@@ -349,24 +391,24 @@ abstract class LogItem {
             throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
         } catch (KeyManagementException e) {
             throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
-        } catch(UnrecoverableKeyException e) {
+        } catch (UnrecoverableKeyException e) {
             throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
-        } catch(InvalidKeySpecException e) {
+        } catch (InvalidKeySpecException e) {
             throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
         } finally {
             try {
-                if(writer != null) {
+                if (writer != null) {
                     writer.close();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            
+
             try {
-                if(reader != null) {
-                    reader.close();   
+                if (reader != null) {
+                    reader.close();
                 }
-            } catch(IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
