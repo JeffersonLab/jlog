@@ -31,7 +31,7 @@ public class Attachment {
         return capElement.getTextContent();
     }
 
-    public String getFilename() {
+    public String getFileName() {
         Element nameElement = XMLUtil.getChildElementByName(attachmentElement,
                 "filename");
 
@@ -73,7 +73,7 @@ public class Attachment {
         return url;
     }
 
-    public InputStream getBytes() throws LogException {
+    public InputStream getData() throws LogException {
         InputStream is = null;
 
         Element dataElement = XMLUtil.getChildElementByName(attachmentElement,

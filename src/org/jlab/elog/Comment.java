@@ -8,7 +8,7 @@ import java.util.ResourceBundle;
  */
 public class Comment extends LogItem {
 
-    public static final String COMMENT_SCHEMA_URL;    
+    private static final String COMMENT_SCHEMA_URL;    
     
     static {
         ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
@@ -20,7 +20,7 @@ public class Comment extends LogItem {
     }
     
     @Override
-    protected String getSchemaURL() {
+    String getSchemaURL() {
         return COMMENT_SCHEMA_URL;
     }
     

@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.XMLConstants;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -55,49 +54,25 @@ import org.xml.sax.SAXException;
  */
 abstract class LogItem {
 
-    private static final Logger logger = Logger.getLogger(LogItem.class.getName());
-    public static final String SUBMIT_URL;
-    public static final String QUEUE_PATH;
+    private static final String SUBMIT_URL;
+    private static final String QUEUE_PATH;
 
     static {
         ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
         SUBMIT_URL = bundle.getString("SUBMIT_URL");
         QUEUE_PATH = bundle.getString("QUEUE_PATH");
     }
-
-    public enum ContentType {
-
-        TEXT, HTML
-    };
-
-    public static class Body {
-
-        private final ContentType type;
-        private final String content;
-
-        public Body(ContentType type, String content) {
-            this.type = type;
-            this.content = content;
-        }
-
-        public ContentType getType() {
-            return type;
-        }
-
-        public String getContent() {
-            return content;
-        }
-    }
-    protected Document doc;
-    protected Element root;
-    protected DatatypeFactory typeFactory;
-    protected DocumentBuilder builder;
-    protected XPath xpath;
-    protected XPathExpression lognumberExpression;
-    protected XPathExpression lognumberTextExpression;
-    protected XPathExpression createdExpression;
-    protected XPathExpression bodyExpression;
-    protected XPathExpression attachmentsExpression;
+    
+    Document doc;
+    Element root;
+    DatatypeFactory typeFactory;
+    DocumentBuilder builder;
+    XPath xpath;
+    XPathExpression lognumberExpression;
+    XPathExpression lognumberTextExpression;
+    XPathExpression createdExpression;
+    XPathExpression bodyExpression;
+    XPathExpression attachmentsExpression;
 
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -141,25 +116,26 @@ abstract class LogItem {
         XMLUtil.appendElementWithText(doc, root, "created", XMLUtil.toXMLFormat(new GregorianCalendar()));
     }
 
-    public void addAttachment(String filename) throws LogException {
-        addAttachment(filename, "", "");
+    public void addAttachment(String filepath) throws LogException {
+        addAttachment(filepath, "", "");
     }
 
-    public void addAttachment(String filename, String caption, String mimeType) throws LogException {
+    public void addAttachment(String filepath, String caption, String mimeType) throws LogException {
 
         try {
-            String data = XMLUtil.encodeBase64(IOUtil.fileToBytes(new File(filename)));
+            File file = new File(filepath);
+            String data = XMLUtil.encodeBase64(IOUtil.fileToBytes(file));
             Element attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
 
             Element attachmentElement = doc.createElement("Attachment");
             attachmentsElement.appendChild(attachmentElement);
             XMLUtil.appendElementWithText(doc, attachmentElement, "caption", caption);
-            XMLUtil.appendElementWithText(doc, attachmentElement, "filename", filename);
+            XMLUtil.appendElementWithText(doc, attachmentElement, "filename", file.getName());
             XMLUtil.appendElementWithText(doc, attachmentElement, "type", mimeType);
             Element dataElement = XMLUtil.appendElementWithText(doc, attachmentElement, "data", data);
             dataElement.setAttribute("encoding", "base64");
         } catch (IOException e) {
-            throw new LogException("Unable to access attachment file.", e);            
+            throw new LogException("Unable to access attachment file.", e);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to traverse XML DOM via XPath.", e);
         }
@@ -252,10 +228,10 @@ abstract class LogItem {
             if (bodyElement != null) {
                 String content = bodyElement.getTextContent();
                 String typeStr = bodyElement.getAttribute("type");
-                ContentType type = ContentType.TEXT;
+                Body.ContentType type = Body.ContentType.TEXT;
 
                 if (typeStr != null) {
-                    type = ContentType.valueOf(typeStr.toUpperCase());
+                    type = Body.ContentType.valueOf(typeStr.toUpperCase());
                 }
 
                 body = new Body(type, content);
@@ -282,7 +258,7 @@ abstract class LogItem {
                 bodyElement = doc.createElement("body");
                 root.appendChild(bodyElement);
 
-                if (body.getType() == ContentType.HTML) {
+                if (body.getType() == Body.ContentType.HTML) {
                     bodyElement.setAttribute("type", "html");
                 }
 
@@ -317,7 +293,7 @@ abstract class LogItem {
         return xml;
     }
 
-    protected abstract String getSchemaURL();
+    abstract String getSchemaURL();
 
     public boolean validate() throws LogException {
         boolean obtainedSchema = false;
@@ -420,7 +396,7 @@ abstract class LogItem {
         return null;
     }
 
-    protected String generateXMLFilename() {
+    String generateXMLFilename() {
         StringBuilder filenameBuilder = new StringBuilder();
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy_MM_dd_HHmmss_");
@@ -452,7 +428,7 @@ abstract class LogItem {
         return filenameBuilder.toString();
     }
 
-    protected void queue() throws LogException {
+    void queue() throws LogException {
         validate(); // Ignore return value indicating could not obtain schema
 
         String xml = getXML();
