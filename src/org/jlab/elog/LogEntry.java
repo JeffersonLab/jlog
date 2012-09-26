@@ -50,12 +50,6 @@ public class LogEntry extends LogItem {
         Element logbooks = doc.createElement("Logbooks");
         root.appendChild(logbooks);
         XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooks, "logbook", books);
-
-        Element entrymakers = doc.createElement("Entrymakers");
-        root.appendChild(entrymakers);
-        Element entrymaker = doc.createElement("Entrymaker");
-        entrymakers.appendChild(entrymaker);
-        XMLUtil.appendElementWithText(doc, entrymaker, "username", System.getProperty("user.name"));
     }
 
     public LogEntry(long id) throws LogException {
@@ -140,6 +134,12 @@ public class LogEntry extends LogItem {
     public void addEntryMakers(String entrymakers) throws LogException {
         try {
             Element entrymakersElement = (Element)entrymakersExpression.evaluate(doc, XPathConstants.NODE);
+            
+            if(entrymakersElement == null) {
+                entrymakersElement = doc.createElement("Entrymakers");
+                root.appendChild(entrymakersElement);
+            }   
+            
             XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
         }
         catch(XPathExpressionException e) {
@@ -150,7 +150,14 @@ public class LogEntry extends LogItem {
     public void setEntryMakers(String entrymakers) throws LogException {
         try {
             Element entrymakersElement = (Element)entrymakersExpression.evaluate(doc, XPathConstants.NODE);
-            XMLUtil.removeChildren(entrymakersElement);
+            
+            if(entrymakersElement == null) {
+                entrymakersElement = doc.createElement("Entrymakers");
+                root.appendChild(entrymakersElement);
+            } else {
+                XMLUtil.removeChildren(entrymakersElement);
+            }
+            
             XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
         }
         catch(XPathExpressionException e) {

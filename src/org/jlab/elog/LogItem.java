@@ -73,6 +73,7 @@ abstract class LogItem {
     XPathExpression createdExpression;
     XPathExpression bodyExpression;
     XPathExpression attachmentsExpression;
+    XPathExpression authorTextExpression;
 
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -98,6 +99,7 @@ abstract class LogItem {
             createdExpression = xpath.compile("/*/created");
             bodyExpression = xpath.compile("/*/body");
             attachmentsExpression = xpath.compile("/*/Attachments");
+            authorTextExpression = xpath.compile("/*/Author/username/text()");
         } catch (XPathExpressionException e) {
             throw new LogException("Unable to construct XML XPath query", e);
         }
@@ -114,6 +116,10 @@ abstract class LogItem {
         doc.appendChild(root);
 
         XMLUtil.appendElementWithText(doc, root, "created", XMLUtil.toXMLFormat(new GregorianCalendar()));
+        
+        Element authorElement = doc.createElement("Author");
+        root.appendChild(authorElement);
+        XMLUtil.appendElementWithText(doc, authorElement, "username", System.getProperty("user.name"));        
     }
 
     public void addAttachment(String filepath) throws LogException {
@@ -161,6 +167,18 @@ abstract class LogItem {
         return attachments.toArray(new Attachment[]{});
     }
 
+    public String getAuthor() {
+        String author = null;
+
+        try {
+            author = (String) authorTextExpression.evaluate(doc, XPathConstants.STRING);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
+        }
+
+        return author;        
+    }
+    
     public void setLogNumber(Long lognumber) throws LogException {
         try {
             Element lognumberElement = (Element) lognumberExpression.evaluate(doc, XPathConstants.NODE);
@@ -429,15 +447,20 @@ abstract class LogItem {
     }
 
     void queue() throws LogException {
+        String filename = generateXMLFilename();
+        String filepath = new File(QUEUE_PATH, filename).getAbsolutePath();
+        queue(filepath);
+    }
+    
+    void queue(String filepath) throws LogException {
         validate(); // Ignore return value indicating could not obtain schema
 
         String xml = getXML();
 
-        String filename = generateXMLFilename();
         FileWriter writer = null;
 
         try {
-            writer = new FileWriter(new File(QUEUE_PATH, filename));
+            writer = new FileWriter(filepath);
 
             writer.write(xml);
         } catch (IOException e) {
