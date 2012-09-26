@@ -4,6 +4,8 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -51,5 +53,17 @@ final class IOUtil {
         }
         
         return bytes;
+    }
+    
+    public static String streamToString(InputStream is, String encoding) {
+        String str = "";
+        
+        Scanner scan = new Scanner(is, encoding).useDelimiter("\\A");
+        
+        if(scan.hasNext()) {
+            str = scan.next();
+        }
+        
+        return str;
     }
 }
