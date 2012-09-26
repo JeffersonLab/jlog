@@ -190,95 +190,9 @@ public class LogEntryTest {
     }
 
     @Test
-    public void testClientCertJKS() throws Exception {
-        String requestURL = "https://logbooks.jlab.org/authtest";
-        String keystorePath = "C:/Users/ryans/Desktop/logclient.jks";
-
-        HttpsURLConnection con = null;
-
-        InputStream is = null;
-
-        String expected = "howdy";
-        String actual = null;
-
-        try {
-            URL url = new URL(requestURL);
-            con = (HttpsURLConnection) url.openConnection();
-            con.setSSLSocketFactory(SecurityUtil.getSocketFactoryJKS(keystorePath));
-            con.setRequestMethod("GET");
-            con.setDoInput(true);
-            con.setDoOutput(false);
-            con.connect();
-
-            is = con.getInputStream();
-
-            String content = IOUtil.streamToString(is, "UTF-8");
-            actual = content.substring(0, 5);
-        } finally {
-            try {
-                if (is != null) {
-                    is.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            } finally {
-                if (con != null) {
-                    con.disconnect();
-                }
-            }
-        }
-
-        assertEquals(expected, actual);
-    }
-
-    @Test
-    public void testClientCertP12() throws Exception {
-        String requestURL = "https://logbooks.jlab.org/authtest";
-        String p12Path = "C:/Users/ryans/Desktop/ryans2.p12";
-
-        HttpsURLConnection con = null;
-
-        InputStream is = null;
-
-        String expected = "howdy";
-        String actual = null;
-
-        try {
-            URL url = new URL(requestURL);
-            con = (HttpsURLConnection) url.openConnection();
-            con.setSSLSocketFactory(SecurityUtil.getSocketFactoryPKCS12(p12Path));
-            con.setRequestMethod("GET");
-            con.setDoInput(true);
-            con.setDoOutput(false);
-            con.connect();
-
-            is = con.getInputStream();
-
-            String content = IOUtil.streamToString(is, "UTF-8");
-            actual = content.substring(0, 5);
-        } finally {
-            try {
-                if (is != null) {
-                    is.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            } finally {
-                if (con != null) {
-                    con.disconnect();
-                }
-            }
-        }
-
-        assertEquals(expected, actual);
-    }
-
-    @Test
     public void testClientCertPEM() throws Exception {
         String requestURL = "https://logbooks.jlab.org/authtest";
-        String pemPath = "C:/Users/ryans/Desktop/ryans.pem";
+        String pemPath = new File(System.getProperty("user.home"), ".elogcert").getAbsolutePath();
 
         HttpsURLConnection con = null;
         InputStream is = null;

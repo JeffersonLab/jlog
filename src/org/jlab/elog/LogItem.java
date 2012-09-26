@@ -56,6 +56,7 @@ abstract class LogItem {
 
     private static final String SUBMIT_URL;
     private static final String QUEUE_PATH;
+    private static final String PEM_FILE_NAME = ".elogcert";
 
     static {
         ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
@@ -81,13 +82,13 @@ abstract class LogItem {
         try {
             builder = factory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
-            throw new LogException("Unable to obtain XML document builder.", e);
+            throw new LogRuntimeException("Unable to obtain XML document builder.", e);
         }
 
         try {
             typeFactory = DatatypeFactory.newInstance();
         } catch (DatatypeConfigurationException e) {
-            throw new LogException("Unable to obtain XML datatype factory.", e);
+            throw new LogRuntimeException("Unable to obtain XML datatype factory.", e);
         }
 
         XPathFactory xpathFactory = XPathFactory.newInstance();
@@ -101,14 +102,14 @@ abstract class LogItem {
             attachmentsExpression = xpath.compile("/*/Attachments");
             authorTextExpression = xpath.compile("/*/Author/username/text()");
         } catch (XPathExpressionException e) {
-            throw new LogException("Unable to construct XML XPath query", e);
+            throw new LogRuntimeException("Unable to construct XML XPath query", e);
         }
     }
 
-    public LogItem() throws LogException {
+    public LogItem() throws LogRuntimeException {
     }
 
-    public LogItem(String rootTagName) throws LogException {
+    public LogItem(String rootTagName) throws LogRuntimeException {
 
         doc = builder.newDocument();
 
@@ -122,11 +123,11 @@ abstract class LogItem {
         XMLUtil.appendElementWithText(doc, authorElement, "username", System.getProperty("user.name"));        
     }
 
-    public void addAttachment(String filepath) throws LogException {
+    public void addAttachment(String filepath) throws LogException, LogRuntimeException {
         addAttachment(filepath, "", "");
     }
 
-    public void addAttachment(String filepath, String caption, String mimeType) throws LogException {
+    public void addAttachment(String filepath, String caption, String mimeType) throws LogException, LogRuntimeException {
 
         try {
             File file = new File(filepath);
@@ -147,7 +148,7 @@ abstract class LogItem {
         }
     }
 
-    public Attachment[] getAttachments() {
+    public Attachment[] getAttachments() throws LogRuntimeException {
         List<Attachment> attachments = new ArrayList<Attachment>();
 
         try {
@@ -167,7 +168,7 @@ abstract class LogItem {
         return attachments.toArray(new Attachment[]{});
     }
 
-    public String getAuthor() {
+    public String getAuthor() throws LogRuntimeException {
         String author = null;
 
         try {
@@ -179,7 +180,7 @@ abstract class LogItem {
         return author;        
     }
     
-    public void setLogNumber(Long lognumber) throws LogException {
+    public void setLogNumber(Long lognumber) throws LogRuntimeException {
         try {
             Element lognumberElement = (Element) lognumberExpression.evaluate(doc, XPathConstants.NODE);
 
@@ -190,11 +191,11 @@ abstract class LogItem {
 
             lognumberElement.setTextContent(lognumber.toString());
         } catch (XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
+            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
         }
     }
 
-    public Long getLogNumber() throws LogException {
+    public Long getLogNumber() throws LogRuntimeException {
         Long lognumber = null;
 
         try {
@@ -204,26 +205,26 @@ abstract class LogItem {
                 try {
                     lognumber = Long.parseLong(lognumberStr);
                 } catch (NumberFormatException e) {
-                    throw new LogException("Unable to obtain log number due to non-numeric format.", e);
+                    throw new LogRuntimeException("Unable to obtain log number due to non-numeric format.", e);
                 }
             }
         } catch (XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
+            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
         }
 
         return lognumber;
     }
 
-    public void setCreated(GregorianCalendar created) throws LogException {
+    public void setCreated(GregorianCalendar created) throws LogRuntimeException {
         try {
             Element createdElement = (Element) createdExpression.evaluate(doc, XPathConstants.NODE);
             createdElement.setTextContent(XMLUtil.toXMLFormat(created));
         } catch (XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
+            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
         }
     }
 
-    public GregorianCalendar getCreated() throws LogException {
+    public GregorianCalendar getCreated() throws LogRuntimeException {
         GregorianCalendar created = null;
 
         try {
@@ -231,13 +232,13 @@ abstract class LogItem {
             String createdStr = createdElement.getTextContent();
             created = XMLUtil.toGregorianCalendar(createdStr);
         } catch (XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
+            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
         }
 
         return created;
     }
 
-    public Body getBody() throws LogException {
+    public Body getBody() throws LogRuntimeException {
         Body body = null;
 
         try {
@@ -255,15 +256,15 @@ abstract class LogItem {
                 body = new Body(type, content);
             }
         } catch (XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
+            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
         } catch (IllegalArgumentException e) {
-            throw new LogException("Unexpected ContentType in XML body", e);
+            throw new LogRuntimeException("Unexpected ContentType in XML body", e);
         }
 
         return body;
     }
 
-    public void setBody(Body body) throws LogException {
+    public void setBody(Body body) throws LogRuntimeException {
 
         try {
             Element bodyElement = (Element) bodyExpression.evaluate(doc, XPathConstants.NODE);
@@ -284,12 +285,12 @@ abstract class LogItem {
                 bodyElement.appendChild(data);
             }
         } catch (XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
+            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
         }
 
     }
 
-    public String getXML() throws LogException {
+    public String getXML() throws LogRuntimeException {
         String xml = null;
         TransformerFactory factory = TransformerFactory.newInstance();
 
@@ -303,9 +304,9 @@ abstract class LogItem {
             transformer.transform(source, result);
             xml = writer.toString();
         } catch (TransformerConfigurationException e) {
-            throw new LogException("Unable to obtain XML document transformer.", e);
+            throw new LogRuntimeException("Unable to obtain XML document transformer.", e);
         } catch (TransformerException e) {
-            throw new LogException("Unable to transform XML document.", e);
+            throw new LogRuntimeException("Unable to transform XML document.", e);
         }
 
         return xml;
@@ -341,7 +342,9 @@ abstract class LogItem {
             } catch (SAXException e) {
                 throw new LogException("Invalid XML.", e);
             } catch (IOException e) {
-                throw new LogException("Unable to validate XML.", e);
+                //throw new LogException("Unable to validate XML.", e);
+                e.printStackTrace();
+                obtainedSchema = false;
             }
 
         }
@@ -350,11 +353,14 @@ abstract class LogItem {
     }
 
     public Long submit() throws LogException {
+        String pemFilePath = new File(System.getProperty("user.home"), PEM_FILE_NAME).getAbsolutePath();
+        return submit(pemFilePath);
+    }    
+    
+    public Long submit(String pemFilePath) throws LogException {
         Long id = null;
 
         String xml = getXML();
-
-        String certFilePath = "C:/Users/ryans/Desktop/ryans.pem";
 
         HttpsURLConnection con;
         OutputStreamWriter writer = null;
@@ -363,7 +369,7 @@ abstract class LogItem {
         try {
             URL url = new URL(SUBMIT_URL);
             con = (HttpsURLConnection) url.openConnection();
-            con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(certFilePath, true));
+            con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(pemFilePath, true));
             con.setRequestMethod("POST");
             con.setDoOutput(true);
             con.connect();
@@ -408,10 +414,6 @@ abstract class LogItem {
         }
 
         return id;
-    }
-
-    public Long submit(String certificatePath) {
-        return null;
     }
 
     String generateXMLFilename() {
