@@ -1,8 +1,8 @@
 package org.jlab.elog;
 
-import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
@@ -35,7 +35,7 @@ public class LogEntryTest {
 
     @Before
     public void setUp() throws LogException {
-        entry = new LogEntry("Drinking", "TLOG");
+        entry = new LogEntry("Testing 123", "TLOG");
     }
 
     @After
@@ -44,7 +44,6 @@ public class LogEntryTest {
 
     @Test
     public void testTitle() throws LogException {
-        System.out.println("Title Test");
         String expected = "Testing title";
         entry.setTitle(expected);
         String actual = entry.getTitle();
@@ -52,22 +51,25 @@ public class LogEntryTest {
     }
 
     @Test
+    public void testGetAuthor() {
+        String actual = entry.getAuthor();
+        String expected = System.getProperty("user.name");
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void testCreated() throws LogException {
-        System.out.println("Created Test");
         GregorianCalendar expected = new GregorianCalendar();
         entry.setCreated(expected);
         GregorianCalendar actual = entry.getCreated();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS Z");
         String expectedStr = formatter.format(expected.getTime());
         String actualStr = formatter.format(actual.getTime());
-        System.out.println("Expected: " + expectedStr);
-        System.out.println("Actual: " + actualStr);
         assertEquals(expectedStr, actualStr);
     }
 
     @Test
     public void testLognumber() throws LogException {
-        System.out.println("Lognumber Test");
         Long expected = 1234L;
         entry.setLogNumber(expected);
         Long actual = entry.getLogNumber();
@@ -76,7 +78,6 @@ public class LogEntryTest {
 
     @Test
     public void testSetLogbooks() throws LogException {
-        System.out.println("Logbooks Set Test");
         String expected = "YOULOG,MELOG,WELOG";
         entry.setLogbooks(expected);
         String actual = entry.getLogbooks();
@@ -85,7 +86,6 @@ public class LogEntryTest {
 
     @Test
     public void testAddLogbooks() throws LogException {
-        System.out.println("Logbooks Add Test");
         String expected = "TLOG,YOULOG,MELOG,WELOG";
         String addlist = "YOULOG,MELOG,WELOG";
         entry.addLogbooks(addlist);
@@ -95,55 +95,56 @@ public class LogEntryTest {
 
     @Test
     public void testSetEntrymakers() throws LogException {
-        System.out.println("Entrymakers Set Test");
-        String expected = "ryans,theo,cjs";
+        String expected = "theo,cjs";
         entry.setEntryMakers(expected);
         String actual = entry.getEntryMakers();
-        System.out.println("actual: " + actual);
         assertEquals(expected, actual);
     }
 
     @Test
     public void testAddEntrymakers() throws LogException {
-        System.out.println("Entrymakers Add Test");
-        String expected = "ryans,theo,cjs";
+        String expected = "theo,cjs";
         String addlist = "theo,cjs";
         entry.addEntryMakers(addlist);
         String actual = entry.getEntryMakers();
-        System.out.println("actual: " + actual);
         assertEquals(expected, actual);
     }
 
     @Test
     public void testBody() throws LogException {
-        System.out.println("Body test");
         Body expected = new Body(Body.ContentType.HTML, "<b>I like to make bold statements.</b>");
         entry.setTitle("<b>Title!</b>");
         entry.setBody(expected);
         Body actual = entry.getBody();
-        System.out.println(entry.getXML());
         assertEquals(expected.getContent(), actual.getContent());
         assertEquals(expected.getType(), actual.getType());
     }
 
     @Test
     public void testGetXML() throws LogException {
-        System.out.println("Get XML Test");
         String xml = entry.getXML();
-        System.out.println(xml);
+        String expected = "Testing 123";
+        String actual = xml.split("<title>")[1].split("</title>")[0];
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testValidate() throws LogException {
-        System.out.println("Validate Test");
         boolean obtainedSchema = entry.validate();
-        System.out.println("Obtained Schema: " + obtainedSchema);
+        if (!obtainedSchema) {
+            throw new RuntimeException("Unable to obtain schema");
+        }
     }
 
     @Test
     public void testQueue() throws LogException {
-        System.out.println("Queue Test");
-        entry.queue();
+        String expected = "Save and then load me";
+        entry.setTitle(expected);
+        String filepath = new File(System.getProperty("java.io.tmpdir"), "test.xml").getAbsolutePath();
+        entry.queue(filepath);
+        LogEntry tmp = new LogEntry(filepath);
+        String actual = tmp.getTitle();
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -152,104 +153,27 @@ public class LogEntryTest {
 
         HttpsURLConnection con = null;
 
-        URL url = new URL(requestURL);
-        con = (HttpsURLConnection) url.openConnection();
-        con.setSSLSocketFactory(SecurityUtil.getTrustySocketFactory());
-        con.setRequestMethod("GET");
-        con.setDoInput(true);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        InputStream is = null;
 
-        String line = null;
-
-        while ((line = reader.readLine()) != null) {
-            System.out.println(line);
-        }
-
-        reader.close();
-    }
-
-    @Test
-    public void testClientCertJKS() throws Exception {
-        String requestURL = "https://logbooks.jlab.org/authtest";
-        String keystorePath = "C:/Users/ryans/Desktop/logclient.jks";
-
-        HttpsURLConnection con = null;
-
-        URL url = new URL(requestURL);
-        con = (HttpsURLConnection) url.openConnection();
-        con.setSSLSocketFactory(SecurityUtil.getSocketFactoryJKS(keystorePath));
-        con.setRequestMethod("GET");
-        con.setDoInput(true);
-        con.setDoOutput(false);
-        con.connect();
-
-        String line = null;
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
-
-        while ((line = reader.readLine()) != null) {
-            System.out.println(line);
-        }
-
-        reader.close();
-        con.disconnect();
-    }
-
-    @Test
-    public void testClientCertP12() throws Exception {
-        String requestURL = "https://logbooks.jlab.org/authtest";
-        String p12Path = "C:/Users/ryans/Desktop/ryans2.p12";
-
-        HttpsURLConnection con = null;
-
-        URL url = new URL(requestURL);
-        con = (HttpsURLConnection) url.openConnection();
-        con.setSSLSocketFactory(SecurityUtil.getSocketFactoryPKCS12(p12Path));
-        con.setRequestMethod("GET");
-        con.setDoInput(true);
-        con.setDoOutput(false);
-        con.connect();
-
-        String line = null;
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
-
-        while ((line = reader.readLine()) != null) {
-            System.out.println(line);
-        }
-
-        reader.close();
-        con.disconnect();
-    }
-
-    @Test
-    public void testClientCertPEM() throws Exception {
-        String requestURL = "https://logbooks.jlab.org/authtest";
-        String pemPath = "C:/Users/ryans/Desktop/ryans.pem";
-
-        HttpsURLConnection con = null;
-        BufferedReader reader = null;
+        String expected = "<!DOCTYPE html>";
+        String actual = null;
 
         try {
             URL url = new URL(requestURL);
             con = (HttpsURLConnection) url.openConnection();
-            con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(pemPath, true));
+            con.setSSLSocketFactory(SecurityUtil.getTrustySocketFactory());
             con.setRequestMethod("GET");
             con.setDoInput(true);
-            con.setDoOutput(false);
             con.connect();
 
-            String line;
+            is = con.getInputStream();
 
-            reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
-
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-            }
+            String content = IOUtil.streamToString(is, "UTF-8");
+            actual = content.substring(0, 15);
         } finally {
             try {
-                if (reader != null) {
-                    reader.close();
+                if (is != null) {
+                    is.close();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -260,5 +184,136 @@ public class LogEntryTest {
                 }
             }
         }
+
+        assertEquals(expected, actual);
+
+    }
+
+    @Test
+    public void testClientCertJKS() throws Exception {
+        String requestURL = "https://logbooks.jlab.org/authtest";
+        String keystorePath = "C:/Users/ryans/Desktop/logclient.jks";
+
+        HttpsURLConnection con = null;
+
+        InputStream is = null;
+
+        String expected = "howdy";
+        String actual = null;
+
+        try {
+            URL url = new URL(requestURL);
+            con = (HttpsURLConnection) url.openConnection();
+            con.setSSLSocketFactory(SecurityUtil.getSocketFactoryJKS(keystorePath));
+            con.setRequestMethod("GET");
+            con.setDoInput(true);
+            con.setDoOutput(false);
+            con.connect();
+
+            is = con.getInputStream();
+
+            String content = IOUtil.streamToString(is, "UTF-8");
+            actual = content.substring(0, 5);
+        } finally {
+            try {
+                if (is != null) {
+                    is.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            } finally {
+                if (con != null) {
+                    con.disconnect();
+                }
+            }
+        }
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testClientCertP12() throws Exception {
+        String requestURL = "https://logbooks.jlab.org/authtest";
+        String p12Path = "C:/Users/ryans/Desktop/ryans2.p12";
+
+        HttpsURLConnection con = null;
+
+        InputStream is = null;
+
+        String expected = "howdy";
+        String actual = null;
+
+        try {
+            URL url = new URL(requestURL);
+            con = (HttpsURLConnection) url.openConnection();
+            con.setSSLSocketFactory(SecurityUtil.getSocketFactoryPKCS12(p12Path));
+            con.setRequestMethod("GET");
+            con.setDoInput(true);
+            con.setDoOutput(false);
+            con.connect();
+
+            is = con.getInputStream();
+
+            String content = IOUtil.streamToString(is, "UTF-8");
+            actual = content.substring(0, 5);
+        } finally {
+            try {
+                if (is != null) {
+                    is.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            } finally {
+                if (con != null) {
+                    con.disconnect();
+                }
+            }
+        }
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testClientCertPEM() throws Exception {
+        String requestURL = "https://logbooks.jlab.org/authtest";
+        String pemPath = "C:/Users/ryans/Desktop/ryans.pem";
+
+        HttpsURLConnection con = null;
+        InputStream is = null;
+
+        String expected = "howdy";
+        String actual = null;
+
+        try {
+            URL url = new URL(requestURL);
+            con = (HttpsURLConnection) url.openConnection();
+            con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(pemPath, true));
+            con.setRequestMethod("GET");
+            con.setDoInput(true);
+            con.setDoOutput(false);
+            con.connect();
+
+            is = con.getInputStream();
+
+            String content = IOUtil.streamToString(is, "UTF-8");
+            actual = content.substring(0, 5);
+        } finally {
+            try {
+                if (is != null) {
+                    is.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+
+            } finally {
+                if (con != null) {
+                    con.disconnect();
+                }
+            }
+        }
+
+        assertEquals(expected, actual);
     }
 }
