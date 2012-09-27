@@ -75,7 +75,9 @@ abstract class LogItem {
     XPathExpression bodyExpression;
     XPathExpression attachmentsExpression;
     XPathExpression authorTextExpression;
-
+    XPathExpression notificationsExpression;
+    XPathExpression notificationListExpression;
+    
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
@@ -101,6 +103,8 @@ abstract class LogItem {
             bodyExpression = xpath.compile("/*/body");
             attachmentsExpression = xpath.compile("/*/Attachments");
             authorTextExpression = xpath.compile("/*/Author/username/text()");
+            notificationsExpression = xpath.compile("/*/Notifications");
+            notificationListExpression = xpath.compile("/*/Notifications/email");
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to construct XML XPath query", e);
         }
@@ -168,6 +172,53 @@ abstract class LogItem {
         return attachments.toArray(new Attachment[]{});
     }
 
+    public void deleteAttachments() throws LogRuntimeException {
+        try {
+            Element attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
+
+            XMLUtil.removeChildren(attachmentsElement);
+            
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to traverse XML DOM via XPath.", e);
+        }        
+    }
+    
+    public void setEmailNotify(String addresses) throws LogRuntimeException {
+        try {
+            Element notificationsElement = (Element)notificationsExpression.evaluate(doc, XPathConstants.NODE);
+            
+            if(notificationsElement == null) {
+                if(addresses != null) {
+                    notificationsElement = doc.createElement("Notifications");
+                    root.appendChild(notificationsElement);
+                }
+            } else {
+                XMLUtil.removeChildren(notificationsElement);
+            }
+            
+            if(addresses != null) {
+                XMLUtil.appendCommaDelimitedElementsWithText(doc, notificationsElement, "email", addresses);
+            }
+        }
+        catch(XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
+        }                 
+    }
+    
+    public String getEmailNotify() throws LogRuntimeException {
+        String addresses = null;
+
+        try {
+            NodeList notificationElements = (NodeList)notificationListExpression.evaluate(doc, XPathConstants.NODESET);
+            addresses = XMLUtil.buildCommaDelimitedFromText(notificationElements);
+        }
+        catch(XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
+        }           
+        
+        return addresses;
+    }
+    
     public String getAuthor() throws LogRuntimeException {
         String author = null;
 
