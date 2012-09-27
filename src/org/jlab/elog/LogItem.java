@@ -63,7 +63,6 @@ abstract class LogItem {
         SUBMIT_URL = bundle.getString("SUBMIT_URL");
         QUEUE_PATH = bundle.getString("QUEUE_PATH");
     }
-    
     Document doc;
     Element root;
     DatatypeFactory typeFactory;
@@ -77,7 +76,7 @@ abstract class LogItem {
     XPathExpression authorTextExpression;
     XPathExpression notificationsExpression;
     XPathExpression notificationListExpression;
-    
+
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
@@ -121,10 +120,10 @@ abstract class LogItem {
         doc.appendChild(root);
 
         XMLUtil.appendElementWithText(doc, root, "created", XMLUtil.toXMLFormat(new GregorianCalendar()));
-        
+
         Element authorElement = doc.createElement("Author");
         root.appendChild(authorElement);
-        XMLUtil.appendElementWithText(doc, authorElement, "username", System.getProperty("user.name"));        
+        XMLUtil.appendElementWithText(doc, authorElement, "username", System.getProperty("user.name"));
     }
 
     public void addAttachment(String filepath) throws LogException, LogRuntimeException {
@@ -177,48 +176,46 @@ abstract class LogItem {
             Element attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
 
             XMLUtil.removeChildren(attachmentsElement);
-            
+
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to traverse XML DOM via XPath.", e);
-        }        
+        }
     }
-    
+
     public void setEmailNotify(String addresses) throws LogRuntimeException {
         try {
-            Element notificationsElement = (Element)notificationsExpression.evaluate(doc, XPathConstants.NODE);
-            
-            if(notificationsElement == null) {
-                if(addresses != null) {
+            Element notificationsElement = (Element) notificationsExpression.evaluate(doc, XPathConstants.NODE);
+
+            if (notificationsElement == null) {
+                if (addresses != null) {
                     notificationsElement = doc.createElement("Notifications");
                     root.appendChild(notificationsElement);
                 }
             } else {
                 XMLUtil.removeChildren(notificationsElement);
             }
-            
-            if(addresses != null) {
+
+            if (addresses != null) {
                 XMLUtil.appendCommaDelimitedElementsWithText(doc, notificationsElement, "email", addresses);
             }
-        }
-        catch(XPathExpressionException e) {
+        } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to traverse XML DOM.", e);
-        }                 
+        }
     }
-    
+
     public String getEmailNotify() throws LogRuntimeException {
         String addresses = null;
 
         try {
-            NodeList notificationElements = (NodeList)notificationListExpression.evaluate(doc, XPathConstants.NODESET);
+            NodeList notificationElements = (NodeList) notificationListExpression.evaluate(doc, XPathConstants.NODESET);
             addresses = XMLUtil.buildCommaDelimitedFromText(notificationElements);
-        }
-        catch(XPathExpressionException e) {
+        } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to traverse XML DOM.", e);
-        }           
-        
+        }
+
         return addresses;
     }
-    
+
     public String getAuthor() throws LogRuntimeException {
         String author = null;
 
@@ -228,9 +225,9 @@ abstract class LogItem {
             throw new LogRuntimeException("Unable to traverse XML DOM.", e);
         }
 
-        return author;        
+        return author;
     }
-    
+
     public void setLogNumber(Long lognumber) throws LogRuntimeException {
         try {
             Element lognumberElement = (Element) lognumberExpression.evaluate(doc, XPathConstants.NODE);
@@ -365,49 +362,38 @@ abstract class LogItem {
 
     abstract String getSchemaURL();
 
-    public boolean validate() throws LogException {
-        boolean obtainedSchema = false;
+    public void validate() throws SchemaUnavailableException, InvalidXMLException {
         Schema schema = null;
 
         try {
             URL schemaURL = new URL(getSchemaURL());
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             schema = factory.newSchema(schemaURL);
-            obtainedSchema = true;
         } catch (MalformedURLException e) {
-            //throw new LogException("Schema URL malformed.", e);
-            e.printStackTrace();
+            throw new SchemaUnavailableException("Schema URL malformed.", e);
 
         } catch (SAXException e) {
-            //throw new LogException("Unable to parse schema.", e);
-            e.printStackTrace();
+            throw new SchemaUnavailableException("Unable to parse schema.", e);
         }
 
-        if (obtainedSchema) {
-            Validator validator = schema.newValidator();
+        Validator validator = schema.newValidator();
 
-            DOMSource source = new DOMSource(doc);
+        DOMSource source = new DOMSource(doc);
 
-            try {
-                validator.validate(source);
-            } catch (SAXException e) {
-                throw new LogException("Invalid XML.", e);
-            } catch (IOException e) {
-                //throw new LogException("Unable to validate XML.", e);
-                e.printStackTrace();
-                obtainedSchema = false;
-            }
-
+        try {
+            validator.validate(source);
+        } catch (SAXException e) {
+            throw new InvalidXMLException("The XML failed to validate against the schema.", e);
+        } catch (IOException e) {
+            throw new SchemaUnavailableException("Unable to validate XML.", e);
         }
-
-        return obtainedSchema;
     }
 
     public Long submit() throws LogException {
         String pemFilePath = new File(System.getProperty("user.home"), PEM_FILE_NAME).getAbsolutePath();
         return submit(pemFilePath);
-    }    
-    
+    }
+
     public Long submit(String pemFilePath) throws LogException {
         Long id = null;
 
@@ -504,7 +490,7 @@ abstract class LogItem {
         String filepath = new File(QUEUE_PATH, filename).getAbsolutePath();
         queue(filepath);
     }
-    
+
     void queue(String filepath) throws LogException {
         validate(); // Ignore return value indicating could not obtain schema
 

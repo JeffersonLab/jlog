@@ -130,10 +130,7 @@ public class LogEntryTest {
 
     @Test
     public void testValidate() throws LogException {
-        boolean obtainedSchema = entry.validate();
-        if (!obtainedSchema) {
-            throw new RuntimeException("Unable to obtain schema");
-        }
+        entry.validate();
     }
 
     @Test

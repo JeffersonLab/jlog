@@ -58,7 +58,7 @@ public class LogEntry extends LogItem {
         throw new UnsupportedOperationException();
     }
 
-    public LogEntry(String filePath) throws LogException {
+    public LogEntry(String filePath) throws SchemaUnavailableException, InvalidXMLException, LogException {
         try {
             doc = builder.parse(filePath);
         } catch (SAXException e) {
@@ -67,9 +67,7 @@ public class LogEntry extends LogItem {
             throw new LogException("Unable to parse XML file.", e);
         }
         
-        if(!validate()) { // Alternatively we could call builder.setSchema() and it would be a validating parser
-            throw new LogException("Unable to validate XML because schema cannot be obtained.");
-        }
+        validate(); // Alternatively we could call builder.setSchema() and it would be a validating parser
     }
 
     public void addLogbooks(String books) throws LogException {
