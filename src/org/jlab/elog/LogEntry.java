@@ -27,6 +27,7 @@ public class LogEntry extends LogItem {
     final XPathExpression logbookListExpression;
     final XPathExpression entrymakersExpression;
     final XPathExpression usernameListExpression;
+    final XPathExpression stickyExpression;
 
     static {
         ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
@@ -40,6 +41,7 @@ public class LogEntry extends LogItem {
             logbookListExpression = xpath.compile("/Logentry/Logbooks/logbook");
             entrymakersExpression = xpath.compile("/Logentry/Entrymakers");
             usernameListExpression = xpath.compile("/Logentry/Entrymakers/Entrymaker/username");
+            stickyExpression = xpath.compile("/Logentry/sticky");
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to construct XML XPath query", e);
         }
@@ -194,10 +196,10 @@ public class LogEntry extends LogItem {
     }
 
     public void setEntryMakers(String entrymakers) throws LogRuntimeException {
-        if(entrymakers == null) {
+        if (entrymakers == null) {
             entrymakers = "";
         }
-        
+
         Element entrymakersElement = null;
 
         try {
@@ -223,10 +225,10 @@ public class LogEntry extends LogItem {
 
         try {
             usernameElements = (NodeList) usernameListExpression.evaluate(doc, XPathConstants.NODESET);
-            
+
             if (usernameElements == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
-            }            
+            }
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
@@ -234,6 +236,60 @@ public class LogEntry extends LogItem {
         }
 
         return XMLUtil.buildCommaDelimitedFromText(usernameElements);
+    }
+
+    public void setSticky(boolean sticky) throws LogRuntimeException {
+        Element stickyElement = null;
+
+        try {
+            stickyElement = (Element) stickyExpression.evaluate(doc, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (stickyElement == null && sticky) {
+            stickyElement = doc.createElement("sticky");
+            root.appendChild(stickyElement);
+            stickyElement.setTextContent("1");
+        } else {
+            if (sticky) {
+                stickyElement.setTextContent("1");
+            } else {
+                root.removeChild(stickyElement);
+            }
+        }
+    }
+
+    public boolean isSticky() throws LogRuntimeException {
+        boolean sticky = false;
+
+        Element stickyElement = null;
+
+        try {
+            stickyElement = (Element) stickyExpression.evaluate(doc, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (stickyElement != null) {
+            String value = stickyElement.getTextContent();
+            
+            try {
+                int number = Integer.parseInt(value);
+
+                if (number != 0) {
+                    sticky = true;
+                }
+            } catch (NumberFormatException e) {
+                throw new LogRuntimeException("Unable to obtain sticky due to non-numeric format.", e);
+            }
+        }
+
+        return sticky;
     }
 
     @Override

@@ -1,7 +1,5 @@
 package org.jlab.elog;
 
-import org.jlab.elog.util.IOUtil;
-import org.jlab.elog.util.SecurityUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,6 +8,8 @@ import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import javax.net.ssl.HttpsURLConnection;
 import org.jlab.elog.exception.LogException;
+import org.jlab.elog.util.IOUtil;
+import org.jlab.elog.util.SecurityUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -72,6 +72,25 @@ public class LogEntryTest {
     }
 
     @Test
+    public void testAttachment() throws Exception {
+        String expectedFilename = "testing.xml";
+        String expectedCaption = "Testing 123";
+        String expectedMimeType = "xml";
+        String expectedContent = entry.getXML();
+        String filepath = new File(System.getProperty("java.io.tmpdir"), expectedFilename).getAbsolutePath();
+        entry.queue(filepath);
+        entry.addAttachment(filepath, expectedCaption, expectedMimeType);
+        String actualFilename = entry.getAttachments()[0].getFileName();
+        String actualCaption = entry.getAttachments()[0].getCaption();
+        String actualMimeType = entry.getAttachments()[0].getMimeType();
+        String actualContent = IOUtil.streamToString(entry.getAttachments()[0].getData(), "UTF-8");
+        assertEquals(expectedFilename, actualFilename);
+        assertEquals(expectedCaption, actualCaption);
+        assertEquals(expectedMimeType, actualMimeType);
+        assertEquals(expectedContent, actualContent);
+    }
+    
+    @Test
     public void testLognumber() throws LogException {
         Long expected = 1234L;
         entry.setLogNumber(expected);
@@ -113,6 +132,14 @@ public class LogEntryTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    public void testSticky() {
+        boolean expected = true;
+        entry.setSticky(expected);
+        boolean actual = entry.isSticky();
+        assertEquals(expected, actual);        
+    }
+    
     @Test
     public void testBody() throws LogException {
         Body expected = new Body(Body.ContentType.HTML, "<b>I like to make bold statements.</b>");

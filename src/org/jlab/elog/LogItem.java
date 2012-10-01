@@ -157,6 +157,11 @@ abstract class LogItem {
             throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
         }
 
+        if(attachmentsElement == null) {
+            attachmentsElement = doc.createElement("Attachments");
+            root.appendChild(attachmentsElement);
+        }
+        
         Element attachmentElement = doc.createElement("Attachment");
         attachmentsElement.appendChild(attachmentElement);
         XMLUtil.appendElementWithText(doc, attachmentElement, "caption", caption);
