@@ -1,9 +1,18 @@
 package org.jlab.elog.util;
 
+import java.io.StringWriter;
 import java.util.GregorianCalendar;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.jlab.elog.exception.LogRuntimeException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -55,24 +64,24 @@ public final class XMLUtil {
 
     /**
      * Encodes an array of bytes to base64.
-     * 
+     *
      * @param data The bytes
      * @return A base64 encoded String
      */
     public static String encodeBase64(byte[] data) {
         return DatatypeConverter.printBase64Binary(data);
     }
-    
+
     /**
      * Decodes a base64 String to an array of bytes.
-     * 
+     *
      * @param data The base64 encoded String
      * @return The bytes
      */
     public static byte[] decodeBase64(String data) {
         return DatatypeConverter.parseBase64Binary(data);
     }
-    
+
     /**
      * Create a new element with child text node and append it to the specified
      * parent.
@@ -164,12 +173,11 @@ public final class XMLUtil {
             parent.removeChild(parent.getFirstChild());
         }
     }
-    
+
     /**
      * Returns the first occurrence of a child element with the specified tag
-     * name.  Note: only immediate children are candidates (not all 
-     * descendents).
-     * 
+     * name. Note: only immediate children are candidates (not all descendents).
+     *
      * @param parent The parent node
      * @param tagName The child tag name
      * @return The child Element or null if none found
@@ -190,5 +198,28 @@ public final class XMLUtil {
         }
 
         return child;
-    }    
+    }
+
+    /**
+     * Convert a Document (DOM) into an XML String.
+     * 
+     * @param doc The Document
+     * @return The XML String
+     * @throws TransformerConfigurationException If there is a configuration 
+     * issue
+     * @throws TransformerException If unable to transform the Document
+     */
+    public static String getXML(Document doc) throws 
+            TransformerConfigurationException, TransformerException {
+        TransformerFactory factory = TransformerFactory.newInstance();
+
+        Transformer transformer = factory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        StringWriter writer = new StringWriter();
+        StreamResult result = new StreamResult(writer);
+        DOMSource source = new DOMSource(doc);
+        transformer.transform(source, result);
+
+        return writer.toString();
+    }
 }

@@ -88,6 +88,11 @@ public class LogEntryTest {
         assertEquals(expectedCaption, actualCaption);
         assertEquals(expectedMimeType, actualMimeType);
         assertEquals(expectedContent, actualContent);
+        
+        entry.deleteAttachments();
+        int expectedLength = 0;
+        int actualLength = entry.getAttachments().length;
+        assertEquals(expectedLength, actualLength);
     }
     
     @Test
@@ -98,6 +103,14 @@ public class LogEntryTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    public void testEmailNotify() throws Exception {
+        String expected = "ryans@jlab.org";
+        entry.setEmailNotify(expected);
+        String actual = entry.getEmailNotify();
+        assertEquals(expected, actual);
+    }
+    
     @Test
     public void testSetLogbooks() throws LogException {
         String expected = "YOULOG,MELOG,WELOG";
@@ -163,6 +176,11 @@ public class LogEntryTest {
         entry.validate();
     }
 
+    @Test
+    public void testSubmit() throws Exception {
+        entry.submit();
+    }
+    
     @Test
     public void testQueue() throws LogException {
         String expected = "Save and then load me";

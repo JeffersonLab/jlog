@@ -3,9 +3,8 @@ package org.jlab.elog;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -27,13 +26,9 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
@@ -86,6 +81,8 @@ abstract class LogItem {
     XPathExpression authorTextExpression;
     XPathExpression notificationsExpression;
     XPathExpression notificationListExpression;
+    XPathExpression responseStatusExpression;
+    XPathExpression responseMessageExpression;
 
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -114,6 +111,8 @@ abstract class LogItem {
             authorTextExpression = xpath.compile("/*/Author/username/text()");
             notificationsExpression = xpath.compile("/*/Notifications");
             notificationListExpression = xpath.compile("/*/Notifications/email");
+            responseStatusExpression = xpath.compile("/Response/@stat");
+            responseMessageExpression = xpath.compile("/Response/msg/text()");
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to construct XML XPath query", e);
         }
@@ -157,11 +156,11 @@ abstract class LogItem {
             throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
         }
 
-        if(attachmentsElement == null) {
+        if (attachmentsElement == null) {
             attachmentsElement = doc.createElement("Attachments");
             root.appendChild(attachmentsElement);
         }
-        
+
         Element attachmentElement = doc.createElement("Attachment");
         attachmentsElement.appendChild(attachmentElement);
         XMLUtil.appendElementWithText(doc, attachmentElement, "caption", caption);
@@ -415,17 +414,9 @@ abstract class LogItem {
 
     public String getXML() throws LogRuntimeException {
         String xml = null;
-        TransformerFactory factory = TransformerFactory.newInstance();
 
         try {
-            Transformer transformer = factory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty(OutputKeys.STANDALONE, "no"); // Ignored?
-            StringWriter writer = new StringWriter();
-            StreamResult result = new StreamResult(writer);
-            DOMSource source = new DOMSource(doc);
-            transformer.transform(source, result);
-            xml = writer.toString();
+            xml = XMLUtil.getXML(doc);
         } catch (TransformerConfigurationException e) {
             throw new LogRuntimeException("Unable to obtain XML document transformer.", e);
         } catch (TransformerException e) {
@@ -463,31 +454,69 @@ abstract class LogItem {
         }
     }
 
-    public Long submit() throws LogException {
-        String pemFilePath = new File(System.getProperty("user.home"), PEM_FILE_NAME).getAbsolutePath();
-        return submit(pemFilePath);
+    Long parseResponse(InputStream is) throws LogIOException, LogRuntimeException {
+        Long id = null;
+        
+        try {
+            Document response = builder.parse(is);
+
+            String status = (String) responseStatusExpression.evaluate(response, XPathConstants.STRING);
+            String message = (String) responseMessageExpression.evaluate(response, XPathConstants.STRING);
+            
+            /*if(status == null || status.isEmpty()) {
+                throw new LogIOException("Unrecognized Response from server.");
+            }
+            
+            if(!"ok".equals(status)) {
+                throw new LogIOException("Submission Failed: " + message);
+            }*/
+            
+            //System.out.println("Status: " + status);
+            //System.out.println("Message: " + message);
+            System.out.println(XMLUtil.getXML(response));
+        } catch (IOException e) {
+            throw new LogIOException("Unable to parse response.", e);
+        } catch (SAXException e) {
+            throw new LogIOException("Unable to parse response.", e);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (Exception e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }        
+        
+        return id;
     }
 
-    public Long submit(String pemFilePath) throws LogIOException, LogCertificateException {
+    Long putToServer(String pemFilePath) throws LogIOException, LogCertificateException, LogRuntimeException {
         Long id = null;
 
-        String xml = getXML();
-
+        String xml = getXML();        
+        
         HttpsURLConnection con;
         OutputStreamWriter writer = null;
-        InputStreamReader reader = null;
-
+        InputStream is = null;
+        InputStream error = null;
+        
         try {
-            URL url = new URL(SUBMIT_URL);
+            URL url = new URL(getPutPath());
             con = (HttpsURLConnection) url.openConnection();
             con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(pemFilePath, true));
-            con.setRequestMethod("POST");
+            con.setRequestMethod("PUT");
             con.setDoOutput(true);
             con.connect();
             writer = new OutputStreamWriter(con.getOutputStream());
             writer.write(xml);
-            reader = new InputStreamReader(con.getInputStream());
-            // TODO: read response       
+            writer.close();
+
+            is = con.getInputStream();
+            error = con.getErrorStream();
+
+            if (error != null) {
+                String errorMsg = IOUtil.streamToString(error, "UTF-8");
+                System.err.println(errorMsg);
+            }
+
+            id = parseResponse(is);
         } catch (MalformedURLException e) {
             throw new LogIOException("Invalid submission URL: check config file.", e);
         } catch (IOException e) {
@@ -516,17 +545,64 @@ abstract class LogItem {
             }
 
             try {
-                if (reader != null) {
-                    reader.close();
+                if (is != null) {
+                    is.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                if (error != null) {
+                    error.close();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
+        return id;        
+    }
+    
+    String getPutPath() {
+        StringBuilder strBuilder = new StringBuilder();
+        
+        strBuilder.append(SUBMIT_URL);
+        
+        if(!SUBMIT_URL.endsWith("/")) {
+            strBuilder.append("/");
+        }
+        
+        strBuilder.append(generateXMLFilename());
+        
+        return strBuilder.toString();
+    }
+    
+    String getDefaultCertificatePath() {
+        return new File(System.getProperty("user.home"), PEM_FILE_NAME).getAbsolutePath();
+    }
+    
+    public Long submit() throws LogException {
+        return submit(getDefaultCertificatePath());
+    }    
+    
+    public Long submit(String pemFilePath) throws InvalidXMLException, LogIOException {
+        Long id = 0L;
+
+        try {
+            id = putToServer(pemFilePath);
+        } catch(Exception e) {
+            // Ignore exceptions
+            queue();
+        }
+        
         return id;
     }
 
+    public Long sumbitNow() throws LogIOException, LogCertificateException, LogRuntimeException {
+        return putToServer(getDefaultCertificatePath());
+    }
+    
     String generateXMLFilename() {
         StringBuilder filenameBuilder = new StringBuilder();
 
