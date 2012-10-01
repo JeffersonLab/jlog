@@ -5,6 +5,11 @@ import java.util.ResourceBundle;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
+import org.jlab.elog.exception.InvalidXMLException;
+import org.jlab.elog.exception.LogIOException;
+import org.jlab.elog.exception.LogRuntimeException;
+import org.jlab.elog.exception.MalformedXMLException;
+import org.jlab.elog.exception.SchemaUnavailableException;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -15,34 +20,32 @@ import org.xml.sax.SAXException;
  */
 public class LogEntry extends LogItem {
 
-    private static final String LOG_ENTRY_SCHEMA_URL;    
-    
+    private static final String LOG_ENTRY_SCHEMA_URL;
     final XPathExpression titleExpression;
     final XPathExpression logbooksExpression;
     final XPathExpression logbookListExpression;
     final XPathExpression entrymakersExpression;
     final XPathExpression usernameListExpression;
-    
+
     static {
         ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
-        LOG_ENTRY_SCHEMA_URL = bundle.getString("LOG_ENTRY_SCHEMA_URL");        
+        LOG_ENTRY_SCHEMA_URL = bundle.getString("LOG_ENTRY_SCHEMA_URL");
     }
-    
+
     {
         try {
-            titleExpression = xpath.compile("/Logentry/title");  
+            titleExpression = xpath.compile("/Logentry/title");
             logbooksExpression = xpath.compile("/Logentry/Logbooks");
             logbookListExpression = xpath.compile("/Logentry/Logbooks/logbook");
             entrymakersExpression = xpath.compile("/Logentry/Entrymakers");
             usernameListExpression = xpath.compile("/Logentry/Entrymakers/Entrymaker/username");
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to construct XML XPath query", e);
         }
-        catch(XPathExpressionException e) {
-            throw new LogException("Unable to construct XML XPath query", e);
-        }
-            
+
     }
-    
-    public LogEntry(String title, String books) throws LogException {
+
+    public LogEntry(String title, String books) throws LogRuntimeException {
         super("Logentry");
 
         XMLUtil.appendElementWithText(doc, root, "title", title);
@@ -52,130 +55,185 @@ public class LogEntry extends LogItem {
         XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooks, "logbook", books);
     }
 
-    public LogEntry(long id) throws LogException {
+    public LogEntry(long id) throws LogRuntimeException {
         super("Logentry");
 
         throw new UnsupportedOperationException();
     }
 
-    public LogEntry(String filePath) throws SchemaUnavailableException, InvalidXMLException, LogException {
+    public LogEntry(String filePath) throws SchemaUnavailableException, MalformedXMLException, InvalidXMLException, LogIOException, LogRuntimeException {
         try {
             doc = builder.parse(filePath);
         } catch (SAXException e) {
-            throw new LogException("File is not well formed XML.", e);
+            throw new MalformedXMLException("File is not well formed XML.", e);
         } catch (IOException e) {
-            throw new LogException("Unable to parse XML file.", e);
+            throw new LogIOException("Unable to parse XML file.", e);
         }
-        
-        validate(); // Alternatively we could call builder.setSchema() and it would be a validating parser
+
+        validate(); // Alternatively we could call builder.setSchema() and it would be a validating parser (no way to differentiate Malformed vs Invalid though)
     }
 
-    public void addLogbooks(String books) throws LogException {
-        try {
-            Element logbooksElement = (Element)logbooksExpression.evaluate(doc, XPathConstants.NODE);
-            XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, "logbook", books);
+    public void addLogbooks(String books) throws LogRuntimeException {
+        if (books == null || books.isEmpty()) {
+            return;
         }
-        catch(XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
-        }        
-    }
 
-    public void setLogbooks(String books) throws LogException {
+        Element logbooksElement = null;
+
         try {
-            Element logbooksElement = (Element)logbooksExpression.evaluate(doc, XPathConstants.NODE);
-            XMLUtil.removeChildren(logbooksElement);
-            XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, "logbook", books);
-        }
-        catch(XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
-        }           
-    }
-    
-    public String getLogbooks() throws LogException {
-        String logbooks = null;
-        
-        try {
-            NodeList logbookElements = (NodeList)logbookListExpression.evaluate(doc, XPathConstants.NODESET);
-            logbooks = XMLUtil.buildCommaDelimitedFromText(logbookElements);
-        }
-        catch(XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
-        }   
-        
-        return logbooks;
-    }
-    
-    public void setTitle(String title) throws LogException {
-        try {
-            Element titleElement = (Element)titleExpression.evaluate(doc, XPathConstants.NODE);
-            titleElement.setTextContent(title);
-        }
-        catch(XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
-        }
-    }
-    
-    public String getTitle() throws LogException {
-        String title = null;
-        
-        try {
-            Element titleElement = (Element)titleExpression.evaluate(doc, XPathConstants.NODE);
-            title = titleElement.getTextContent();
-        }
-        catch(XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
-        }        
-        
-        return title; 
-    }
-    
-    public void addEntryMakers(String entrymakers) throws LogException {
-        try {
-            Element entrymakersElement = (Element)entrymakersExpression.evaluate(doc, XPathConstants.NODE);
-            
-            if(entrymakersElement == null) {
-                entrymakersElement = doc.createElement("Entrymakers");
-                root.appendChild(entrymakersElement);
-            }   
-            
-            XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
-        }
-        catch(XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
-        }          
-    }
-    
-    public void setEntryMakers(String entrymakers) throws LogException {
-        try {
-            Element entrymakersElement = (Element)entrymakersExpression.evaluate(doc, XPathConstants.NODE);
-            
-            if(entrymakersElement == null) {
-                entrymakersElement = doc.createElement("Entrymakers");
-                root.appendChild(entrymakersElement);
-            } else {
-                XMLUtil.removeChildren(entrymakersElement);
+            logbooksElement = (Element) logbooksExpression.evaluate(doc, XPathConstants.NODE);
+
+            if (logbooksElement == null) {
+                throw new LogRuntimeException("Element not found in XML DOM.");
             }
-            
-            XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
         }
-        catch(XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
-        }          
-    }      
-    
-    public String getEntryMakers() throws LogException {
-        String entrymakers = null;
-        
+
+        XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, "logbook", books);
+    }
+
+    public void setLogbooks(String books) throws LogRuntimeException {
+        if (books == null) {
+            books = "";
+        }
+
+        Element logbooksElement = null;
+
         try {
-            NodeList usernameElements = (NodeList)usernameListExpression.evaluate(doc, XPathConstants.NODESET);
-            entrymakers = XMLUtil.buildCommaDelimitedFromText(usernameElements);
+            logbooksElement = (Element) logbooksExpression.evaluate(doc, XPathConstants.NODE);
+
+            if (logbooksElement == null) {
+                throw new LogRuntimeException("Element not found in XML DOM.");
+            }
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
         }
-        catch(XPathExpressionException e) {
-            throw new LogException("Unable to traverse XML DOM.", e);
-        }   
+
+        XMLUtil.removeChildren(logbooksElement);
+        XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, "logbook", books);
+    }
+
+    public String getLogbooks() throws LogRuntimeException {
+        NodeList logbookElements = null;
+
+        try {
+            logbookElements = (NodeList) logbookListExpression.evaluate(doc, XPathConstants.NODESET);
+
+            if (logbookElements == null) {
+                throw new LogRuntimeException("Element not found in XML DOM.");
+            }
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        return XMLUtil.buildCommaDelimitedFromText(logbookElements);
+    }
+
+    public void setTitle(String title) throws LogRuntimeException {
+        Element titleElement = null;
+
+        try {
+            titleElement = (Element) titleExpression.evaluate(doc, XPathConstants.NODE);
+
+            if (titleElement == null) {
+                throw new LogRuntimeException("Element not found in XML DOM.");
+            }
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        titleElement.setTextContent(title);
+    }
+
+    public String getTitle() throws LogRuntimeException {
+        Element titleElement = null;
+
+        try {
+            titleElement = (Element) titleExpression.evaluate(doc, XPathConstants.NODE);
+
+            if (titleElement == null) {
+                throw new LogRuntimeException("Element not found in XML DOM.");
+            }
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        return titleElement.getTextContent();
+    }
+
+    public void addEntryMakers(String entrymakers) throws LogRuntimeException {
+        Element entrymakersElement = null;
+
+        try {
+            entrymakersElement = (Element) entrymakersExpression.evaluate(doc, XPathConstants.NODE);
+
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (entrymakersElement == null) {
+            entrymakersElement = doc.createElement("Entrymakers");
+            root.appendChild(entrymakersElement);
+        }
+
+        XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
+    }
+
+    public void setEntryMakers(String entrymakers) throws LogRuntimeException {
+        if(entrymakers == null) {
+            entrymakers = "";
+        }
         
-        return entrymakers;
-    }    
+        Element entrymakersElement = null;
+
+        try {
+            entrymakersElement = (Element) entrymakersExpression.evaluate(doc, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (entrymakersElement == null) {
+            entrymakersElement = doc.createElement("Entrymakers");
+            root.appendChild(entrymakersElement);
+        } else {
+            XMLUtil.removeChildren(entrymakersElement);
+        }
+
+        XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
+    }
+
+    public String getEntryMakers() throws LogRuntimeException {
+        NodeList usernameElements = null;
+
+        try {
+            usernameElements = (NodeList) usernameListExpression.evaluate(doc, XPathConstants.NODESET);
+            
+            if (usernameElements == null) {
+                throw new LogRuntimeException("Element not found in XML DOM.");
+            }            
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        return XMLUtil.buildCommaDelimitedFromText(usernameElements);
+    }
 
     @Override
     String getSchemaURL() {

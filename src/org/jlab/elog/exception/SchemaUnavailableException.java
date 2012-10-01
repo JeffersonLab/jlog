@@ -1,4 +1,4 @@
-package org.jlab.elog;
+package org.jlab.elog.exception;
 
 /**
  *

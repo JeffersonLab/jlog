@@ -1,4 +1,4 @@
-package org.jlab.elog;
+package org.jlab.elog.exception;
 
 /**
  * Top-level unchecked exception for the ELog client API that indicates a
@@ -14,11 +14,11 @@ package org.jlab.elog;
  */
 public class LogRuntimeException extends RuntimeException {
 
-    LogRuntimeException(String msg) {
+    public LogRuntimeException(String msg) {
         super(msg);
     }
 
-    LogRuntimeException(String msg, Throwable t) {
+    public LogRuntimeException(String msg, Throwable t) {
         super(msg, t);
     }
 }

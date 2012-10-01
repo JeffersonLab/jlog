@@ -1,4 +1,4 @@
-package org.jlab.elog;
+package org.jlab.elog.exception;
 
 /**
  * Top-level checked exception for the ELog client API that indicates a
@@ -8,11 +8,11 @@ package org.jlab.elog;
  */
 public class LogException extends Exception {
 
-    LogException(String msg) {
+    public LogException(String msg) {
         super(msg);
     }
     
-    LogException(String msg, Throwable t) {
+    public LogException(String msg, Throwable t) {
         super(msg, t);
     }
     

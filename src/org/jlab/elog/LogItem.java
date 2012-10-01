@@ -42,6 +42,12 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import org.jlab.elog.exception.InvalidXMLException;
+import org.jlab.elog.exception.LogCertificateException;
+import org.jlab.elog.exception.LogException;
+import org.jlab.elog.exception.LogIOException;
+import org.jlab.elog.exception.LogRuntimeException;
+import org.jlab.elog.exception.SchemaUnavailableException;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -126,91 +132,114 @@ abstract class LogItem {
         XMLUtil.appendElementWithText(doc, authorElement, "username", System.getProperty("user.name"));
     }
 
-    public void addAttachment(String filepath) throws LogException, LogRuntimeException {
+    public void addAttachment(String filepath) throws LogIOException, LogRuntimeException {
         addAttachment(filepath, "", "");
     }
 
-    public void addAttachment(String filepath, String caption, String mimeType) throws LogException, LogRuntimeException {
+    public void addAttachment(String filepath, String caption, String mimeType) throws LogIOException, LogRuntimeException {
+        File file = null;
+        String data = null;
+        Element attachmentsElement = null;
 
         try {
-            File file = new File(filepath);
-            String data = XMLUtil.encodeBase64(IOUtil.fileToBytes(file));
-            Element attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
-
-            Element attachmentElement = doc.createElement("Attachment");
-            attachmentsElement.appendChild(attachmentElement);
-            XMLUtil.appendElementWithText(doc, attachmentElement, "caption", caption);
-            XMLUtil.appendElementWithText(doc, attachmentElement, "filename", file.getName());
-            XMLUtil.appendElementWithText(doc, attachmentElement, "type", mimeType);
-            Element dataElement = XMLUtil.appendElementWithText(doc, attachmentElement, "data", data);
-            dataElement.setAttribute("encoding", "base64");
+            file = new File(filepath);
+            data = XMLUtil.encodeBase64(IOUtil.fileToBytes(file));
+            attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
         } catch (IOException e) {
-            throw new LogException("Unable to access attachment file.", e);
+            throw new LogIOException("Unable to access attachment file.", e);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to traverse XML DOM via XPath.", e);
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
         }
+
+        Element attachmentElement = doc.createElement("Attachment");
+        attachmentsElement.appendChild(attachmentElement);
+        XMLUtil.appendElementWithText(doc, attachmentElement, "caption", caption);
+        XMLUtil.appendElementWithText(doc, attachmentElement, "filename", file.getName());
+        XMLUtil.appendElementWithText(doc, attachmentElement, "type", mimeType);
+        Element dataElement = XMLUtil.appendElementWithText(doc, attachmentElement, "data", data);
+        dataElement.setAttribute("encoding", "base64");
     }
 
     public Attachment[] getAttachments() throws LogRuntimeException {
         List<Attachment> attachments = new ArrayList<Attachment>();
+        Element attachmentsElement = null;
 
         try {
-            Element attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
+            attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (attachmentsElement != null) {
             NodeList children = attachmentsElement.getChildNodes();
 
             for (int i = 0; i < children.getLength(); i++) {
                 attachments.add(new Attachment((Element) children.item(i)));
             }
-
-        } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to traverse XML DOM via XPath.", e);
-        } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected Node type in XML DOM.", e);
         }
 
         return attachments.toArray(new Attachment[]{});
     }
 
     public void deleteAttachments() throws LogRuntimeException {
+        Element attachmentsElement = null;
+
         try {
-            Element attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
-
-            XMLUtil.removeChildren(attachmentsElement);
-
+            attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to traverse XML DOM via XPath.", e);
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (attachmentsElement != null) {
+            XMLUtil.removeChildren(attachmentsElement);
         }
     }
 
     public void setEmailNotify(String addresses) throws LogRuntimeException {
+        Element notificationsElement = null;
+
         try {
-            Element notificationsElement = (Element) notificationsExpression.evaluate(doc, XPathConstants.NODE);
-
-            if (notificationsElement == null) {
-                if (addresses != null) {
-                    notificationsElement = doc.createElement("Notifications");
-                    root.appendChild(notificationsElement);
-                }
-            } else {
-                XMLUtil.removeChildren(notificationsElement);
-            }
-
-            if (addresses != null) {
-                XMLUtil.appendCommaDelimitedElementsWithText(doc, notificationsElement, "email", addresses);
-            }
+            notificationsElement = (Element) notificationsExpression.evaluate(doc, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (notificationsElement == null) {
+            if (addresses != null && !addresses.isEmpty()) {
+                notificationsElement = doc.createElement("Notifications");
+                root.appendChild(notificationsElement);
+            }
+        } else {
+            XMLUtil.removeChildren(notificationsElement);
+        }
+
+        if (addresses != null && !addresses.isEmpty()) {
+            XMLUtil.appendCommaDelimitedElementsWithText(doc, notificationsElement, "email", addresses);
         }
     }
 
     public String getEmailNotify() throws LogRuntimeException {
         String addresses = null;
+        NodeList notificationElements = null;
 
         try {
-            NodeList notificationElements = (NodeList) notificationListExpression.evaluate(doc, XPathConstants.NODESET);
-            addresses = XMLUtil.buildCommaDelimitedFromText(notificationElements);
+            notificationElements = (NodeList) notificationListExpression.evaluate(doc, XPathConstants.NODESET);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (notificationElements != null) {
+            addresses = XMLUtil.buildCommaDelimitedFromText(notificationElements);
         }
 
         return addresses;
@@ -222,120 +251,157 @@ abstract class LogItem {
         try {
             author = (String) authorTextExpression.evaluate(doc, XPathConstants.STRING);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
         }
 
         return author;
     }
 
     public void setLogNumber(Long lognumber) throws LogRuntimeException {
+        Element lognumberElement = null;
+
         try {
-            Element lognumberElement = (Element) lognumberExpression.evaluate(doc, XPathConstants.NODE);
-
-            if (lognumberElement == null) {
-                lognumberElement = doc.createElement("lognumber");
-                root.appendChild(lognumberElement);
-            }
-
-            lognumberElement.setTextContent(lognumber.toString());
+            lognumberElement = (Element) lognumberExpression.evaluate(doc, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
         }
+
+        if (lognumberElement == null) {
+            lognumberElement = doc.createElement("lognumber");
+            root.appendChild(lognumberElement);
+        }
+
+        lognumberElement.setTextContent(lognumber.toString());
     }
 
     public Long getLogNumber() throws LogRuntimeException {
         Long lognumber = null;
+        String lognumberStr = null;
 
         try {
-            String lognumberStr = (String) lognumberTextExpression.evaluate(doc, XPathConstants.STRING);
-
-            if (lognumberStr != null && !lognumberStr.isEmpty()) { // TODO: C++ impl throws exception if null
-                try {
-                    lognumber = Long.parseLong(lognumberStr);
-                } catch (NumberFormatException e) {
-                    throw new LogRuntimeException("Unable to obtain log number due to non-numeric format.", e);
-                }
-            }
+            lognumberStr = (String) lognumberTextExpression.evaluate(doc, XPathConstants.STRING);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (lognumberStr != null && !lognumberStr.isEmpty()) { // TODO: C++ impl throws exception if null
+            try {
+                lognumber = Long.parseLong(lognumberStr);
+            } catch (NumberFormatException e) {
+                throw new LogRuntimeException("Unable to obtain log number due to non-numeric format.", e);
+            }
         }
 
         return lognumber;
     }
 
     public void setCreated(GregorianCalendar created) throws LogRuntimeException {
-        try {
-            Element createdElement = (Element) createdExpression.evaluate(doc, XPathConstants.NODE);
-            createdElement.setTextContent(XMLUtil.toXMLFormat(created));
-        } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
+        if (created == null) {
+            created = new GregorianCalendar();
         }
+
+        Element createdElement = null;
+
+        try {
+            createdElement = (Element) createdExpression.evaluate(doc, XPathConstants.NODE);
+
+            if (createdElement == null) {
+                throw new LogRuntimeException("Element not found in XML DOM.");
+            }
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        createdElement.setTextContent(XMLUtil.toXMLFormat(created));
     }
 
     public GregorianCalendar getCreated() throws LogRuntimeException {
-        GregorianCalendar created = null;
+        Element createdElement = null;
 
         try {
-            Element createdElement = (Element) createdExpression.evaluate(doc, XPathConstants.NODE);
-            String createdStr = createdElement.getTextContent();
-            created = XMLUtil.toGregorianCalendar(createdStr);
+            createdElement = (Element) createdExpression.evaluate(doc, XPathConstants.NODE);
+
+            if (createdElement == null) {
+                throw new LogRuntimeException("Element not found in XML DOM.");
+            }
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
         }
 
-        return created;
+        String createdStr = createdElement.getTextContent();
+
+        return XMLUtil.toGregorianCalendar(createdStr);
     }
 
     public Body getBody() throws LogRuntimeException {
         Body body = null;
+        Element bodyElement = null;
 
         try {
-            Element bodyElement = (Element) bodyExpression.evaluate(doc, XPathConstants.NODE);
-
-            if (bodyElement != null) {
-                String content = bodyElement.getTextContent();
-                String typeStr = bodyElement.getAttribute("type");
-                Body.ContentType type = Body.ContentType.TEXT;
-
-                if (typeStr != null) {
-                    type = Body.ContentType.valueOf(typeStr.toUpperCase());
-                }
-
-                body = new Body(type, content);
-            }
+            bodyElement = (Element) bodyExpression.evaluate(doc, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to traverse XML DOM.", e);
-        } catch (IllegalArgumentException e) {
-            throw new LogRuntimeException("Unexpected ContentType in XML body", e);
+        }
+
+        if (bodyElement != null) {
+            String content = bodyElement.getTextContent();
+            String typeStr = bodyElement.getAttribute("type");
+            Body.ContentType type = Body.ContentType.TEXT;
+
+            if (typeStr != null) {
+                try {
+                    type = Body.ContentType.valueOf(typeStr.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    throw new LogRuntimeException("Unexpected ContentType in XML body", e);
+                }
+            }
+
+            body = new Body(type, content);
         }
 
         return body;
     }
 
     public void setBody(Body body) throws LogRuntimeException {
-
-        try {
-            Element bodyElement = (Element) bodyExpression.evaluate(doc, XPathConstants.NODE);
-
-            if (bodyElement != null) {
-                root.removeChild(bodyElement);
-            }
-
-            if (body.getContent() != null && !body.getContent().isEmpty()) {
-                bodyElement = doc.createElement("body");
-                root.appendChild(bodyElement);
-
-                if (body.getType() == Body.ContentType.HTML) {
-                    bodyElement.setAttribute("type", "html");
-                }
-
-                CDATASection data = doc.createCDATASection(body.getContent());
-                bodyElement.appendChild(data);
-            }
-        } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
+        if (body == null) {
+            body = new Body(Body.ContentType.TEXT, "");
         }
 
+        Element bodyElement = null;
+
+        try {
+            bodyElement = (Element) bodyExpression.evaluate(doc, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to traverse XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (bodyElement != null) {
+            root.removeChild(bodyElement);
+        }
+
+        if (body.getContent() != null && !body.getContent().isEmpty()) {
+            bodyElement = doc.createElement("body");
+            root.appendChild(bodyElement);
+
+            if (body.getType() == Body.ContentType.HTML) {
+                bodyElement.setAttribute("type", "html");
+            }
+
+            CDATASection data = doc.createCDATASection(body.getContent());
+            bodyElement.appendChild(data);
+        }
     }
 
     public String getXML() throws LogRuntimeException {
@@ -362,7 +428,7 @@ abstract class LogItem {
 
     abstract String getSchemaURL();
 
-    public void validate() throws SchemaUnavailableException, InvalidXMLException {
+    public void validate() throws SchemaUnavailableException, InvalidXMLException, LogIOException {
         Schema schema = null;
 
         try {
@@ -371,7 +437,6 @@ abstract class LogItem {
             schema = factory.newSchema(schemaURL);
         } catch (MalformedURLException e) {
             throw new SchemaUnavailableException("Schema URL malformed.", e);
-
         } catch (SAXException e) {
             throw new SchemaUnavailableException("Unable to parse schema.", e);
         }
@@ -385,7 +450,7 @@ abstract class LogItem {
         } catch (SAXException e) {
             throw new InvalidXMLException("The XML failed to validate against the schema.", e);
         } catch (IOException e) {
-            throw new SchemaUnavailableException("Unable to validate XML.", e);
+            throw new LogIOException("Unable to validate XML.", e);
         }
     }
 
@@ -394,7 +459,7 @@ abstract class LogItem {
         return submit(pemFilePath);
     }
 
-    public Long submit(String pemFilePath) throws LogException {
+    public Long submit(String pemFilePath) throws LogIOException, LogCertificateException {
         Long id = null;
 
         String xml = getXML();
@@ -415,23 +480,23 @@ abstract class LogItem {
             reader = new InputStreamReader(con.getInputStream());
             // TODO: read response       
         } catch (MalformedURLException e) {
-            throw new LogException("Invalid submission URL: check config file.", e);
+            throw new LogIOException("Invalid submission URL: check config file.", e);
         } catch (IOException e) {
-            throw new LogException("Unable to write to ELOG server.", e);
+            throw new LogIOException("Unable to submit to ELOG server.", e);
         } catch (ClassCastException e) {
-            throw new LogException("Expected HTTP URL; check config file.", e);
+            throw new LogIOException("Expected HTTP URL; check config file.", e);
         } catch (NoSuchAlgorithmException e) {
-            throw new LogException("Invalid SSL certificate algorithm.", e);
+            throw new LogCertificateException("Invalid SSL certificate algorithm.", e);
         } catch (CertificateException e) {
-            throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
+            throw new LogCertificateException("Unable to obtain SSL connection due to certificate error.", e);
         } catch (KeyStoreException e) {
-            throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
+            throw new LogCertificateException("Unable to obtain SSL connection due to certificate error.", e);
         } catch (KeyManagementException e) {
-            throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
+            throw new LogCertificateException("Unable to obtain SSL connection due to certificate error.", e);
         } catch (UnrecoverableKeyException e) {
-            throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
+            throw new LogCertificateException("Unable to obtain SSL connection due to certificate error.", e);
         } catch (InvalidKeySpecException e) {
-            throw new LogException("Unable to obtain SSL connection due to certificate error.", e);
+            throw new LogCertificateException("Unable to obtain SSL connection due to certificate error.", e);
         } finally {
             try {
                 if (writer != null) {
@@ -485,17 +550,16 @@ abstract class LogItem {
         return filenameBuilder.toString();
     }
 
-    void queue() throws InvalidXMLException, LogException {
+    void queue() throws InvalidXMLException, LogIOException {
         String filename = generateXMLFilename();
         String filepath = new File(QUEUE_PATH, filename).getAbsolutePath();
         queue(filepath);
     }
 
-    void queue(String filepath) throws InvalidXMLException, LogException {
+    void queue(String filepath) throws InvalidXMLException, LogIOException {
         try {
             validate();
-        }
-        catch(SchemaUnavailableException e) {
+        } catch (SchemaUnavailableException e) {
             // Ignore!
         }
 
@@ -508,7 +572,7 @@ abstract class LogItem {
 
             writer.write(xml);
         } catch (IOException e) {
-            throw new LogException("Unable to write XML file.", e);
+            throw new LogIOException("Unable to write XML file.", e);
         } finally {
             if (writer != null) {
                 try {

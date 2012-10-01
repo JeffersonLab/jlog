@@ -1,6 +1,7 @@
 package org.jlab.elog;
 
 import java.util.ResourceBundle;
+import org.jlab.elog.exception.LogRuntimeException;
 
 /**
  *
@@ -15,7 +16,7 @@ public class Comment extends LogItem {
         COMMENT_SCHEMA_URL = bundle.getString("COMMENT_SCHEMA_URL");        
     }
     
-    public Comment() throws LogException {
+    public Comment() throws LogRuntimeException {
         super("Comment");
     }
     

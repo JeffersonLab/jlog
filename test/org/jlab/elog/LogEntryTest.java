@@ -7,6 +7,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import javax.net.ssl.HttpsURLConnection;
+import org.jlab.elog.exception.LogException;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -95,7 +96,7 @@ public class LogEntryTest {
 
     @Test
     public void testSetEntrymakers() throws LogException {
-        String expected = "theo,cjs";
+        String expected = "cjs,theo";
         entry.setEntryMakers(expected);
         String actual = entry.getEntryMakers();
         assertEquals(expected, actual);
