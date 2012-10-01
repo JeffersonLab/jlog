@@ -485,14 +485,19 @@ abstract class LogItem {
         return filenameBuilder.toString();
     }
 
-    void queue() throws LogException {
+    void queue() throws InvalidXMLException, LogException {
         String filename = generateXMLFilename();
         String filepath = new File(QUEUE_PATH, filename).getAbsolutePath();
         queue(filepath);
     }
 
-    void queue(String filepath) throws LogException {
-        validate(); // Ignore return value indicating could not obtain schema
+    void queue(String filepath) throws InvalidXMLException, LogException {
+        try {
+            validate();
+        }
+        catch(SchemaUnavailableException e) {
+            // Ignore!
+        }
 
         String xml = getXML();
 
