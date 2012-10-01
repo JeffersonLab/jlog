@@ -1,12 +1,13 @@
 package org.jlab.elog;
 
-import org.jlab.elog.exception.LogException;
-import org.jlab.elog.exception.LogRuntimeException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import org.jlab.elog.exception.LogException;
+import org.jlab.elog.exception.LogRuntimeException;
+import org.jlab.elog.util.XMLUtil;
 import org.w3c.dom.Element;
 
 /**

@@ -1,4 +1,4 @@
-package org.jlab.elog;
+package org.jlab.elog.util;
 
 import java.util.GregorianCalendar;
 import javax.xml.bind.DatatypeConverter;
@@ -13,7 +13,7 @@ import org.w3c.dom.NodeList;
  *
  * @author ryans
  */
-final class XMLUtil {
+public final class XMLUtil {
 
     private static DatatypeFactory typeFactory;
 

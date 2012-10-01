@@ -1,4 +1,4 @@
-package org.jlab.elog;
+package org.jlab.elog.util;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
@@ -8,7 +8,7 @@ import java.net.UnknownHostException;
  *
  * @author ryans
  */
-final class SystemUtil {
+public final class SystemUtil {
 
     private SystemUtil() {
         // Can't instantiate publicly

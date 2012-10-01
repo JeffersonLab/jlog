@@ -1,4 +1,4 @@
-package org.jlab.elog;
+package org.jlab.elog.util;
 
 import java.io.DataInputStream;
 import java.io.File;
@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  *
  * @author ryans
  */
-final class IOUtil {
+public final class IOUtil {
 
     private static final Logger logger = Logger.getLogger(
             IOUtil.class.getName());    

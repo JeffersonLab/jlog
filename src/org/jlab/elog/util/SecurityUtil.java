@@ -1,4 +1,4 @@
-package org.jlab.elog;
+package org.jlab.elog.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -32,7 +32,7 @@ import javax.xml.bind.DatatypeConverter;
  *
  * @author ryans
  */
-final class SecurityUtil {
+public final class SecurityUtil {
 
     private static final Logger logger = Logger.getLogger(
             SecurityUtil.class.getName());     

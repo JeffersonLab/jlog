@@ -10,6 +10,7 @@ import org.jlab.elog.exception.LogIOException;
 import org.jlab.elog.exception.LogRuntimeException;
 import org.jlab.elog.exception.MalformedXMLException;
 import org.jlab.elog.exception.SchemaUnavailableException;
+import org.jlab.elog.util.XMLUtil;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;

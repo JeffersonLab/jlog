@@ -1,5 +1,7 @@
 package org.jlab.elog;
 
+import org.jlab.elog.util.IOUtil;
+import org.jlab.elog.util.SecurityUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
