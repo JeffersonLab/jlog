@@ -16,8 +16,10 @@ public class Comment extends LogItem {
         COMMENT_SCHEMA_URL = bundle.getString("COMMENT_SCHEMA_URL");        
     }
     
-    public Comment() throws LogRuntimeException {
+    public Comment(Long lognumber, Body body) throws LogRuntimeException {
         super("Comment");
+        setLogNumber(lognumber);
+        setBody(body);
     }
     
     @Override

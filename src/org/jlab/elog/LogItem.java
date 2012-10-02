@@ -267,7 +267,7 @@ abstract class LogItem {
         return author;
     }
 
-    public void setLogNumber(Long lognumber) throws LogRuntimeException {
+    void setLogNumber(Long lognumber) throws LogRuntimeException {
         Element lognumberElement = null;
 
         try {
@@ -284,8 +284,8 @@ abstract class LogItem {
         }
 
         lognumberElement.setTextContent(lognumber.toString());
-    }
-
+    }        
+    
     public Long getLogNumber() throws LogRuntimeException {
         Long lognumber = null;
         String lognumberStr = null;
@@ -307,28 +307,6 @@ abstract class LogItem {
         }
 
         return lognumber;
-    }
-
-    public void setCreated(GregorianCalendar created) throws LogRuntimeException {
-        if (created == null) {
-            created = new GregorianCalendar();
-        }
-
-        Element createdElement = null;
-
-        try {
-            createdElement = (Element) createdExpression.evaluate(doc, XPathConstants.NODE);
-
-            if (createdElement == null) {
-                throw new LogRuntimeException("Element not found in XML DOM.");
-            }
-        } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
-        } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
-        }
-
-        createdElement.setTextContent(XMLUtil.toXMLFormat(created));
     }
 
     public GregorianCalendar getCreated() throws LogRuntimeException {
@@ -366,7 +344,7 @@ abstract class LogItem {
             String typeStr = bodyElement.getAttribute("type");
             Body.ContentType type = Body.ContentType.TEXT;
 
-            if (typeStr != null) {
+            if (typeStr != null && !typeStr.isEmpty()) {
                 try {
                     type = Body.ContentType.valueOf(typeStr.toUpperCase());
                 } catch (IllegalArgumentException e) {
@@ -380,7 +358,7 @@ abstract class LogItem {
         return body;
     }
 
-    public void setBody(Body body) throws LogRuntimeException {
+    void setBody(Body body) throws LogRuntimeException {
         if (body == null) {
             body = new Body(Body.ContentType.TEXT, "");
         }
@@ -427,8 +405,8 @@ abstract class LogItem {
     }
 
     abstract String getSchemaURL();
-
-    public void validate() throws SchemaUnavailableException, InvalidXMLException, LogIOException {
+    
+    void validate() throws SchemaUnavailableException, InvalidXMLException, LogIOException {
         Schema schema = null;
 
         try {
@@ -562,6 +540,18 @@ abstract class LogItem {
         }
 
         return id;        
+    }
+    
+    Document getDocument() {
+        return doc;
+    }
+    
+    Element getRoot() {
+        return root;
+    }
+    
+    XPath getXPath() {
+        return xpath;
     }
     
     String getPutPath() {

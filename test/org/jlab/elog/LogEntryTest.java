@@ -24,7 +24,8 @@ import org.junit.Test;
 public class LogEntryTest {
 
     private LogEntry entry;
-
+    private LogEntryAdminExtension extension;
+    
     public LogEntryTest() {
     }
 
@@ -39,6 +40,7 @@ public class LogEntryTest {
     @Before
     public void setUp() throws LogException {
         entry = new LogEntry("Testing 123", "TLOG");
+        extension = new LogEntryAdminExtension(entry);
     }
 
     @After
@@ -63,7 +65,7 @@ public class LogEntryTest {
     @Test
     public void testCreated() throws LogException {
         GregorianCalendar expected = new GregorianCalendar();
-        entry.setCreated(expected);
+        extension.setCreated(expected);
         GregorianCalendar actual = entry.getCreated();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS Z");
         String expectedStr = formatter.format(expected.getTime());
@@ -98,7 +100,7 @@ public class LogEntryTest {
     @Test
     public void testLognumber() throws LogException {
         Long expected = 1234L;
-        entry.setLogNumber(expected);
+        extension.setLogNumber(expected);
         Long actual = entry.getLogNumber();
         assertEquals(expected, actual);
     }

@@ -25,4 +25,15 @@ public class Body {
     public String getContent() {
         return content;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        
+        builder.append("ContentType: ");
+        builder.append(getType().name());
+        builder.append(", Content: ");
+        builder.append(getContent());
+        return builder.toString();
+    }
 }

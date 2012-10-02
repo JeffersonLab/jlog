@@ -296,4 +296,9 @@ public class LogEntry extends LogItem {
     String getSchemaURL() {
         return LOG_ENTRY_SCHEMA_URL;
     }
+    
+    @Override
+    public void setBody(Body body) throws LogRuntimeException {
+        super.setBody(body);
+    }
 }
