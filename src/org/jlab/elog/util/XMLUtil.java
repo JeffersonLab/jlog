@@ -19,7 +19,7 @@ import org.w3c.dom.NodeList;
 
 /**
  * XML Utilities.
- * 
+ *
  * @author ryans
  */
 public final class XMLUtil {
@@ -152,13 +152,15 @@ public final class XMLUtil {
     public static String buildCommaDelimitedFromText(NodeList nodes) {
         StringBuilder csvBuilder = new StringBuilder();
 
-        for (int i = 0; i < nodes.getLength(); i++) {
-            csvBuilder.append(nodes.item(i).getTextContent());
-            csvBuilder.append(",");
-        }
+        if (nodes.getLength() > 0) {
+            for (int i = 0; i < nodes.getLength(); i++) {
+                csvBuilder.append(nodes.item(i).getTextContent());
+                csvBuilder.append(",");
+            }
 
-        // Remove trailing comma
-        csvBuilder.deleteCharAt(csvBuilder.length() - 1);
+            // Remove trailing comma
+            csvBuilder.deleteCharAt(csvBuilder.length() - 1);
+        }
 
         return csvBuilder.toString();
     }
@@ -202,14 +204,14 @@ public final class XMLUtil {
 
     /**
      * Convert a Document (DOM) into an XML String.
-     * 
+     *
      * @param doc The Document
      * @return The XML String
-     * @throws TransformerConfigurationException If there is a configuration 
+     * @throws TransformerConfigurationException If there is a configuration
      * issue
      * @throws TransformerException If unable to transform the Document
      */
-    public static String getXML(Document doc) throws 
+    public static String getXML(Document doc) throws
             TransformerConfigurationException, TransformerException {
         TransformerFactory factory = TransformerFactory.newInstance();
 

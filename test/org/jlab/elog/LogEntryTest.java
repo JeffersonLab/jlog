@@ -131,6 +131,22 @@ public class LogEntryTest {
     }
 
     @Test
+    public void testAddTags() throws LogException {
+        String expected = "Readme,Autolog";
+        entry.addTags(expected);
+        String actual = entry.getTags();
+        assertEquals(expected, actual);
+    }   
+    
+    @Test
+    public void testSetTags() throws LogException {
+        String expected = "Readme,Autolog";
+        entry.setTags(expected);
+        String actual = entry.getTags();
+        assertEquals(expected, actual);
+    }    
+    
+    @Test
     public void testSetEntrymakers() throws LogException {
         String expected = "cjs,theo";
         entry.setEntryMakers(expected);

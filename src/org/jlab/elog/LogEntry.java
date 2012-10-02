@@ -28,6 +28,8 @@ public class LogEntry extends LogItem {
     final XPathExpression entrymakersExpression;
     final XPathExpression usernameListExpression;
     final XPathExpression stickyExpression;
+    final XPathExpression tagsExpression;
+    final XPathExpression tagListExpression;
 
     static {
         ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
@@ -42,6 +44,8 @@ public class LogEntry extends LogItem {
             entrymakersExpression = xpath.compile("/Logentry/Entrymakers");
             usernameListExpression = xpath.compile("/Logentry/Entrymakers/Entrymaker/username");
             stickyExpression = xpath.compile("/Logentry/sticky");
+            tagsExpression = xpath.compile("/Logentry/Tags");
+            tagListExpression = xpath.compile("/Logentry/Tags/tag");
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to construct XML XPath query", e);
         }
@@ -137,6 +141,73 @@ public class LogEntry extends LogItem {
         }
 
         return XMLUtil.buildCommaDelimitedFromText(logbookElements);
+    }
+
+    public void addTags(String tags) throws LogRuntimeException {
+        if(tags == null || tags.isEmpty()) {
+            return;
+        }
+        
+        Element tagsElement = null;
+
+        try {
+            tagsElement = (Element) tagsExpression.evaluate(doc, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (tagsElement == null) {
+            tagsElement = doc.createElement("Tags");
+            root.appendChild(tagsElement);
+        }
+       
+        XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, "tag", tags);
+    }    
+    
+    public void setTags(String tags) throws LogRuntimeException {
+        Element tagsElement = null;
+
+        try {
+            tagsElement = (Element) tagsExpression.evaluate(doc, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (tagsElement == null) {
+            if(tags != null && !tags.isEmpty()) {
+                tagsElement = doc.createElement("Tags");
+                root.appendChild(tagsElement);
+            }
+        } else {
+            XMLUtil.removeChildren(tagsElement);
+        }
+        
+        if(tags != null && !tags.isEmpty()) {
+            XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, "tag", tags);
+        }
+    }
+
+    public String getTags() throws LogRuntimeException {
+        NodeList tagElements = null;
+        String tags = null;
+
+        try {
+            tagElements = (NodeList) tagListExpression.evaluate(doc, XPathConstants.NODESET);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (tagElements != null) {
+            tags = XMLUtil.buildCommaDelimitedFromText(tagElements);
+        }
+
+        return tags;
     }
 
     public void setTitle(String title) throws LogRuntimeException {
@@ -277,7 +348,7 @@ public class LogEntry extends LogItem {
 
         if (stickyElement != null) {
             String value = stickyElement.getTextContent();
-            
+
             try {
                 int number = Integer.parseInt(value);
 
@@ -296,7 +367,7 @@ public class LogEntry extends LogItem {
     String getSchemaURL() {
         return LOG_ENTRY_SCHEMA_URL;
     }
-    
+
     @Override
     public void setBody(Body body) throws LogRuntimeException {
         super.setBody(body);
