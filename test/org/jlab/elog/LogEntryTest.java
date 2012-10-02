@@ -212,7 +212,11 @@ public class LogEntryTest {
 
     @Test
     public void testSubmit() throws Exception {
-        entry.submit();
+        Long id = entry.submit();
+        
+        if(id == 0) {
+            throw new Exception("It was queued!");
+        }
     }
     
     @Test

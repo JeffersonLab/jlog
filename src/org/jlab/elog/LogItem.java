@@ -83,6 +83,7 @@ abstract class LogItem {
     XPathExpression notificationListExpression;
     XPathExpression responseStatusExpression;
     XPathExpression responseMessageExpression;
+    XPathExpression responseLognumberExpression;
 
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -113,6 +114,7 @@ abstract class LogItem {
             notificationListExpression = xpath.compile("/*/Notifications/email");
             responseStatusExpression = xpath.compile("/Response/@stat");
             responseMessageExpression = xpath.compile("/Response/msg/text()");
+            responseLognumberExpression = xpath.compile("/Response/lognumber");
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to construct XML XPath query", e);
         }
@@ -440,26 +442,31 @@ abstract class LogItem {
 
             String status = (String) responseStatusExpression.evaluate(response, XPathConstants.STRING);
             String message = (String) responseMessageExpression.evaluate(response, XPathConstants.STRING);
+            String lognumberStr = (String) responseLognumberExpression.evaluate(response, XPathConstants.STRING);
             
-            /*if(status == null || status.isEmpty()) {
+            if(status == null || status.isEmpty()) {
                 throw new LogIOException("Unrecognized Response from server.");
             }
             
             if(!"ok".equals(status)) {
                 throw new LogIOException("Submission Failed: " + message);
-            }*/
+            }
+            
+            id = Long.parseLong(lognumberStr);
             
             //System.out.println("Status: " + status);
             //System.out.println("Message: " + message);
-            System.out.println(XMLUtil.getXML(response));
+            //System.out.println(XMLUtil.getXML(response));
         } catch (IOException e) {
             throw new LogIOException("Unable to parse response.", e);
         } catch (SAXException e) {
             throw new LogIOException("Unable to parse response.", e);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
-        } catch (Exception e) {
+        } catch (ClassCastException e) {
             throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        } catch(NumberFormatException e) {
+            throw new LogIOException("Log number not found in response.", e);
         }        
         
         return id;
