@@ -5,7 +5,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 /**
- *
+ * System Utilities.
+ * 
  * @author ryans
  */
 public final class SystemUtil {

@@ -10,7 +10,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * IO Utilities.
+ * 
  * @author ryans
  */
 public final class IOUtil {

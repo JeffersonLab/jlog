@@ -2,10 +2,10 @@ package org.jlab.elog;
 
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -49,5 +49,15 @@ public class CommentTest {
         Body actual = comment.getBody();        
         assertEquals(expected.getContent(), actual.getContent());
         assertEquals(expected.getType(), actual.getType());
+    }    
+    
+    @Test
+    public void testValidate() throws Exception {
+        comment.validate();
+    }
+    
+    @Test
+    public void testSubmit() throws Exception {
+        comment.submit();
     }    
 }

@@ -29,7 +29,8 @@ import javax.net.ssl.X509TrustManager;
 import javax.xml.bind.DatatypeConverter;
 
 /**
- *
+ * Security Utilities.
+ * 
  * @author ryans
  */
 public final class SecurityUtil {

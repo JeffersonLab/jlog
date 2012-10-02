@@ -1,7 +1,8 @@
 package org.jlab.elog.exception;
 
 /**
- *
+ * Indicates an exception occurred during IO.
+ * 
  * @author ryans
  */
 public class LogIOException extends LogException {

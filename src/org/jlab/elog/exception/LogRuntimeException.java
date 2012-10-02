@@ -2,8 +2,8 @@ package org.jlab.elog.exception;
 
 /**
  * Top-level unchecked exception for the ELog client API that indicates a
- * serious problem such as a bug in the client API implementation as opposed to
- * a misuse of the API, which generally would result in a LogException.
+ * problem outside the control of the API user such as a bug in the client API
+ * implementation.
  *
  * This RuntimeException indicates a problem that is unrecoverable in the ELog
  * client API only, and doesn't preclude other modules from continuing to

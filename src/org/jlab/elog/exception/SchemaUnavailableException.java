@@ -1,7 +1,8 @@
 package org.jlab.elog.exception;
 
 /**
- *
+ * Indicates that the schema is not available.
+ * 
  * @author ryans
  */
 public class SchemaUnavailableException extends LogException {

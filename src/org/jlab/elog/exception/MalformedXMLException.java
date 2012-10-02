@@ -1,7 +1,8 @@
 package org.jlab.elog.exception;
 
 /**
- *
+ * Indicates that XML is not well-formed.
+ * 
  * @author ryans
  */
 public class MalformedXMLException extends LogException {

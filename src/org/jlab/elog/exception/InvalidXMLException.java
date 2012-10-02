@@ -1,7 +1,8 @@
 package org.jlab.elog.exception;
 
 /**
- *
+ * Indicates that XML is invalid.
+ * 
  * @author ryans
  */
 public class InvalidXMLException extends LogException {

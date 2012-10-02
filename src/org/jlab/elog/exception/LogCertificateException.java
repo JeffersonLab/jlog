@@ -1,7 +1,8 @@
 package org.jlab.elog.exception;
 
 /**
- *
+ * Indicates a problem with either the client or server PKI certificate. 
+ * 
  * @author ryans
  */
 public class LogCertificateException extends LogException {
