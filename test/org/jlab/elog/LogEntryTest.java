@@ -147,6 +147,22 @@ public class LogEntryTest {
     }    
     
     @Test
+    public void testReferences() throws LogException {
+        Reference.RefType expectedType = Reference.RefType.ATLIS;
+        String expectedId = "123";
+        entry.addReference(new Reference(expectedType, expectedId));
+        Reference.RefType actualType = entry.getReferences()[0].getType();
+        String actualId = entry.getReferences()[0].getId();
+        assertEquals(expectedType, actualType);
+        assertEquals(expectedId, actualId);
+        
+        entry.deleteReferences();
+        int expectedLength = 0;
+        int actualLength = entry.getReferences().length;
+        assertEquals(expectedLength, actualLength);
+    }    
+    
+    @Test
     public void testSetEntrymakers() throws LogException {
         String expected = "cjs,theo";
         entry.setEntryMakers(expected);

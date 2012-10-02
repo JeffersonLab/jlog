@@ -1,6 +1,8 @@
 package org.jlab.elog;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -30,6 +32,7 @@ public class LogEntry extends LogItem {
     final XPathExpression stickyExpression;
     final XPathExpression tagsExpression;
     final XPathExpression tagListExpression;
+    final XPathExpression referencesExpression;
 
     static {
         ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
@@ -46,6 +49,7 @@ public class LogEntry extends LogItem {
             stickyExpression = xpath.compile("/Logentry/sticky");
             tagsExpression = xpath.compile("/Logentry/Tags");
             tagListExpression = xpath.compile("/Logentry/Tags/tag");
+            referencesExpression = xpath.compile("/Logentry/References");
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to construct XML XPath query", e);
         }
@@ -144,10 +148,10 @@ public class LogEntry extends LogItem {
     }
 
     public void addTags(String tags) throws LogRuntimeException {
-        if(tags == null || tags.isEmpty()) {
+        if (tags == null || tags.isEmpty()) {
             return;
         }
-        
+
         Element tagsElement = null;
 
         try {
@@ -162,10 +166,10 @@ public class LogEntry extends LogItem {
             tagsElement = doc.createElement("Tags");
             root.appendChild(tagsElement);
         }
-       
+
         XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, "tag", tags);
-    }    
-    
+    }
+
     public void setTags(String tags) throws LogRuntimeException {
         Element tagsElement = null;
 
@@ -178,15 +182,15 @@ public class LogEntry extends LogItem {
         }
 
         if (tagsElement == null) {
-            if(tags != null && !tags.isEmpty()) {
+            if (tags != null && !tags.isEmpty()) {
                 tagsElement = doc.createElement("Tags");
                 root.appendChild(tagsElement);
             }
         } else {
             XMLUtil.removeChildren(tagsElement);
         }
-        
-        if(tags != null && !tags.isEmpty()) {
+
+        if (tags != null && !tags.isEmpty()) {
             XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, "tag", tags);
         }
     }
@@ -208,6 +212,89 @@ public class LogEntry extends LogItem {
         }
 
         return tags;
+    }
+
+    public void addReference(Reference ref) throws LogRuntimeException {
+        if (ref == null) {
+            return;
+        }
+
+        Element referencesElement = null;
+
+        try {
+            referencesElement = (Element) referencesExpression.evaluate(doc, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (referencesElement == null) {
+            referencesElement = doc.createElement("References");
+            root.appendChild(referencesElement);
+        }
+
+        Element refElement = doc.createElement("reference");
+        referencesElement.appendChild(refElement);
+
+        refElement.setAttribute("type", ref.getType() == null ? "" : ref.getType().name().toLowerCase());
+        refElement.setTextContent(ref.getId());
+    }
+
+    public Reference[] getReferences() throws LogRuntimeException {
+        List<Reference> references = new ArrayList<Reference>();
+
+        Element referencesElement = null;
+
+        try {
+            referencesElement = (Element) referencesExpression.evaluate(doc, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (referencesElement != null) {
+            NodeList children = referencesElement.getChildNodes();
+
+            for (int i = 0; i < children.getLength(); i++) {
+                if (!(children.item(i) instanceof Element)) {
+                    throw new LogRuntimeException("Unexpected node type in XML DOM; expected reference element.");
+                }
+
+                Element refElement = (Element) children.item(i);
+                Reference.RefType type = null;
+                String typeStr = refElement.getAttribute("type");
+
+                if (typeStr != null && !typeStr.isEmpty()) {
+                    try {
+                        type = Reference.RefType.valueOf(typeStr.toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        throw new LogRuntimeException("Unexpected RefType in XML reference.", e);
+                    }
+                }
+
+                String id = refElement.getTextContent();
+                references.add(new Reference(type, id));
+            }
+        }
+        return references.toArray(new Reference[]{});
+    }
+
+    public void deleteReferences() throws LogRuntimeException {
+        Element referencesElement = null;
+
+        try {
+            referencesElement = (Element) referencesExpression.evaluate(doc, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (referencesElement != null) {
+            root.removeChild(referencesElement);
+        }
     }
 
     public void setTitle(String title) throws LogRuntimeException {
