@@ -348,7 +348,7 @@ abstract class LogItem {
                 try {
                     type = Body.ContentType.valueOf(typeStr.toUpperCase());
                 } catch (IllegalArgumentException e) {
-                    throw new LogRuntimeException("Unexpected ContentType in XML body", e);
+                    throw new LogRuntimeException("Unexpected ContentType in XML body.", e);
                 }
             }
 
