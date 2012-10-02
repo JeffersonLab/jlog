@@ -163,6 +163,15 @@ public class LogEntryTest {
     }    
     
     @Test
+    public void testAddComments() {
+        long expected = 123L;
+        extension.addComment(new Comment(expected, new Body(Body.ContentType.TEXT, "Hello World")));
+        String xml = entry.getXML();
+        long actual = Long.parseLong(xml.split("<Comment>")[1].split("</Comment>")[0].split("<lognumber>")[1].split("</lognumber>")[0]);
+        assertEquals(expected, actual);   
+    }
+    
+    @Test
     public void testSetEntrymakers() throws LogException {
         String expected = "cjs,theo";
         entry.setEntryMakers(expected);
