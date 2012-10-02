@@ -24,6 +24,8 @@ import org.xml.sax.SAXException;
 public class LogEntry extends LogItem {
 
     private static final String LOG_ENTRY_SCHEMA_URL;
+    private static final String FETCH_URL;
+    
     final XPathExpression titleExpression;
     final XPathExpression logbooksExpression;
     final XPathExpression logbookListExpression;
@@ -37,6 +39,7 @@ public class LogEntry extends LogItem {
     static {
         ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
         LOG_ENTRY_SCHEMA_URL = bundle.getString("LOG_ENTRY_SCHEMA_URL");
+        FETCH_URL = bundle.getString("FETCH_URL");
     }
 
     {
@@ -66,10 +69,9 @@ public class LogEntry extends LogItem {
         XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooks, "logbook", books);
     }
 
-    public LogEntry(long id) throws LogRuntimeException {
-        super("Logentry");
-
-        throw new UnsupportedOperationException();
+    public static LogEntry getLogEntry(long id) throws SchemaUnavailableException, MalformedXMLException, InvalidXMLException, LogIOException, LogRuntimeException {
+        String filePath = getGetPath(id);
+        return new LogEntry(filePath);
     }
 
     public LogEntry(String filePath) throws SchemaUnavailableException, MalformedXMLException, InvalidXMLException, LogIOException, LogRuntimeException {
@@ -84,6 +86,21 @@ public class LogEntry extends LogItem {
         validate(); // Alternatively we could call builder.setSchema() and it would be a validating parser (no way to differentiate Malformed vs Invalid though)
     }
 
+    static String getGetPath(long id) {
+        StringBuilder strBuilder = new StringBuilder();
+        
+        strBuilder.append(FETCH_URL);
+        
+        if(!FETCH_URL.endsWith("/")) {
+            strBuilder.append("/");
+        }
+        
+        strBuilder.append(id);
+        strBuilder.append("/xml");
+        
+        return strBuilder.toString();
+    }
+    
     public void addLogbooks(String books) throws LogRuntimeException {
         if (books == null || books.isEmpty()) {
             return;

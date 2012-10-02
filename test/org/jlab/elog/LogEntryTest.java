@@ -322,4 +322,12 @@ public class LogEntryTest {
 
         assertEquals(expected, actual);
     }
+    
+    @Test
+    public void testRevision() throws Exception {
+        LogEntry revision = LogEntry.getLogEntry(2070480L);
+        String expected = "Testing 123";
+        String actual = revision.getTitle();
+        assertEquals(expected, actual);        
+    }
 }
