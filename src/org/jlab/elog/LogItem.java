@@ -489,6 +489,11 @@ abstract class LogItem {
         return xml;
     }
 
+    /**
+     * Return the URL to the schema needed for validation of this log book item.
+     * 
+     * @return The URL
+     */
     abstract String getSchemaURL();
 
     void validate() throws SchemaUnavailableException, InvalidXMLException, LogIOException {
