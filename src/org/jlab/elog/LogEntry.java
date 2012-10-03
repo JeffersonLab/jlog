@@ -25,7 +25,6 @@ public class LogEntry extends LogItem {
 
     private static final String LOG_ENTRY_SCHEMA_URL;
     private static final String FETCH_URL;
-    
     final XPathExpression titleExpression;
     final XPathExpression logbooksExpression;
     final XPathExpression logbookListExpression;
@@ -35,6 +34,7 @@ public class LogEntry extends LogItem {
     final XPathExpression tagsExpression;
     final XPathExpression tagListExpression;
     final XPathExpression referencesExpression;
+    final XPathExpression revisionReasonExpression;
 
     static {
         ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
@@ -53,6 +53,7 @@ public class LogEntry extends LogItem {
             tagsExpression = xpath.compile("/Logentry/Tags");
             tagListExpression = xpath.compile("/Logentry/Tags/tag");
             referencesExpression = xpath.compile("/Logentry/References");
+            revisionReasonExpression = xpath.compile("/Logentry/revision_reason");
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException("Unable to construct XML XPath query", e);
         }
@@ -69,14 +70,10 @@ public class LogEntry extends LogItem {
         XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooks, "logbook", books);
     }
 
-    public static LogEntry getLogEntry(long id) throws SchemaUnavailableException, MalformedXMLException, InvalidXMLException, LogIOException, LogRuntimeException {
-        String filePath = getGetPath(id);
-        return new LogEntry(filePath);
-    }
-
     public LogEntry(String filePath) throws SchemaUnavailableException, MalformedXMLException, InvalidXMLException, LogIOException, LogRuntimeException {
         try {
             doc = builder.parse(filePath);
+            root = doc.getDocumentElement();
         } catch (SAXException e) {
             throw new MalformedXMLException("File is not well formed XML.", e);
         } catch (IOException e) {
@@ -86,21 +83,47 @@ public class LogEntry extends LogItem {
         validate(); // Alternatively we could call builder.setSchema() and it would be a validating parser (no way to differentiate Malformed vs Invalid though)
     }
 
+    public static LogEntry getLogEntry(long id, String reason) throws SchemaUnavailableException, MalformedXMLException, InvalidXMLException, LogIOException, LogRuntimeException {
+        String filePath = getGetPath(id);
+        LogEntry entry = new LogEntry(filePath);
+        entry.setRevisionReason(reason);
+        return entry;
+    }
+
     static String getGetPath(long id) {
         StringBuilder strBuilder = new StringBuilder();
-        
+
         strBuilder.append(FETCH_URL);
-        
-        if(!FETCH_URL.endsWith("/")) {
+
+        if (!FETCH_URL.endsWith("/")) {
             strBuilder.append("/");
         }
-        
+
         strBuilder.append(id);
         strBuilder.append("/xml");
-        
+
         return strBuilder.toString();
     }
-    
+
+    void setRevisionReason(String reason) {
+        Element revisionReasonElement = null;
+
+        try {
+            revisionReasonElement = (Element) revisionReasonExpression.evaluate(doc, XPathConstants.NODE);
+        } catch (XPathExpressionException e) {
+            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+        } catch (ClassCastException e) {
+            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+        }
+
+        if (revisionReasonElement == null) {
+            revisionReasonElement = doc.createElement("revision_reason");
+            root.appendChild(revisionReasonElement);
+        }
+        
+        revisionReasonElement.setTextContent(reason);
+    }
+
     public void addLogbooks(String books) throws LogRuntimeException {
         if (books == null || books.isEmpty()) {
             return;
@@ -470,6 +493,14 @@ public class LogEntry extends LogItem {
     @Override
     String getSchemaURL() {
         return LOG_ENTRY_SCHEMA_URL;
+    }
+
+    public void setBody(String content) {
+        setBody(new Body(Body.ContentType.TEXT, content));
+    }
+
+    public void setBody(String content, Body.ContentType type) {
+        setBody(new Body(type, content));
     }
 
     @Override

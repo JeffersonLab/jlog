@@ -359,7 +359,7 @@ abstract class LogItem {
 
         return body;
     }
-
+    
     void setBody(Body body) throws LogRuntimeException {
         if (body == null) {
             body = new Body(Body.ContentType.TEXT, "");
