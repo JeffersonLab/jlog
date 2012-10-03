@@ -54,6 +54,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
+ * An item that can be posted to the electronic log book.
  *
  * @author ryans
  */
@@ -91,13 +92,15 @@ abstract class LogItem {
         try {
             builder = factory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
-            throw new LogRuntimeException("Unable to obtain XML document builder.", e);
+            throw new LogRuntimeException(
+                    "Unable to obtain XML document builder.", e);
         }
 
         try {
             typeFactory = DatatypeFactory.newInstance();
         } catch (DatatypeConfigurationException e) {
-            throw new LogRuntimeException("Unable to obtain XML datatype factory.", e);
+            throw new LogRuntimeException(
+                    "Unable to obtain XML datatype factory.", e);
         }
 
         XPathFactory xpathFactory = XPathFactory.newInstance();
@@ -111,18 +114,32 @@ abstract class LogItem {
             attachmentsExpression = xpath.compile("/*/Attachments");
             authorTextExpression = xpath.compile("/*/Author/username/text()");
             notificationsExpression = xpath.compile("/*/Notifications");
-            notificationListExpression = xpath.compile("/*/Notifications/email");
+            notificationListExpression = xpath.compile(
+                    "/*/Notifications/email");
             responseStatusExpression = xpath.compile("/Response/@stat");
             responseMessageExpression = xpath.compile("/Response/msg/text()");
             responseLognumberExpression = xpath.compile("/Response/lognumber");
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to construct XML XPath query", e);
+            throw new LogRuntimeException(
+                    "Unable to construct XML XPath query", e);
         }
     }
 
+    /**
+     * Construct a new LogItem, but do not initialize a DOM (Document). Note:
+     * the caller should do the initialization of the DOM.
+     *
+     * @throws LogRuntimeException If unable to initialize the LogItem
+     */
     public LogItem() throws LogRuntimeException {
     }
 
+    /**
+     * Construct a new LogItem with the specified root element tag name.
+     *
+     * @param rootTagName The root tag name
+     * @throws LogRuntimeException If unable to initialize the LogItem
+     */
     public LogItem(String rootTagName) throws LogRuntimeException {
 
         doc = builder.newDocument();
@@ -130,18 +147,38 @@ abstract class LogItem {
         root = doc.createElement(rootTagName);
         doc.appendChild(root);
 
-        XMLUtil.appendElementWithText(doc, root, "created", XMLUtil.toXMLFormat(new GregorianCalendar()));
+        XMLUtil.appendElementWithText(doc, root, "created", 
+                XMLUtil.toXMLFormat(new GregorianCalendar()));
 
         Element authorElement = doc.createElement("Author");
         root.appendChild(authorElement);
-        XMLUtil.appendElementWithText(doc, authorElement, "username", System.getProperty("user.name"));
+        XMLUtil.appendElementWithText(doc, authorElement, "username", 
+                System.getProperty("user.name"));
     }
 
-    public void addAttachment(String filepath) throws LogIOException, LogRuntimeException {
+    /**
+     * Add a file attachment with an empty caption and mime type.
+     *
+     * @param filepath The file path
+     * @throws LogIOException If unable to add the attachment due to IO
+     * @throws LogRuntimeException If unable to add the attachment
+     */
+    public void addAttachment(String filepath) throws LogIOException, 
+            LogRuntimeException {
         addAttachment(filepath, "", "");
     }
 
-    public void addAttachment(String filepath, String caption, String mimeType) throws LogIOException, LogRuntimeException {
+    /**
+     * Add a file attachment with the specified caption and mime type.
+     * 
+     * @param filepath The file path
+     * @param caption The The caption
+     * @param mimeType The mime type
+     * @throws LogIOException If unable to add the attachment due to IO
+     * @throws LogRuntimeException If unable to add the attachment
+     */
+    public void addAttachment(String filepath, String caption, String mimeType) 
+            throws LogIOException, LogRuntimeException {
         File file = null;
         String data = null;
         Element attachmentsElement = null;
@@ -149,13 +186,16 @@ abstract class LogItem {
         try {
             file = new File(filepath);
             data = XMLUtil.encodeBase64(IOUtil.fileToBytes(file));
-            attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
+            attachmentsElement = (Element) attachmentsExpression.evaluate(doc, 
+                    XPathConstants.NODE);
         } catch (IOException e) {
             throw new LogIOException("Unable to access attachment file.", e);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (attachmentsElement == null) {
@@ -165,23 +205,35 @@ abstract class LogItem {
 
         Element attachmentElement = doc.createElement("Attachment");
         attachmentsElement.appendChild(attachmentElement);
-        XMLUtil.appendElementWithText(doc, attachmentElement, "caption", caption);
-        XMLUtil.appendElementWithText(doc, attachmentElement, "filename", file.getName());
+        XMLUtil.appendElementWithText(doc, attachmentElement, "caption", 
+                caption);
+        XMLUtil.appendElementWithText(doc, attachmentElement, "filename", 
+                file.getName());
         XMLUtil.appendElementWithText(doc, attachmentElement, "type", mimeType);
-        Element dataElement = XMLUtil.appendElementWithText(doc, attachmentElement, "data", data);
+        Element dataElement = XMLUtil.appendElementWithText(doc, 
+                attachmentElement, "data", data);
         dataElement.setAttribute("encoding", "base64");
     }
 
+    /**
+     * Returns the file attachments.
+     * 
+     * @return The attachments
+     * @throws LogRuntimeException If unable to return the attachments
+     */
     public Attachment[] getAttachments() throws LogRuntimeException {
         List<Attachment> attachments = new ArrayList<Attachment>();
         Element attachmentsElement = null;
 
         try {
-            attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
+            attachmentsElement = (Element) attachmentsExpression.evaluate(doc, 
+                    XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (attachmentsElement != null) {
@@ -195,15 +247,23 @@ abstract class LogItem {
         return attachments.toArray(new Attachment[]{});
     }
 
+    /**
+     * Removes the file attachments.
+     * 
+     * @throws LogRuntimeException If unable to remove the file attachments
+     */
     public void deleteAttachments() throws LogRuntimeException {
         Element attachmentsElement = null;
 
         try {
-            attachmentsElement = (Element) attachmentsExpression.evaluate(doc, XPathConstants.NODE);
+            attachmentsElement = (Element) attachmentsExpression.evaluate(doc, 
+                    XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (attachmentsElement != null) {
@@ -286,8 +346,8 @@ abstract class LogItem {
         }
 
         lognumberElement.setTextContent(lognumber.toString());
-    }        
-    
+    }
+
     public Long getLogNumber() throws LogRuntimeException {
         Long lognumber = null;
         String lognumberStr = null;
@@ -359,7 +419,7 @@ abstract class LogItem {
 
         return body;
     }
-    
+
     void setBody(Body body) throws LogRuntimeException {
         if (body == null) {
             body = new Body(Body.ContentType.TEXT, "");
@@ -407,7 +467,7 @@ abstract class LogItem {
     }
 
     abstract String getSchemaURL();
-    
+
     void validate() throws SchemaUnavailableException, InvalidXMLException, LogIOException {
         Schema schema = null;
 
@@ -435,25 +495,25 @@ abstract class LogItem {
     }
 
     Long parseResponse(InputStream is) throws LogIOException, LogRuntimeException {
-        Long id = null;
-        
+        long id;
+
         try {
             Document response = builder.parse(is);
 
             String status = (String) responseStatusExpression.evaluate(response, XPathConstants.STRING);
             String message = (String) responseMessageExpression.evaluate(response, XPathConstants.STRING);
             String lognumberStr = (String) responseLognumberExpression.evaluate(response, XPathConstants.STRING);
-            
-            if(status == null || status.isEmpty()) {
+
+            if (status == null || status.isEmpty()) {
                 throw new LogIOException("Unrecognized Response from server.");
             }
-            
-            if(!"ok".equals(status)) {
+
+            if (!"ok".equals(status)) {
                 throw new LogIOException("Submission Failed: " + message);
             }
-            
+
             id = Long.parseLong(lognumberStr);
-            
+
             //System.out.println("Status: " + status);
             //System.out.println("Message: " + message);
             //System.out.println(XMLUtil.getXML(response));
@@ -465,23 +525,23 @@ abstract class LogItem {
             throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
             throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
-        } catch(NumberFormatException e) {
+        } catch (NumberFormatException e) {
             throw new LogIOException("Log number not found in response.", e);
-        }        
-        
+        }
+
         return id;
     }
 
-    Long putToServer(String pemFilePath) throws LogIOException, LogCertificateException, LogRuntimeException {
-        Long id = null;
+    long putToServer(String pemFilePath) throws LogIOException, LogCertificateException, LogRuntimeException {
+        long id;
 
-        String xml = getXML();        
-        
+        String xml = getXML();
+
         HttpsURLConnection con;
         OutputStreamWriter writer = null;
         InputStream is = null;
         InputStream error = null;
-        
+
         try {
             URL url = new URL(getPutPath());
             con = (HttpsURLConnection) url.openConnection();
@@ -546,60 +606,60 @@ abstract class LogItem {
             }
         }
 
-        return id;        
-    }
-    
-    Document getDocument() {
-        return doc;
-    }
-    
-    Element getRoot() {
-        return root;
-    }
-    
-    XPath getXPath() {
-        return xpath;
-    }
-    
-    String getPutPath() {
-        StringBuilder strBuilder = new StringBuilder();
-        
-        strBuilder.append(SUBMIT_URL);
-        
-        if(!SUBMIT_URL.endsWith("/")) {
-            strBuilder.append("/");
-        }
-        
-        strBuilder.append(generateXMLFilename());
-        
-        return strBuilder.toString();
-    }
-    
-    String getDefaultCertificatePath() {
-        return new File(System.getProperty("user.home"), PEM_FILE_NAME).getAbsolutePath();
-    }
-    
-    public Long submit() throws LogException {
-        return submit(getDefaultCertificatePath());
-    }    
-    
-    public Long submit(String pemFilePath) throws InvalidXMLException, LogIOException {
-        Long id = 0L;
-
-        try {
-            id = putToServer(pemFilePath);
-        } catch(Exception e) {
-            // Ignore exceptions
-            queue();
-        }
-        
         return id;
     }
 
-    public Long sumbitNow() throws LogIOException, LogCertificateException, LogRuntimeException {
+    Document getDocument() {
+        return doc;
+    }
+
+    Element getRoot() {
+        return root;
+    }
+
+    XPath getXPath() {
+        return xpath;
+    }
+
+    String getPutPath() {
+        StringBuilder strBuilder = new StringBuilder();
+
+        strBuilder.append(SUBMIT_URL);
+
+        if (!SUBMIT_URL.endsWith("/")) {
+            strBuilder.append("/");
+        }
+
+        strBuilder.append(generateXMLFilename());
+
+        return strBuilder.toString();
+    }
+
+    String getDefaultCertificatePath() {
+        return new File(System.getProperty("user.home"), PEM_FILE_NAME).getAbsolutePath();
+    }
+
+    public long submit() throws LogException {
+        return submit(getDefaultCertificatePath());
+    }
+
+    public long submit(String pemFilePath) throws InvalidXMLException, LogIOException {
+        long id = 0L;
+
+        try {
+            id = putToServer(pemFilePath);
+        } catch (Exception e) {
+            // Ignore exceptions
+            queue();
+        }
+
+        return id;
+    }
+
+    public long sumbitNow() throws LogIOException, LogCertificateException, LogRuntimeException {
         return putToServer(getDefaultCertificatePath());
     }
-    
+
     String generateXMLFilename() {
         StringBuilder filenameBuilder = new StringBuilder();
 
