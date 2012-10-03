@@ -83,6 +83,7 @@ public class LogEntryTest {
         String filepath = new File(System.getProperty("java.io.tmpdir"), expectedFilename).getAbsolutePath();
         entry.queue(filepath);
         entry.addAttachment(filepath, expectedCaption, expectedMimeType);
+        entry.addAttachment(filepath);
         String actualFilename = entry.getAttachments()[0].getFileName();
         String actualCaption = entry.getAttachments()[0].getCaption();
         String actualMimeType = entry.getAttachments()[0].getMimeType();
@@ -91,6 +92,10 @@ public class LogEntryTest {
         assertEquals(expectedCaption, actualCaption);
         assertEquals(expectedMimeType, actualMimeType);
         assertEquals(expectedContent, actualContent);
+        
+        expectedMimeType = "application/xml";
+        actualMimeType = entry.getAttachments()[1].getMimeType();
+        assertEquals(expectedMimeType, actualMimeType);
         
         entry.deleteAttachments();
         int expectedLength = 0;

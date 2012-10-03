@@ -5,8 +5,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.net.FileNameMap;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -63,6 +65,7 @@ abstract class LogItem {
     private static final String SUBMIT_URL;
     private static final String QUEUE_PATH;
     private static final String PEM_FILE_NAME = ".elogcert";
+    private static final FileNameMap mimeMap = URLConnection.getFileNameMap();
 
     static {
         ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
@@ -147,37 +150,41 @@ abstract class LogItem {
         root = doc.createElement(rootTagName);
         doc.appendChild(root);
 
-        XMLUtil.appendElementWithText(doc, root, "created", 
+        XMLUtil.appendElementWithText(doc, root, "created",
                 XMLUtil.toXMLFormat(new GregorianCalendar()));
 
         Element authorElement = doc.createElement("Author");
         root.appendChild(authorElement);
-        XMLUtil.appendElementWithText(doc, authorElement, "username", 
+        XMLUtil.appendElementWithText(doc, authorElement, "username",
                 System.getProperty("user.name"));
     }
 
     /**
-     * Add a file attachment with an empty caption and mime type.
+     * Add a file attachment with an empty caption and a hastily guessed mime
+     * type. The mime type is guessed by using the readily available
+     * java.net.URLConnection file name map, which simply looks at file
+     * extension and compares with the very limited lookup file at:
+     * <verbatim>[JRE_HOME]\lib\content-types.properties</verbatim>
      *
      * @param filepath The file path
      * @throws LogIOException If unable to add the attachment due to IO
      * @throws LogRuntimeException If unable to add the attachment
      */
-    public void addAttachment(String filepath) throws LogIOException, 
+    public void addAttachment(String filepath) throws LogIOException,
             LogRuntimeException {
-        addAttachment(filepath, "", "");
+        addAttachment(filepath, "", mimeMap.getContentTypeFor(filepath));
     }
 
     /**
      * Add a file attachment with the specified caption and mime type.
-     * 
+     *
      * @param filepath The file path
      * @param caption The The caption
      * @param mimeType The mime type
      * @throws LogIOException If unable to add the attachment due to IO
      * @throws LogRuntimeException If unable to add the attachment
      */
-    public void addAttachment(String filepath, String caption, String mimeType) 
+    public void addAttachment(String filepath, String caption, String mimeType)
             throws LogIOException, LogRuntimeException {
         File file = null;
         String data = null;
@@ -186,7 +193,7 @@ abstract class LogItem {
         try {
             file = new File(filepath);
             data = XMLUtil.encodeBase64(IOUtil.fileToBytes(file));
-            attachmentsElement = (Element) attachmentsExpression.evaluate(doc, 
+            attachmentsElement = (Element) attachmentsExpression.evaluate(doc,
                     XPathConstants.NODE);
         } catch (IOException e) {
             throw new LogIOException("Unable to access attachment file.", e);
@@ -205,19 +212,19 @@ abstract class LogItem {
 
         Element attachmentElement = doc.createElement("Attachment");
         attachmentsElement.appendChild(attachmentElement);
-        XMLUtil.appendElementWithText(doc, attachmentElement, "caption", 
+        XMLUtil.appendElementWithText(doc, attachmentElement, "caption",
                 caption);
-        XMLUtil.appendElementWithText(doc, attachmentElement, "filename", 
+        XMLUtil.appendElementWithText(doc, attachmentElement, "filename",
                 file.getName());
         XMLUtil.appendElementWithText(doc, attachmentElement, "type", mimeType);
-        Element dataElement = XMLUtil.appendElementWithText(doc, 
+        Element dataElement = XMLUtil.appendElementWithText(doc,
                 attachmentElement, "data", data);
         dataElement.setAttribute("encoding", "base64");
     }
 
     /**
      * Returns the file attachments.
-     * 
+     *
      * @return The attachments
      * @throws LogRuntimeException If unable to return the attachments
      */
@@ -226,7 +233,7 @@ abstract class LogItem {
         Element attachmentsElement = null;
 
         try {
-            attachmentsElement = (Element) attachmentsExpression.evaluate(doc, 
+            attachmentsElement = (Element) attachmentsExpression.evaluate(doc,
                     XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException(
@@ -249,14 +256,14 @@ abstract class LogItem {
 
     /**
      * Removes the file attachments.
-     * 
+     *
      * @throws LogRuntimeException If unable to remove the file attachments
      */
     public void deleteAttachments() throws LogRuntimeException {
         Element attachmentsElement = null;
 
         try {
-            attachmentsElement = (Element) attachmentsExpression.evaluate(doc, 
+            attachmentsElement = (Element) attachmentsExpression.evaluate(doc,
                     XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException(
@@ -299,11 +306,11 @@ abstract class LogItem {
     public void setEmailNotify(String[] addresses) throws LogRuntimeException {
         setEmailNotify(IOUtil.arrayToCSV(addresses));
     }
-    
+
     public String getEmailNotifyCSV() throws LogRuntimeException {
         return IOUtil.arrayToCSV(getEmailNotify());
     }
-    
+
     public String[] getEmailNotify() throws LogRuntimeException {
         String[] addresses = null;
         NodeList notificationElements = null;
@@ -321,7 +328,7 @@ abstract class LogItem {
         } else {
             addresses = new String[0];
         }
-            
+
 
         return addresses;
     }
