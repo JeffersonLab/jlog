@@ -5,13 +5,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import org.jlab.elog.exception.LogException;
+import org.jlab.elog.exception.LogIOException;
 import org.jlab.elog.exception.LogRuntimeException;
 import org.jlab.elog.util.XMLUtil;
 import org.w3c.dom.Element;
 
 /**
- *
+ * A file attachment.
+ * 
  * @author ryans
  */
 public class Attachment {
@@ -22,6 +23,11 @@ public class Attachment {
         this.attachmentElement = attachmentElement;
     }
 
+    /**
+     * Return the attachment caption.
+     * 
+     * @return The caption 
+     */
     public String getCaption() {
         Element capElement = XMLUtil.getChildElementByName(attachmentElement,
                 "caption");
@@ -34,6 +40,11 @@ public class Attachment {
         return capElement.getTextContent();
     }
 
+    /**
+     * Return the attachment file name.
+     * 
+     * @return The file name
+     */
     public String getFileName() {
         Element nameElement = XMLUtil.getChildElementByName(attachmentElement,
                 "filename");
@@ -46,6 +57,11 @@ public class Attachment {
         return nameElement.getTextContent();
     }
 
+    /**
+     * Return the attachment mime type.
+     * 
+     * @return The mime type
+     */
     public String getMimeType() {
         Element mimeElement = XMLUtil.getChildElementByName(attachmentElement,
                 "type");
@@ -58,6 +74,11 @@ public class Attachment {
         return mimeElement.getTextContent();
     }
 
+    /**
+     * Return the attachment URL.
+     * 
+     * @return The URL
+     */
     public String getURL() {
         String url = null;
 
@@ -75,8 +96,26 @@ public class Attachment {
 
         return url;
     }
+    
+    /**
+     * Return true if the attachment is accessed via URL or false if local only 
+     * (i.e. has not been submitted yet).
+     * 
+     * Note: you could just call getURL() and check if the result is null!
+     * 
+     * @return true if the attachment is accessed via URL
+     */
+    public boolean isURL() {
+        return (getURL() != null);
+    }
 
-    public InputStream getData() throws LogException {
+    /**
+     * Return the attachment data via an InputStream.
+     * 
+     * @return The attachment data
+     * @throws LogIOException If unable to obtain the InputStream
+     */
+    public InputStream getData() throws LogIOException {
         InputStream is = null;
 
         Element dataElement = XMLUtil.getChildElementByName(attachmentElement,
@@ -94,9 +133,9 @@ public class Attachment {
                 URL url = new URL(urlStr);
                 is = url.openStream();
             } catch (MalformedURLException e) {
-                throw new LogException("Unable to open input stream.", e);
+                throw new LogIOException("Unable to open input stream.", e);
             } catch(IOException e) {
-                throw new LogException("Unable to open input stream.", e);
+                throw new LogIOException("Unable to open input stream.", e);
             }
         } else {
             String dataStr = dataElement.getTextContent();
