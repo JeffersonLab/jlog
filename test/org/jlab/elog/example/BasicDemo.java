@@ -5,7 +5,8 @@ import org.jlab.elog.LogEntry;
 import org.jlab.elog.exception.LogException;
 
 /**
- *
+ * Basic example of client API usage.
+ * 
  * @author ryans
  */
 public class BasicDemo {

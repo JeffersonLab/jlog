@@ -8,7 +8,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- *
+ * Comment JUnit tests.
+ * 
  * @author ryans
  */
 public class CommentTest {

@@ -18,7 +18,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- *
+ * LogEntry JUnit tests.
+ * 
  * @author ryans
  */
 public class LogEntryTest {
