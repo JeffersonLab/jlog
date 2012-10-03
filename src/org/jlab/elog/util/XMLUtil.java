@@ -1,6 +1,7 @@
 package org.jlab.elog.util;
 
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -165,6 +166,25 @@ public final class XMLUtil {
         return csvBuilder.toString();
     }
 
+    /**
+     * Builds an array of String text values from a NodeList of Elements
+     * with Text children.
+     *
+     * @param nodes The Elements with Text children
+     * @return The array of values
+     */
+    public static String[] buildArrayFromText(NodeList nodes) {
+        ArrayList<String> values = new ArrayList<String>();
+
+        if (nodes.getLength() > 0) {
+            for (int i = 0; i < nodes.getLength(); i++) {
+                values.add(nodes.item(i).getTextContent());
+            }
+        }
+
+        return values.toArray(new String[] {});
+    }    
+    
     /**
      * Removes all children from a parent Element.
      *

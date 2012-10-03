@@ -110,7 +110,7 @@ public class LogEntryTest {
     public void testEmailNotify() throws Exception {
         String expected = "ryans@jlab.org";
         entry.setEmailNotify(expected);
-        String actual = entry.getEmailNotify();
+        String actual = entry.getEmailNotifyCSV();
         assertEquals(expected, actual);
     }
     
@@ -118,7 +118,7 @@ public class LogEntryTest {
     public void testSetLogbooks() throws LogException {
         String expected = "YOULOG,MELOG,WELOG";
         entry.setLogbooks(expected);
-        String actual = entry.getLogbooks();
+        String actual = entry.getLogbooksCSV();
         assertEquals(expected, actual);
     }
 
@@ -127,7 +127,7 @@ public class LogEntryTest {
         String expected = "TLOG,YOULOG,MELOG,WELOG";
         String addlist = "YOULOG,MELOG,WELOG";
         entry.addLogbooks(addlist);
-        String actual = entry.getLogbooks();
+        String actual = entry.getLogbooksCSV();
         assertEquals(expected, actual);
     }
 
@@ -135,7 +135,7 @@ public class LogEntryTest {
     public void testAddTags() throws LogException {
         String expected = "Readme,Autolog";
         entry.addTags(expected);
-        String actual = entry.getTags();
+        String actual = entry.getTagsCSV();
         assertEquals(expected, actual);
     }   
     
@@ -143,7 +143,7 @@ public class LogEntryTest {
     public void testSetTags() throws LogException {
         String expected = "Readme,Autolog";
         entry.setTags(expected);
-        String actual = entry.getTags();
+        String actual = entry.getTagsCSV();
         assertEquals(expected, actual);
     }    
     
@@ -176,7 +176,7 @@ public class LogEntryTest {
     public void testSetEntrymakers() throws LogException {
         String expected = "cjs,theo";
         entry.setEntryMakers(expected);
-        String actual = entry.getEntryMakers();
+        String actual = entry.getEntryMakersCSV();
         assertEquals(expected, actual);
     }
 
@@ -185,7 +185,7 @@ public class LogEntryTest {
         String expected = "theo,cjs";
         String addlist = "theo,cjs";
         entry.addEntryMakers(addlist);
-        String actual = entry.getEntryMakers();
+        String actual = entry.getEntryMakersCSV();
         assertEquals(expected, actual);
     }
 

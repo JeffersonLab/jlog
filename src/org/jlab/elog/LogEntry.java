@@ -12,6 +12,7 @@ import org.jlab.elog.exception.LogIOException;
 import org.jlab.elog.exception.LogRuntimeException;
 import org.jlab.elog.exception.MalformedXMLException;
 import org.jlab.elog.exception.SchemaUnavailableException;
+import org.jlab.elog.util.IOUtil;
 import org.jlab.elog.util.XMLUtil;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -124,6 +125,10 @@ public class LogEntry extends LogItem {
         revisionReasonElement.setTextContent(reason);
     }
 
+    public void addLogboks(String[] books) throws LogRuntimeException {
+        addLogbooks(IOUtil.arrayToCSV(books));
+    }
+    
     public void addLogbooks(String books) throws LogRuntimeException {
         if (books == null || books.isEmpty()) {
             return;
@@ -146,6 +151,10 @@ public class LogEntry extends LogItem {
         XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, "logbook", books);
     }
 
+    public void setLogbooks(String[] books) throws LogRuntimeException {
+        setLogbooks(IOUtil.arrayToCSV(books));
+    }
+    
     public void setLogbooks(String books) throws LogRuntimeException {
         if (books == null) {
             books = "";
@@ -169,7 +178,11 @@ public class LogEntry extends LogItem {
         XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, "logbook", books);
     }
 
-    public String getLogbooks() throws LogRuntimeException {
+    public String getLogbooksCSV() throws LogRuntimeException {
+        return IOUtil.arrayToCSV(getLogbooks());
+    }
+    
+    public String[] getLogbooks() throws LogRuntimeException {
         NodeList logbookElements = null;
 
         try {
@@ -184,9 +197,13 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
         }
 
-        return XMLUtil.buildCommaDelimitedFromText(logbookElements);
+        return XMLUtil.buildArrayFromText(logbookElements);
     }
 
+    public void addTags(String[] tags) throws LogRuntimeException {
+        addTags(IOUtil.arrayToCSV(tags));
+    }
+    
     public void addTags(String tags) throws LogRuntimeException {
         if (tags == null || tags.isEmpty()) {
             return;
@@ -210,6 +227,10 @@ public class LogEntry extends LogItem {
         XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, "tag", tags);
     }
 
+    public void setTags(String[] tags) throws LogRuntimeException {
+        setTags(IOUtil.arrayToCSV(tags));
+    }
+    
     public void setTags(String tags) throws LogRuntimeException {
         Element tagsElement = null;
 
@@ -235,9 +256,13 @@ public class LogEntry extends LogItem {
         }
     }
 
-    public String getTags() throws LogRuntimeException {
+    public String getTagsCSV() throws LogRuntimeException {
+        return IOUtil.arrayToCSV(getTags());
+    }
+    
+    public String[] getTags() throws LogRuntimeException {
         NodeList tagElements = null;
-        String tags = null;
+        String[] tags;
 
         try {
             tagElements = (NodeList) tagListExpression.evaluate(doc, XPathConstants.NODESET);
@@ -248,7 +273,10 @@ public class LogEntry extends LogItem {
         }
 
         if (tagElements != null) {
-            tags = XMLUtil.buildCommaDelimitedFromText(tagElements);
+            tags = XMLUtil.buildArrayFromText(tagElements);
+        }
+        else {
+            tags = new String[0];
         }
 
         return tags;
@@ -373,6 +401,11 @@ public class LogEntry extends LogItem {
         return titleElement.getTextContent();
     }
 
+    public void addEntryMakers(String[] entrymakers) 
+            throws LogRuntimeException {
+        addEntryMakers(IOUtil.arrayToCSV(entrymakers));
+    }
+    
     public void addEntryMakers(String entrymakers) throws LogRuntimeException {
         Element entrymakersElement = null;
 
@@ -393,6 +426,11 @@ public class LogEntry extends LogItem {
         XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
     }
 
+    public void setEntryMakers(String[] entrymakers) 
+            throws LogRuntimeException {
+        setEntryMakers(IOUtil.arrayToCSV(entrymakers));
+    }
+    
     public void setEntryMakers(String entrymakers) throws LogRuntimeException {
         if (entrymakers == null) {
             entrymakers = "";
@@ -418,7 +456,11 @@ public class LogEntry extends LogItem {
         XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
     }
 
-    public String getEntryMakers() throws LogRuntimeException {
+    public String getEntryMakersCSV() throws LogRuntimeException {
+        return IOUtil.arrayToCSV(getEntryMakers());
+    }
+    
+    public String[] getEntryMakers() throws LogRuntimeException {
         NodeList usernameElements = null;
 
         try {
@@ -433,7 +475,7 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
         }
 
-        return XMLUtil.buildCommaDelimitedFromText(usernameElements);
+        return XMLUtil.buildArrayFromText(usernameElements);
     }
 
     public void setSticky(boolean sticky) throws LogRuntimeException {

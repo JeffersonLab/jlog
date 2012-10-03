@@ -296,8 +296,16 @@ abstract class LogItem {
         }
     }
 
-    public String getEmailNotify() throws LogRuntimeException {
-        String addresses = null;
+    public void setEmailNotify(String[] addresses) throws LogRuntimeException {
+        setEmailNotify(IOUtil.arrayToCSV(addresses));
+    }
+    
+    public String getEmailNotifyCSV() throws LogRuntimeException {
+        return IOUtil.arrayToCSV(getEmailNotify());
+    }
+    
+    public String[] getEmailNotify() throws LogRuntimeException {
+        String[] addresses = null;
         NodeList notificationElements = null;
 
         try {
@@ -309,8 +317,11 @@ abstract class LogItem {
         }
 
         if (notificationElements != null) {
-            addresses = XMLUtil.buildCommaDelimitedFromText(notificationElements);
+            addresses = XMLUtil.buildArrayFromText(notificationElements);
+        } else {
+            addresses = new String[0];
         }
+            
 
         return addresses;
     }
@@ -329,7 +340,7 @@ abstract class LogItem {
         return author;
     }
 
-    void setLogNumber(Long lognumber) throws LogRuntimeException {
+    void setLogNumber(long lognumber) throws LogRuntimeException {
         Element lognumberElement = null;
 
         try {
@@ -345,7 +356,7 @@ abstract class LogItem {
             root.appendChild(lognumberElement);
         }
 
-        lognumberElement.setTextContent(lognumber.toString());
+        lognumberElement.setTextContent(String.valueOf(lognumber));
     }
 
     public Long getLogNumber() throws LogRuntimeException {
@@ -494,7 +505,7 @@ abstract class LogItem {
         }
     }
 
-    Long parseResponse(InputStream is) throws LogIOException, LogRuntimeException {
+    long parseResponse(InputStream is) throws LogIOException, LogRuntimeException {
         long id;
 
         try {
