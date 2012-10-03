@@ -21,6 +21,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.XMLConstants;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -62,6 +64,9 @@ import org.xml.sax.SAXException;
  */
 abstract class LogItem {
 
+    private static final Logger logger = Logger.getLogger(
+            LogItem.class.getName());    
+    
     private static final String SUBMIT_URL;
     private static final String QUEUE_PATH;
     private static final String PEM_FILE_NAME = ".elogcert";
@@ -312,7 +317,7 @@ abstract class LogItem {
     }
 
     public String[] getEmailNotify() throws LogRuntimeException {
-        String[] addresses = null;
+        String[] addresses;
         NodeList notificationElements = null;
 
         try {
@@ -604,7 +609,8 @@ abstract class LogItem {
                     writer.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.WARNING, 
+                        "Unable to close output stream during put request.", e);
             }
 
             try {
@@ -612,7 +618,8 @@ abstract class LogItem {
                     is.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.WARNING, 
+                        "Unable to close input stream during put request.", e);
             }
 
             try {
@@ -620,7 +627,8 @@ abstract class LogItem {
                     error.close();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.log(Level.WARNING, 
+                        "Unable to close error stream during put request.", e);
             }
         }
 
