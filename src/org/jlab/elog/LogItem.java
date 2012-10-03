@@ -69,6 +69,8 @@ abstract class LogItem {
     
     private static final String SUBMIT_URL;
     private static final String QUEUE_PATH;
+    private static final long ATTACH_SINGLE_MAX_BYTES;
+    private static final long ATTACH_TOTAL_MAX_BYTES;
     private static final String PEM_FILE_NAME = ".elogcert";
     private static final FileNameMap mimeMap = URLConnection.getFileNameMap();
 
@@ -76,6 +78,10 @@ abstract class LogItem {
         ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
         SUBMIT_URL = bundle.getString("SUBMIT_URL");
         QUEUE_PATH = bundle.getString("QUEUE_PATH");
+        ATTACH_SINGLE_MAX_BYTES = Long.parseLong(bundle.getString(
+                "ATTACH_SINGLE_MAX_BYTES"));
+        ATTACH_TOTAL_MAX_BYTES = Long.parseLong(bundle.getString(
+                "ATTACH_TOTAL_MAX_BYTES"));
     }
     Document doc;
     Element root;
@@ -93,7 +99,8 @@ abstract class LogItem {
     XPathExpression responseStatusExpression;
     XPathExpression responseMessageExpression;
     XPathExpression responseLognumberExpression;
-
+    long totalAttachmentBytes = 0;
+    
     {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
@@ -191,12 +198,26 @@ abstract class LogItem {
      */
     public void addAttachment(String filepath, String caption, String mimeType)
             throws LogIOException, LogRuntimeException {
-        File file = null;
         String data = null;
         Element attachmentsElement = null;
-
+        
+        File file = new File(filepath);
+        
+        if(file.length() > ATTACH_SINGLE_MAX_BYTES) {
+            throw new LogIOException(
+                    "The maximim attachment file size of " + 
+                    ATTACH_SINGLE_MAX_BYTES / 
+                    1024 / 1024 + " MB has been exceeded.");
+        }
+        
+        if(file.length() + totalAttachmentBytes > ATTACH_TOTAL_MAX_BYTES) {
+            throw new LogIOException(
+                    "The maximim size for all attachments of " + 
+                    ATTACH_TOTAL_MAX_BYTES / 
+                    1024 / 1024 + " MB has been exceeded.");            
+        }
+        
         try {
-            file = new File(filepath);
             data = XMLUtil.encodeBase64(IOUtil.fileToBytes(file));
             attachmentsElement = (Element) attachmentsExpression.evaluate(doc,
                     XPathConstants.NODE);
@@ -225,6 +246,7 @@ abstract class LogItem {
         Element dataElement = XMLUtil.appendElementWithText(doc,
                 attachmentElement, "data", data);
         dataElement.setAttribute("encoding", "base64");
+        totalAttachmentBytes += file.length();
     }
 
     /**
@@ -281,6 +303,8 @@ abstract class LogItem {
         if (attachmentsElement != null) {
             XMLUtil.removeChildren(attachmentsElement);
         }
+        
+        totalAttachmentBytes = 0;
     }
 
     public void setEmailNotify(String addresses) throws LogRuntimeException {
