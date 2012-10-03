@@ -6,7 +6,7 @@ import java.net.UnknownHostException;
 
 /**
  * System Utilities.
- * 
+ *
  * @author ryans
  */
 public final class SystemUtil {
@@ -45,11 +45,11 @@ public final class SystemUtil {
     }
 
     /**
-     * Attempt to obtain the hostname of machine this JVM is running on.  This
+     * Attempt to obtain the hostname of machine this JVM is running on. This
      * method will return null if unable to obtain the hostname; possibly due to
-     * misconfiguration on the local system.  If the system has multiple
-     * network interfaces the hostname retrieved is arbitrarily chosen.
-     * 
+     * misconfiguration on the local system. If the system has multiple network
+     * interfaces the hostname retrieved is arbitrarily chosen.
+     *
      * @return The hostname, or null if unable to obtain it.
      */
     public static String getHostname() {

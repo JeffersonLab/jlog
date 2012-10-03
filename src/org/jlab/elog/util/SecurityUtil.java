@@ -177,8 +177,8 @@ public final class SecurityUtil {
     }
 
     /**
-     * Obtain a SSLSocketFactory that provides a client certificate from a
-     * JKS file.
+     * Obtain a SSLSocketFactory that provides a client certificate from a JKS
+     * file.
      *
      * @param keystorePath Path to the keystore (.jks) file
      * @return The SSLSocketFactory
@@ -189,7 +189,7 @@ public final class SecurityUtil {
      * @throws CertificateException If unable to create the SocketFactory
      * @throws UnrecoverableKeyException If unable to create the SocketFactory
      * @throws KeyManagementException If unable to create the SocketFactory
-     */    
+     */
     public static SSLSocketFactory getSocketFactoryJKS(String keystorePath)
             throws NoSuchAlgorithmException, KeyStoreException,
             FileNotFoundException, IOException, CertificateException,

@@ -40,7 +40,8 @@ abstract class AdminExtension {
             authorExpression = xpath.compile("/*/Author/username");
             createdExpression = xpath.compile("/*/created");
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to construct XML XPath query", e);
+            throw new LogRuntimeException(
+                    "Unable to construct XML XPath query", e);
         }
     }
 
@@ -57,29 +58,33 @@ abstract class AdminExtension {
         Element authorElement = null;
 
         try {
-            authorElement = (Element) authorExpression.evaluate(doc, XPathConstants.NODE);
+            authorElement = (Element) authorExpression.evaluate(doc,
+                    XPathConstants.NODE);
 
             if (authorElement == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         authorElement.setTextContent(author);
     }
 
     /**
-     * Set the created date/time.  Note: the created date/time is automatically 
-     * initialized to the date/time at which the LogEntry object is 
+     * Set the created date/time. Note: the created date/time is automatically
+     * initialized to the date/time at which the LogEntry object is
      * instantiated.
-     * 
+     *
      * @param created The created date/time.
      * @throws LogRuntimeException If unable to set the created date/time.
      */
-    public void setCreated(GregorianCalendar created) throws LogRuntimeException {
+    public void setCreated(GregorianCalendar created)
+            throws LogRuntimeException {
         if (created == null) {
             created = new GregorianCalendar();
         }
@@ -87,24 +92,27 @@ abstract class AdminExtension {
         Element createdElement = null;
 
         try {
-            createdElement = (Element) createdExpression.evaluate(doc, XPathConstants.NODE);
+            createdElement = (Element) createdExpression.evaluate(doc,
+                    XPathConstants.NODE);
 
             if (createdElement == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         createdElement.setTextContent(XMLUtil.toXMLFormat(created));
     }
 
     /**
-     * Set the log number.  This method provides a way to revise a LogEntry 
+     * Set the log number. This method provides a way to revise a LogEntry
      * without loading its original field values from the server first.
-     * 
+     *
      * @param lognumber The log number
      * @throws LogRuntimeException If unable to set the log number
      */

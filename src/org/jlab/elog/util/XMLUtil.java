@@ -167,8 +167,8 @@ public final class XMLUtil {
     }
 
     /**
-     * Builds an array of String text values from a NodeList of Elements
-     * with Text children.
+     * Builds an array of String text values from a NodeList of Elements with
+     * Text children.
      *
      * @param nodes The Elements with Text children
      * @return The array of values
@@ -182,9 +182,9 @@ public final class XMLUtil {
             }
         }
 
-        return values.toArray(new String[] {});
-    }    
-    
+        return values.toArray(new String[]{});
+    }
+
     /**
      * Removes all children from a parent Element.
      *
