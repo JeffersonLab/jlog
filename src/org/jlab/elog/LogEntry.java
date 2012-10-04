@@ -19,6 +19,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
+ * An electronic log book entry.
  *
  * @author ryans
  */
@@ -49,18 +50,29 @@ public class LogEntry extends LogItem {
             logbooksExpression = xpath.compile("/Logentry/Logbooks");
             logbookListExpression = xpath.compile("/Logentry/Logbooks/logbook");
             entrymakersExpression = xpath.compile("/Logentry/Entrymakers");
-            usernameListExpression = xpath.compile("/Logentry/Entrymakers/Entrymaker/username");
+            usernameListExpression = xpath.compile(
+                    "/Logentry/Entrymakers/Entrymaker/username");
             stickyExpression = xpath.compile("/Logentry/sticky");
             tagsExpression = xpath.compile("/Logentry/Tags");
             tagListExpression = xpath.compile("/Logentry/Tags/tag");
             referencesExpression = xpath.compile("/Logentry/References");
-            revisionReasonExpression = xpath.compile("/Logentry/revision_reason");
+            revisionReasonExpression = xpath.compile(
+                    "/Logentry/revision_reason");
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to construct XML XPath query", e);
+            throw new LogRuntimeException(
+                    "Unable to construct XML XPath query", e);
         }
 
     }
 
+    /**
+     * Construct a new LogEntry with the specified title and log books
+     * designation.
+     *
+     * @param title The title
+     * @param books A comma-separated list of log books
+     * @throws LogRuntimeException If unable to construct a new LogEntry
+     */
     public LogEntry(String title, String books) throws LogRuntimeException {
         super("Logentry");
 
@@ -68,10 +80,23 @@ public class LogEntry extends LogItem {
 
         Element logbooks = doc.createElement("Logbooks");
         root.appendChild(logbooks);
-        XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooks, "logbook", books);
+        XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooks, "logbook",
+                books);
     }
 
-    public LogEntry(String filePath) throws SchemaUnavailableException, MalformedXMLException, InvalidXMLException, LogIOException, LogRuntimeException {
+    /**
+     * Construct a new LogEntry from the specified XML file.
+     *
+     * @param filePath The path to the XML file
+     * @throws SchemaUnavailableException If the XML schema is unavailable
+     * @throws MalformedXMLException If the XML is malformed
+     * @throws InvalidXMLException If the XML is invalid
+     * @throws LogIOException If unable to construct due to IO
+     * @throws LogRuntimeException If unable to construct
+     */
+    public LogEntry(String filePath) throws SchemaUnavailableException,
+            MalformedXMLException, InvalidXMLException, LogIOException,
+            LogRuntimeException {
         try {
             doc = builder.parse(filePath);
             root = doc.getDocumentElement();
@@ -81,11 +106,28 @@ public class LogEntry extends LogItem {
             throw new LogIOException("Unable to parse XML file.", e);
         }
 
-        validate(); // Alternatively we could call builder.setSchema() and it would be a validating parser (no way to differentiate Malformed vs Invalid though)
+        // We could call builder.setSchema() and it would be a validating
+        // parser, but then no way to differentiate Malformed vs Invalid
+        validate();
     }
 
-    public static LogEntry getLogEntry(long id, String reason) throws SchemaUnavailableException, MalformedXMLException, InvalidXMLException, LogIOException, LogRuntimeException {
-        String filePath = getGetPath(id);
+    /**
+     * Factory method to obtain an existing LogEntry for viewing or revising.
+     * If the intention is for viewing provide null for the reason.
+     * 
+     * @param lognumber The log number.
+     * @param reason The reason for the revision
+     * @return The LogEntry
+     * @throws SchemaUnavailableException If the XML schema is unavailable
+     * @throws MalformedXMLException If the XML is malformed
+     * @throws InvalidXMLException If the XML is invalid
+     * @throws LogIOException If unable to construct due to IO
+     * @throws LogRuntimeException If unable to construct
+     */
+    public static LogEntry getLogEntry(long lognumber, String reason) 
+            throws SchemaUnavailableException, MalformedXMLException, 
+            InvalidXMLException, LogIOException, LogRuntimeException {
+        String filePath = getGetPath(lognumber);
         LogEntry entry = new LogEntry(filePath);
         entry.setRevisionReason(reason);
         return entry;
@@ -121,14 +163,26 @@ public class LogEntry extends LogItem {
             revisionReasonElement = doc.createElement("revision_reason");
             root.appendChild(revisionReasonElement);
         }
-        
+
         revisionReasonElement.setTextContent(reason);
     }
 
+    /**
+     * Add an array of log books to this log entry.
+     * 
+     * @param books The log books
+     * @throws LogRuntimeException If unable to add log books 
+     */
     public void addLogboks(String[] books) throws LogRuntimeException {
         addLogbooks(IOUtil.arrayToCSV(books));
     }
-    
+
+    /**
+     * Add a comma-separated list of log books to this log entry.
+     * 
+     * @param books The log books
+     * @throws LogRuntimeException If unable to add log books 
+     */
     public void addLogbooks(String books) throws LogRuntimeException {
         if (books == null || books.isEmpty()) {
             return;
@@ -151,10 +205,22 @@ public class LogEntry extends LogItem {
         XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, "logbook", books);
     }
 
+    /**
+     * Replace the existing log books with the specified array.
+     * 
+     * @param books The log books
+     * @throws LogRuntimeException If unable to set log books 
+     */
     public void setLogbooks(String[] books) throws LogRuntimeException {
         setLogbooks(IOUtil.arrayToCSV(books));
     }
-    
+
+    /**
+     * Replace the existing log books with the specified comma-separated-values.
+     * 
+     * @param books The log books
+     * @throws LogRuntimeException If unable to set the log books 
+     */
     public void setLogbooks(String books) throws LogRuntimeException {
         if (books == null) {
             books = "";
@@ -178,10 +244,22 @@ public class LogEntry extends LogItem {
         XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, "logbook", books);
     }
 
+    /**
+     * Return the log books as comma-separated-values.
+     * 
+     * @return The log books
+     * @throws LogRuntimeException If unable to return the log books 
+     */
     public String getLogbooksCSV() throws LogRuntimeException {
         return IOUtil.arrayToCSV(getLogbooks());
     }
-    
+
+    /**
+     * Return the log books as an array.
+     * 
+     * @return The log books
+     * @throws LogRuntimeException If unable to return the log books 
+     */
     public String[] getLogbooks() throws LogRuntimeException {
         NodeList logbookElements = null;
 
@@ -200,10 +278,22 @@ public class LogEntry extends LogItem {
         return XMLUtil.buildArrayFromText(logbookElements);
     }
 
+    /**
+     * Add an array of tags to the log entry.
+     * 
+     * @param tags The tags
+     * @throws LogRuntimeException If unable to add tags 
+     */
     public void addTags(String[] tags) throws LogRuntimeException {
         addTags(IOUtil.arrayToCSV(tags));
     }
-    
+
+    /**
+     * Add a comma-separated list of tags to the log entry.
+     * 
+     * @param tags The tags
+     * @throws LogRuntimeException If unable to add tags 
+     */
     public void addTags(String tags) throws LogRuntimeException {
         if (tags == null || tags.isEmpty()) {
             return;
@@ -227,10 +317,22 @@ public class LogEntry extends LogItem {
         XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, "tag", tags);
     }
 
+    /**
+     * Replace the existing tags with the specified array of tags.
+     * 
+     * @param tags The tags
+     * @throws LogRuntimeException If unable to set tags 
+     */
     public void setTags(String[] tags) throws LogRuntimeException {
         setTags(IOUtil.arrayToCSV(tags));
     }
-    
+
+    /**
+     * Replace the existing tags with the specified comma-separated-values.
+     * 
+     * @param tags The tags
+     * @throws LogRuntimeException If unable to set the tags 
+     */
     public void setTags(String tags) throws LogRuntimeException {
         Element tagsElement = null;
 
@@ -256,10 +358,22 @@ public class LogEntry extends LogItem {
         }
     }
 
+    /**
+     * Return the tags as comma-separated-values.
+     * 
+     * @return The tags
+     * @throws LogRuntimeException If unable to return the tags 
+     */
     public String getTagsCSV() throws LogRuntimeException {
         return IOUtil.arrayToCSV(getTags());
     }
-    
+
+    /**
+     * Return the tags as an array.
+     * 
+     * @return The tags
+     * @throws LogRuntimeException If unable to get the tags 
+     */
     public String[] getTags() throws LogRuntimeException {
         NodeList tagElements = null;
         String[] tags;
@@ -274,14 +388,19 @@ public class LogEntry extends LogItem {
 
         if (tagElements != null) {
             tags = XMLUtil.buildArrayFromText(tagElements);
-        }
-        else {
+        } else {
             tags = new String[0];
         }
 
         return tags;
     }
 
+    /**
+     * Add a reference to this log entry.
+     * 
+     * @param ref The reference
+     * @throws LogRuntimeException If unable to add a reference 
+     */
     public void addReference(Reference ref) throws LogRuntimeException {
         if (ref == null) {
             return;
@@ -309,6 +428,12 @@ public class LogEntry extends LogItem {
         refElement.setTextContent(ref.getId());
     }
 
+    /**
+     * Return the references.
+     * 
+     * @return The references
+     * @throws LogRuntimeException If unable to get the references 
+     */
     public Reference[] getReferences() throws LogRuntimeException {
         List<Reference> references = new ArrayList<Reference>();
 
@@ -349,6 +474,11 @@ public class LogEntry extends LogItem {
         return references.toArray(new Reference[]{});
     }
 
+    /**
+     * Remove the references from the log entry.
+     * 
+     * @throws LogRuntimeException If unable to remove the references
+     */
     public void deleteReferences() throws LogRuntimeException {
         Element referencesElement = null;
 
@@ -365,6 +495,12 @@ public class LogEntry extends LogItem {
         }
     }
 
+    /**
+     * Set the title to a new value.
+     * 
+     * @param title The new title
+     * @throws LogRuntimeException If unable to set the title 
+     */
     public void setTitle(String title) throws LogRuntimeException {
         Element titleElement = null;
 
@@ -383,6 +519,12 @@ public class LogEntry extends LogItem {
         titleElement.setTextContent(title);
     }
 
+    /**
+     * Return the title.
+     * 
+     * @return The title
+     * @throws LogRuntimeException If unable to get the title
+     */
     public String getTitle() throws LogRuntimeException {
         Element titleElement = null;
 
@@ -401,11 +543,23 @@ public class LogEntry extends LogItem {
         return titleElement.getTextContent();
     }
 
-    public void addEntryMakers(String[] entrymakers) 
+    /**
+     * Add an array of entry makers to the log entry.
+     * 
+     * @param entrymakers The entry makers
+     * @throws LogRuntimeException If unable to add entry makers
+     */
+    public void addEntryMakers(String[] entrymakers)
             throws LogRuntimeException {
         addEntryMakers(IOUtil.arrayToCSV(entrymakers));
     }
-    
+
+    /**
+     * Add a comma-separated list of entry makers to the log entry.
+     * 
+     * @param entrymakers The entry makers
+     * @throws LogRuntimeException If unable to add entry makers
+     */
     public void addEntryMakers(String entrymakers) throws LogRuntimeException {
         Element entrymakersElement = null;
 
@@ -426,11 +580,23 @@ public class LogEntry extends LogItem {
         XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
     }
 
-    public void setEntryMakers(String[] entrymakers) 
+    /**
+     * Replace the entry makers with the specified array.
+     * 
+     * @param entrymakers the entry makers
+     * @throws LogRuntimeException If unable to set the entry makers
+     */
+    public void setEntryMakers(String[] entrymakers)
             throws LogRuntimeException {
         setEntryMakers(IOUtil.arrayToCSV(entrymakers));
     }
-    
+
+    /**
+     * Replace the entry makers with the specified comma-separated-values.
+     * 
+     * @param entrymakers The entry makers
+     * @throws LogRuntimeException If unable to set the entry makers
+     */
     public void setEntryMakers(String entrymakers) throws LogRuntimeException {
         if (entrymakers == null) {
             entrymakers = "";
@@ -456,10 +622,22 @@ public class LogEntry extends LogItem {
         XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
     }
 
+    /**
+     * Return the entry makers as comma-separated-values.
+     * 
+     * @return The entry makers
+     * @throws LogRuntimeException If unable to get the entry makers 
+     */
     public String getEntryMakersCSV() throws LogRuntimeException {
         return IOUtil.arrayToCSV(getEntryMakers());
     }
-    
+
+    /**
+     * Return the entry makers as an array.
+     * 
+     * @return The entry makers
+     * @throws LogRuntimeException If unable to get the entry makers 
+     */
     public String[] getEntryMakers() throws LogRuntimeException {
         NodeList usernameElements = null;
 
@@ -478,6 +656,12 @@ public class LogEntry extends LogItem {
         return XMLUtil.buildArrayFromText(usernameElements);
     }
 
+    /**
+     * Set the sticky value of this log entry.
+     * 
+     * @param sticky true if sticky, false if not
+     * @throws LogRuntimeException If unable to set the sticky value
+     */
     public void setSticky(boolean sticky) throws LogRuntimeException {
         Element stickyElement = null;
 
@@ -502,6 +686,12 @@ public class LogEntry extends LogItem {
         }
     }
 
+    /**
+     * Return true if sticky, false if not.
+     * 
+     * @return true if sticky, false if not
+     * @throws LogRuntimeException If unable to get the sticky value
+     */
     public boolean isSticky() throws LogRuntimeException {
         boolean sticky = false;
 
@@ -537,10 +727,23 @@ public class LogEntry extends LogItem {
         return LOG_ENTRY_SCHEMA_URL;
     }
 
+    /**
+     * Set the body to the specified plain text content.
+     * 
+     * @param content The content
+     * @throws LogRuntimeException If unable to set the body
+     */
     public void setBody(String content) {
         setBody(new Body(Body.ContentType.TEXT, content));
     }
 
+    /**
+     * Set the body to the specified content and content type.
+     * 
+     * @param content The content
+     * @param type the type
+     * @throws LogRuntimeException If unable to set the body
+     */
     public void setBody(String content, Body.ContentType type) {
         setBody(new Body(type, content));
     }

@@ -4,7 +4,7 @@ import java.util.ResourceBundle;
 import org.jlab.elog.exception.LogRuntimeException;
 
 /**
- * A log book comment.
+ * An electronic log book comment.
  * 
  * @author ryans
  */
