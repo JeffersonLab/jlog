@@ -46,6 +46,11 @@ public class Body {
         return content;
     }
     
+    /**
+     * Returns a String representation.
+     * 
+     * @return The String representation
+     */
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();

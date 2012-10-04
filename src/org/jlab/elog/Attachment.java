@@ -99,9 +99,9 @@ public class Attachment {
     
     /**
      * Return true if the attachment is accessed via URL or false if local only 
-     * (i.e. has not been submitted yet).
+     * (has not been submitted yet).
      * 
-     * Note: you could just call getURL() and check if the result is null!
+     * Note: you could just call getURL() and check if the result is null.
      * 
      * @return true if the attachment is accessed via URL
      */
