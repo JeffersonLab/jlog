@@ -853,7 +853,7 @@ abstract class LogItem {
      * @throws LogCertificateException If unable to submit due to certificate
      * @throws LogRuntimeException If unable to submit
      */
-    public long sumbitNow() throws LogIOException, LogCertificateException,
+    public long submitNow() throws LogIOException, LogCertificateException,
             LogRuntimeException {
         return putToServer(getDefaultCertificatePath());
     }
