@@ -694,7 +694,7 @@ abstract class LogItem {
             URL url = new URL(getPutPath());
             con = (HttpsURLConnection) url.openConnection();
             con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(
-                    pemFilePath, true));
+                    pemFilePath, false));
             con.setRequestMethod("PUT");
             con.setDoOutput(true);
             con.connect();
