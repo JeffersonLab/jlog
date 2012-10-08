@@ -152,11 +152,14 @@ public class LogEntry extends LogItem {
         Element revisionReasonElement = null;
 
         try {
-            revisionReasonElement = (Element) revisionReasonExpression.evaluate(doc, XPathConstants.NODE);
+            revisionReasonElement = (Element) revisionReasonExpression.evaluate(
+                    doc, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (revisionReasonElement == null) {
@@ -191,18 +194,22 @@ public class LogEntry extends LogItem {
         Element logbooksElement = null;
 
         try {
-            logbooksElement = (Element) logbooksExpression.evaluate(doc, XPathConstants.NODE);
+            logbooksElement = (Element) logbooksExpression.evaluate(doc, 
+                    XPathConstants.NODE);
 
             if (logbooksElement == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
-        XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, "logbook", books);
+        XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, 
+                "logbook", books);
     }
 
     /**
@@ -229,19 +236,23 @@ public class LogEntry extends LogItem {
         Element logbooksElement = null;
 
         try {
-            logbooksElement = (Element) logbooksExpression.evaluate(doc, XPathConstants.NODE);
+            logbooksElement = (Element) logbooksExpression.evaluate(doc, 
+                    XPathConstants.NODE);
 
             if (logbooksElement == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         XMLUtil.removeChildren(logbooksElement);
-        XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, "logbook", books);
+        XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, 
+                "logbook", books);
     }
 
     /**
@@ -264,15 +275,18 @@ public class LogEntry extends LogItem {
         NodeList logbookElements = null;
 
         try {
-            logbookElements = (NodeList) logbookListExpression.evaluate(doc, XPathConstants.NODESET);
+            logbookElements = (NodeList) logbookListExpression.evaluate(doc, 
+                    XPathConstants.NODESET);
 
             if (logbookElements == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         return XMLUtil.buildArrayFromText(logbookElements);
@@ -302,11 +316,14 @@ public class LogEntry extends LogItem {
         Element tagsElement = null;
 
         try {
-            tagsElement = (Element) tagsExpression.evaluate(doc, XPathConstants.NODE);
+            tagsElement = (Element) tagsExpression.evaluate(doc, 
+                    XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (tagsElement == null) {
@@ -314,7 +331,8 @@ public class LogEntry extends LogItem {
             root.appendChild(tagsElement);
         }
 
-        XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, "tag", tags);
+        XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, "tag", 
+                tags);
     }
 
     /**
@@ -337,11 +355,14 @@ public class LogEntry extends LogItem {
         Element tagsElement = null;
 
         try {
-            tagsElement = (Element) tagsExpression.evaluate(doc, XPathConstants.NODE);
+            tagsElement = (Element) tagsExpression.evaluate(doc, 
+                    XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (tagsElement == null) {
@@ -354,7 +375,8 @@ public class LogEntry extends LogItem {
         }
 
         if (tags != null && !tags.isEmpty()) {
-            XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, "tag", tags);
+            XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, 
+                    "tag", tags);
         }
     }
 
@@ -379,11 +401,14 @@ public class LogEntry extends LogItem {
         String[] tags;
 
         try {
-            tagElements = (NodeList) tagListExpression.evaluate(doc, XPathConstants.NODESET);
+            tagElements = (NodeList) tagListExpression.evaluate(doc, 
+                    XPathConstants.NODESET);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (tagElements != null) {
@@ -409,11 +434,14 @@ public class LogEntry extends LogItem {
         Element referencesElement = null;
 
         try {
-            referencesElement = (Element) referencesExpression.evaluate(doc, XPathConstants.NODE);
+            referencesElement = (Element) referencesExpression.evaluate(doc, 
+                    XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (referencesElement == null) {
@@ -424,7 +452,8 @@ public class LogEntry extends LogItem {
         Element refElement = doc.createElement("reference");
         referencesElement.appendChild(refElement);
 
-        refElement.setAttribute("type", ref.getType() == null ? "" : ref.getType().name().toLowerCase());
+        refElement.setAttribute("type", ref.getType() == null ? "" : 
+                ref.getType().name().toLowerCase());
         refElement.setTextContent(ref.getId());
     }
 
@@ -440,11 +469,14 @@ public class LogEntry extends LogItem {
         Element referencesElement = null;
 
         try {
-            referencesElement = (Element) referencesExpression.evaluate(doc, XPathConstants.NODE);
+            referencesElement = (Element) referencesExpression.evaluate(doc, 
+                    XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (referencesElement != null) {
@@ -452,7 +484,9 @@ public class LogEntry extends LogItem {
 
             for (int i = 0; i < children.getLength(); i++) {
                 if (!(children.item(i) instanceof Element)) {
-                    throw new LogRuntimeException("Unexpected node type in XML DOM; expected reference element.");
+                    throw new LogRuntimeException(
+                            "Unexpected node type in XML DOM; "
+                            + "expected reference element.");
                 }
 
                 Element refElement = (Element) children.item(i);
@@ -463,7 +497,8 @@ public class LogEntry extends LogItem {
                     try {
                         type = Reference.RefType.valueOf(typeStr.toUpperCase());
                     } catch (IllegalArgumentException e) {
-                        throw new LogRuntimeException("Unexpected RefType in XML reference.", e);
+                        throw new LogRuntimeException(
+                                "Unexpected RefType in XML reference.", e);
                     }
                 }
 
@@ -483,11 +518,14 @@ public class LogEntry extends LogItem {
         Element referencesElement = null;
 
         try {
-            referencesElement = (Element) referencesExpression.evaluate(doc, XPathConstants.NODE);
+            referencesElement = (Element) referencesExpression.evaluate(doc, 
+                    XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (referencesElement != null) {
@@ -505,15 +543,18 @@ public class LogEntry extends LogItem {
         Element titleElement = null;
 
         try {
-            titleElement = (Element) titleExpression.evaluate(doc, XPathConstants.NODE);
+            titleElement = (Element) titleExpression.evaluate(doc, 
+                    XPathConstants.NODE);
 
             if (titleElement == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         titleElement.setTextContent(title);
@@ -529,15 +570,18 @@ public class LogEntry extends LogItem {
         Element titleElement = null;
 
         try {
-            titleElement = (Element) titleExpression.evaluate(doc, XPathConstants.NODE);
+            titleElement = (Element) titleExpression.evaluate(doc, 
+                    XPathConstants.NODE);
 
             if (titleElement == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         return titleElement.getTextContent();
@@ -564,12 +608,15 @@ public class LogEntry extends LogItem {
         Element entrymakersElement = null;
 
         try {
-            entrymakersElement = (Element) entrymakersExpression.evaluate(doc, XPathConstants.NODE);
+            entrymakersElement = (Element) entrymakersExpression.evaluate(doc, 
+                    XPathConstants.NODE);
 
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (entrymakersElement == null) {
@@ -577,7 +624,8 @@ public class LogEntry extends LogItem {
             root.appendChild(entrymakersElement);
         }
 
-        XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
+        XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, 
+                entrymakersElement, "Entrymaker", "username", entrymakers);
     }
 
     /**
@@ -605,11 +653,14 @@ public class LogEntry extends LogItem {
         Element entrymakersElement = null;
 
         try {
-            entrymakersElement = (Element) entrymakersExpression.evaluate(doc, XPathConstants.NODE);
+            entrymakersElement = (Element) entrymakersExpression.evaluate(doc, 
+                    XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (entrymakersElement == null) {
@@ -619,7 +670,8 @@ public class LogEntry extends LogItem {
             XMLUtil.removeChildren(entrymakersElement);
         }
 
-        XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, entrymakersElement, "Entrymaker", "username", entrymakers);
+        XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, 
+                entrymakersElement, "Entrymaker", "username", entrymakers);
     }
 
     /**
@@ -642,15 +694,18 @@ public class LogEntry extends LogItem {
         NodeList usernameElements = null;
 
         try {
-            usernameElements = (NodeList) usernameListExpression.evaluate(doc, XPathConstants.NODESET);
+            usernameElements = (NodeList) usernameListExpression.evaluate(doc, 
+                    XPathConstants.NODESET);
 
             if (usernameElements == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         return XMLUtil.buildArrayFromText(usernameElements);
@@ -666,11 +721,14 @@ public class LogEntry extends LogItem {
         Element stickyElement = null;
 
         try {
-            stickyElement = (Element) stickyExpression.evaluate(doc, XPathConstants.NODE);
+            stickyElement = (Element) stickyExpression.evaluate(doc, 
+                    XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (stickyElement == null && sticky) {
@@ -698,11 +756,14 @@ public class LogEntry extends LogItem {
         Element stickyElement = null;
 
         try {
-            stickyElement = (Element) stickyExpression.evaluate(doc, XPathConstants.NODE);
+            stickyElement = (Element) stickyExpression.evaluate(doc, 
+                    XPathConstants.NODE);
         } catch (XPathExpressionException e) {
-            throw new LogRuntimeException("Unable to evaluate XPath query on XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unable to evaluate XPath query on XML DOM.", e);
         } catch (ClassCastException e) {
-            throw new LogRuntimeException("Unexpected node type in XML DOM.", e);
+            throw new LogRuntimeException(
+                    "Unexpected node type in XML DOM.", e);
         }
 
         if (stickyElement != null) {
@@ -715,7 +776,8 @@ public class LogEntry extends LogItem {
                     sticky = true;
                 }
             } catch (NumberFormatException e) {
-                throw new LogRuntimeException("Unable to obtain sticky due to non-numeric format.", e);
+                throw new LogRuntimeException(
+                        "Unable to obtain sticky due to non-numeric format.", e);
             }
         }
 
