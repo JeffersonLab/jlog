@@ -101,7 +101,7 @@ public class LogEntry extends LogItem {
             MalformedXMLException, InvalidXMLException, LogIOException,
             LogRuntimeException {
         try {
-            if(VERIFY_SERVER) {
+            if(!VERIFY_SERVER) {
                 SecurityUtil.disableServerCertificateCheck();
             }
             
