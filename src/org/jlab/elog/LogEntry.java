@@ -1,6 +1,8 @@
 package org.jlab.elog;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -13,6 +15,7 @@ import org.jlab.elog.exception.LogRuntimeException;
 import org.jlab.elog.exception.MalformedXMLException;
 import org.jlab.elog.exception.SchemaUnavailableException;
 import org.jlab.elog.util.IOUtil;
+import org.jlab.elog.util.SecurityUtil;
 import org.jlab.elog.util.XMLUtil;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -98,12 +101,24 @@ public class LogEntry extends LogItem {
             MalformedXMLException, InvalidXMLException, LogIOException,
             LogRuntimeException {
         try {
+            if(VERIFY_SERVER) {
+                SecurityUtil.disableServerCertificateCheck();
+            }
+            
             doc = builder.parse(filePath);
             root = doc.getDocumentElement();
+            
+            SecurityUtil.enableServerCertificateCheck();
         } catch (SAXException e) {
             throw new MalformedXMLException("File is not well formed XML.", e);
         } catch (IOException e) {
             throw new LogIOException("Unable to parse XML file.", e);
+        } catch(NoSuchAlgorithmException e) {
+            throw new LogRuntimeException(
+                    "Unable to disable server certificate check", e);
+        } catch(KeyManagementException e) {
+            throw new LogRuntimeException(
+                    "Unable to disable server certificate check", e);
         }
 
         // We could call builder.setSchema() and it would be a validating

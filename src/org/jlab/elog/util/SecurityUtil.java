@@ -20,6 +20,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -37,9 +38,32 @@ public final class SecurityUtil {
 
     private static final Logger logger = Logger.getLogger(
             SecurityUtil.class.getName());
+    private static SSLSocketFactory defaultFactory =
+            (SSLSocketFactory) SSLSocketFactory.getDefault();
 
     private SecurityUtil() {
         // Can't instantiate publicly
+    }
+
+    /**
+     * Disables the server certificate check performed when using the default
+     * SSLSocketFactory.
+     *
+     * @throws NoSuchAlgorithmException If unable to disable
+     * @throws KeyManagementException If unable to disable
+     */
+    public static void disableServerCertificateCheck()
+            throws NoSuchAlgorithmException, KeyManagementException {
+        SSLSocketFactory factory = getTrustySocketFactory();
+        HttpsURLConnection.setDefaultSSLSocketFactory(factory);
+    }
+
+    /**
+     * Re-enables the server certificate check performed when using the default
+     * SSLSocketFactory, if it was previously disabled.
+     */
+    public static void enableServerCertificateCheck() {
+        HttpsURLConnection.setDefaultSSLSocketFactory(defaultFactory);
     }
 
     /**

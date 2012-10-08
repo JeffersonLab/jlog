@@ -43,7 +43,6 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.jlab.elog.exception.InvalidXMLException;
 import org.jlab.elog.exception.LogCertificateException;
-import org.jlab.elog.exception.LogException;
 import org.jlab.elog.exception.LogIOException;
 import org.jlab.elog.exception.LogRuntimeException;
 import org.jlab.elog.exception.SchemaUnavailableException;
@@ -71,6 +70,7 @@ abstract class LogItem {
     private static final long ATTACH_SINGLE_MAX_BYTES;
     private static final long ATTACH_TOTAL_MAX_BYTES;
     private static final String PEM_FILE_NAME = ".elogcert";
+    static final boolean VERIFY_SERVER = false;
     private static final FileNameMap mimeMap = URLConnection.getFileNameMap();
 
     static {
@@ -694,7 +694,7 @@ abstract class LogItem {
             URL url = new URL(getPutPath());
             con = (HttpsURLConnection) url.openConnection();
             con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(
-                    pemFilePath, false));
+                    pemFilePath, VERIFY_SERVER));
             con.setRequestMethod("PUT");
             con.setDoOutput(true);
             con.connect();
