@@ -75,9 +75,10 @@ public class Attachment {
     }
 
     /**
-     * Return the attachment URL.
+     * Return the attachment URL or null if unavailable.  The URL is unavailable
+     * when the attachment has not been submitted to the server yet.
      * 
-     * @return The URL
+     * @return The URL or null
      */
     public String getURL() {
         String url = null;
