@@ -101,11 +101,12 @@ public final class IOUtil {
     
     /**
      * Converts a comma-separated-values String to an array of String values.
+     * Whitespace on either side of commas are trimmed off.
      * 
      * @param values The comma-separated-values
      * @return The array of String values
      */
     public static String[] csvToArray(String values) {
-        return values.split(",");
+        return values.split("\\s*,\\s*");
     }
 }

@@ -114,10 +114,10 @@ public final class XMLUtil {
      */
     public static void appendCommaDelimitedElementsWithText(Document doc,
             Element parent, String tagName, String list) {
-        String[] tokens = list.split(",");
+        String[] tokens = IOUtil.csvToArray(list);
 
         for (String token : tokens) {
-            appendElementWithText(doc, parent, tagName, token.trim());
+            appendElementWithText(doc, parent, tagName, token);
         }
     }
 
@@ -134,12 +134,12 @@ public final class XMLUtil {
     public static void appendCommaDelimitedElementsWithGrandchildAndText(
             Document doc, Element parent, String childTagName,
             String grandchildTagName, String list) {
-        String[] tokens = list.split(",");
+        String[] tokens = IOUtil.csvToArray(list);
 
         for (String token : tokens) {
             Element child = doc.createElement(childTagName);
             parent.appendChild(child);
-            appendElementWithText(doc, child, grandchildTagName, token.trim());
+            appendElementWithText(doc, child, grandchildTagName, token);
         }
     }
 
