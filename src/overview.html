@@ -3,6 +3,21 @@
     <head>
         <title>Electronic Log Book Client API Overview</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <!-- You have to manully copy and paste these styles into the generated 
+        javadoc stylesheet.css for the code syntax highlighting to work.  The
+        code syntax hightlighting is created with Netbeans using the print to
+        HTML feature. -->
+        <style type="text/css">
+            pre {color: #000000; background-color: #ffffff; font-family: Monospaced}
+            .ST2 {font-family: Monospaced; font-weight: bold; font-style: italic}
+            .ST4 {font-family: Monospaced; font-style: italic}
+            .ST1 {font-family: Monospaced; font-weight: bold}
+            .ST0 {color: #969696; font-family: Monospaced; font-weight: bold}
+            .comment {color: #969696}
+            .character {color: #ce7b00}
+            .ST3 {color: #009900; font-family: Monospaced; font-style: italic}
+            .keyword-directive {color: #0000e6}
+        </style>
     </head>
     <body>
         <p>The electronic log book client API allows programmers to easily add 
@@ -11,31 +26,31 @@
         <h2>Usage</h2>
         <p>In order to use the library you need to include it in the classpath
             of your Java program.  The most recent version of the library is
-        available from accelerator and CUE Linux machines at 
-        <em>/apps/elog/jlog.jar</em>.</p>
+            available from accelerator and CUE Linux machines at 
+            <em>/apps/elog/jlog.jar</em>.</p>
         <h2>Example Program</h2>
         <pre>
             <code>
-    public static void main(String[] args) throws LogException {
-        LogEntry entry = new LogEntry("Drinking", "TLOG");
-        entry.setBody("After I read about the evils of drinking, I gave up reading.");
-        entry.setTags("Autolog,Readme");
-        
-        long lognumber = entry.submit();
-        
-        if(lognumber == 0) {
-            System.out.println("The log entry was queued.");
-        } else {
-            Comment comment = new Comment(lognumber, "24 hours in a day, 24 beers in a case.  Coincidence?");
-            comment.submit();
-            
-            LogEntry revision = LogEntry.getLogEntry(lognumber, "Add notification");
-            revision.setEmailNotify("ryans@jlab.org");
-            revision.submit();
-            
-            System.out.println("Done with submission, comment, and revision.");
-        }
-    }
+     <span class="keyword-directive">public</span> <span class="keyword-directive">static</span> <span class="keyword-directive">void</span> <span class="ST2">main</span>(String[] args) <span class="keyword-directive">throws</span> LogException {
+         LogEntry entry = <span class="keyword-directive">new</span> LogEntry(<span class="character">&quot;</span><span class="character">Drinking</span><span class="character">&quot;</span>, <span class="character">&quot;</span><span class="character">TLOG</span><span class="character">&quot;</span>);
+         entry.setBody(<span class="character">&quot;</span><span class="character">After I read about the evils of drinking, I gave up reading.</span><span class="character">&quot;</span>);
+         entry.setTags(<span class="character">&quot;</span><span class="character">Autolog,Readme</span><span class="character">&quot;</span>);
+         
+         <span class="keyword-directive">long</span> lognumber = entry.submit();
+         
+         <span class="keyword-directive">if</span>(lognumber == 0) {
+             System.<span class="ST3">out</span>.println(<span class="character">&quot;</span><span class="character">The log entry was queued.</span><span class="character">&quot;</span>);
+         } <span class="keyword-directive">else</span> {
+             Comment comment = <span class="keyword-directive">new</span> Comment(lognumber, <span class="character">&quot;</span><span class="character">24 hours in a day, 24 beers in a case.  Coincidence?</span><span class="character">&quot;</span>);
+             comment.submit();
+             
+             LogEntry revision = LogEntry.<span class="ST4">getLogEntry</span>(lognumber, <span class="character">&quot;</span><span class="character">Add notification</span><span class="character">&quot;</span>);
+             revision.setEmailNotify(<span class="character">&quot;</span><span class="character">ryans@jlab.org</span><span class="character">&quot;</span>);
+             revision.submit();
+             
+             System.<span class="ST3">out</span>.println(<span class="character">&quot;</span><span class="character">Done with submission, comment, and revision.</span><span class="character">&quot;</span>);
+         }
+     }
             </code>
         </pre>
         <p>The example program is included with the <a href="#source">source</a> code and can be run 
