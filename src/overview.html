@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Electronic Log Book Client API Overview</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+        <p>The electronic log book client API allows programmers to easily add 
+            the ability for their programs to make log entries.</p>
+        <h1>Electronic Log Book Client API Overview</h1>        
+        <h2>Usage</h2>
+        <p>In order to use the library you need to include it in the classpath
+            of your Java program.  The most recent version of the library is
+        available from accelerator and CUE Linux machines at 
+        <em>/apps/elog/jlog.jar</em>.</p>
+        <h2>Example Program</h2>
+        <pre>
+            <code>
+    public static void main(String[] args) throws LogException {
+        LogEntry entry = new LogEntry("Drinking", "TLOG");
+        entry.setBody("After I read about the evils of drinking, I gave up reading.");
+        entry.setTags("Autolog,Readme");
+        
+        long lognumber = entry.submit();
+        
+        if(lognumber == 0) {
+            System.out.println("The log entry was queued.");
+        } else {
+            Comment comment = new Comment(lognumber, "24 hours in a day, 24 beers in a case.  Coincidence?");
+            comment.submit();
+            
+            LogEntry revision = LogEntry.getLogEntry(lognumber, "Add notification");
+            revision.setEmailNotify("ryans@jlab.org");
+            revision.submit();
+            
+            System.out.println("Done with submission, comment, and revision.");
+        }
+    }
+            </code>
+        </pre>
+        <p>The example program is included with the <a href="#source">source</a> code and can be run 
+            on an accelerator Linux machine with the following commands:</p>
+        <pre>
+cd jlog
+javac -cp /apps/elog/jlog.jar  test/org/jlab/elog/example/BasicDemo.java
+java -cp /apps/elog/jlog.jar:test org.jlab.elog.example.BasicDemo 
+        </pre>
+        <p>Running the example on Windows is similar, but the classpath (-cp) 
+            delimiter is a semicolon instead of a colon.  The path to the 
+            library is likely unavailable on Windows so a copy of the library
+            may need to be made.</p>
+        <h2>Configuration</h2>
+        <p>A Java properties file is located in the package 
+            <em>org.jlab.elog</em> and is named <em>elog.properties</em>.
+            The properties include:</p>
+        <dl>
+            <dt>LOG_ENTRY_SCHEMA_URL</dt>
+            <dd>The URL to the log entry schema.</dd>
+            <dt>COMMENT_SCHEMA_URL</dt>
+            <dd>The URL to the comment schema.</dd>
+            <dt>SUBMIT_URL</dt>
+            <dd>The URL to submit (HTTP PUT) entries and comments to the log 
+                book server.</dd>
+            <dt>FETCH_URL</dt>
+            <dd>The URL to fetch (HTTP GET) log entries and comments.</dd>
+            <dt>QUEUE_PATH</dt>
+            <dd>The path on the local workstation (usually a network file share) 
+                to drop (queue) log entries and comments.</dd>
+            <dt>ATTACH_SINGLE_MAX_BYTES</dt>
+            <dd>Maximum number of bytes allowed in a single attachment file.</dd>
+            <dt>ATTACH_TOTAL_MAX_BYTES</dt>
+            <dd>Maximum number of bytes allowed across all attachments.</dd>            
+        </dl>
+        <p>If building from source then you can edit the properties file before
+            running the build.  If you already have a compiled library in a jar file
+            then you can modify the properties file that is included inside the jar.  
+            On Windows a program such as 7-Zip can be used to edit the file in place.
+            Alternatively you can extract the files in the jar, modify the properties,
+            (with vi for example), then combine the files back into a jar using the 
+            following commands:</p>
+        <pre>
+jar xf jlog.jar
+vi org/jlab/elog/elog.properties
+jar cf jlog.jar org META-INF
+        </pre>        
+        <h2><a id="source">Source Code</a></h2>
+        <p>The Java electronic log book client API is named <em>jlog</em> and is
+            stored in the git repository on devl00.  It can be
+            accessed by members of the JLab accelerator group <em>epics</em> 
+            from an accelerator Linux machine with the command:</p>
+        <pre>
+git init jlog
+cd jlog
+git pull ssh://devl00/usr/devsite/git/jlog.git 
+        </pre>
+        <p>An Apache Ant build file (build.xml) is used to compile and package 
+            the library.</p>        
+    </body>
+</html>
