@@ -63,4 +63,16 @@ public final class SystemUtil {
 
         return hostname;
     }
+    
+    /**
+     * Make a guess as to whether the JVM is running on Windows.  Java has no
+     * official way to do this, but the method used here is reasonably 
+     * accurate.  The system property "os.name" is examined and if it starts 
+     * with "Windows" then it is assumed that this JVM is on Windows.
+     * 
+     * @return true if on Windows, false otherwise
+     */
+    public static boolean isWindows() {
+        return System.getProperty("os.name").startsWith("Windows");
+    }
 }
