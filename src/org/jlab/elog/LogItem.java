@@ -1,9 +1,11 @@
 package org.jlab.elog;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.FileNameMap;
 import java.net.MalformedURLException;
@@ -41,6 +43,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import org.jlab.elog.exception.AttachmentSizeException;
 import org.jlab.elog.exception.InvalidXMLException;
 import org.jlab.elog.exception.LogCertificateException;
 import org.jlab.elog.exception.LogIOException;
@@ -170,6 +173,64 @@ abstract class LogItem {
                 System.getProperty("user.name"));
     }
 
+    void checkAttachmentSize(long length) throws AttachmentSizeException {
+        if (length > ATTACH_SINGLE_MAX_BYTES) {
+            throw new AttachmentSizeException(
+                    "The maximim attachment file size of "
+                    + ATTACH_SINGLE_MAX_BYTES
+                    / 1024 / 1024 + " MB has been exceeded.");
+        }
+
+        if (length + totalAttachmentBytes > ATTACH_TOTAL_MAX_BYTES) {
+            throw new AttachmentSizeException(
+                    "The maximim total size for all attachments of "
+                    + ATTACH_TOTAL_MAX_BYTES
+                    / 1024 / 1024 + " MB has been exceeded.");
+        }        
+    }
+    
+    long getAttachmentLength(Attachment attachment) throws LogIOException {
+        long length = 0;
+        String prefix = "jlogattachment";
+        String suffix = ".tmp";
+        
+        File file = null;
+        InputStream in = null;
+        OutputStream out = null;
+        
+        try {
+            in = attachment.getData();
+            
+            file = File.createTempFile(prefix, suffix);
+        
+            out = new FileOutputStream(file);
+        
+            IOUtil.copy(in, out);
+        } catch(IOException e) {
+            throw new LogIOException(
+                    "Unable to write attachment to tmp for length measurement.",
+                    e);
+            
+        } finally {
+            IOUtil.closeQuietly(in);
+            IOUtil.closeQuietly(out);
+            IOUtil.deleteQuietly(file);
+        }
+        
+        return length;
+    }
+    
+    void checkAndTallyAttachmentSize() throws AttachmentSizeException,
+            LogIOException {
+        Attachment[] attachments = getAttachments();
+        
+        for(Attachment attachment: attachments) {
+            long length = getAttachmentLength(attachment);
+            checkAttachmentSize(length);
+            totalAttachmentBytes += length;
+        }
+    }     
+    
     /**
      * Add a file attachment with an empty caption and a hastily guessed mime
      * type. The mime type is guessed by using the readily available
@@ -178,43 +239,34 @@ abstract class LogItem {
      * <verbatim>[JRE_HOME]\lib\content-types.properties</verbatim>
      *
      * @param filepath The file path
+     * @throws AttachmentSizeException If the attachment crosses a size limit
      * @throws LogIOException If unable to add the attachment due to IO
      * @throws LogRuntimeException If unable to add the attachment
      */
-    public void addAttachment(String filepath) throws LogIOException,
-            LogRuntimeException {
+    public void addAttachment(String filepath) throws AttachmentSizeException, 
+            LogIOException, LogRuntimeException {
         addAttachment(filepath, "", mimeMap.getContentTypeFor(filepath));
-    }
-
+    }   
+    
     /**
      * Add a file attachment with the specified caption and mime type.
      *
      * @param filepath The file path
      * @param caption The The caption
      * @param mimeType The mime type
+     * @throws AttachmentSizeException If the attachment crosses a size limit
      * @throws LogIOException If unable to add the attachment due to IO
      * @throws LogRuntimeException If unable to add the attachment
      */
     public void addAttachment(String filepath, String caption, String mimeType)
-            throws LogIOException, LogRuntimeException {
+            throws AttachmentSizeException, LogIOException, 
+            LogRuntimeException {
         String data = null;
         Element attachmentsElement = null;
 
         File file = new File(filepath);
 
-        if (file.length() > ATTACH_SINGLE_MAX_BYTES) {
-            throw new LogIOException(
-                    "The maximim attachment file size of "
-                    + ATTACH_SINGLE_MAX_BYTES
-                    / 1024 / 1024 + " MB has been exceeded.");
-        }
-
-        if (file.length() + totalAttachmentBytes > ATTACH_TOTAL_MAX_BYTES) {
-            throw new LogIOException(
-                    "The maximim size for all attachments of "
-                    + ATTACH_TOTAL_MAX_BYTES
-                    / 1024 / 1024 + " MB has been exceeded.");
-        }
+        checkAttachmentSize(file.length());
 
         try {
             data = XMLUtil.encodeBase64(IOUtil.fileToBytes(file));

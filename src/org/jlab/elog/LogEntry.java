@@ -9,6 +9,7 @@ import java.util.ResourceBundle;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
+import org.jlab.elog.exception.AttachmentSizeException;
 import org.jlab.elog.exception.InvalidXMLException;
 import org.jlab.elog.exception.LogIOException;
 import org.jlab.elog.exception.LogRuntimeException;
@@ -89,17 +90,18 @@ public class LogEntry extends LogItem {
 
     /**
      * Construct a new LogEntry from the specified XML file.
-     *
+     * 
      * @param filePath The path to the XML file
      * @throws SchemaUnavailableException If the XML schema is unavailable
      * @throws MalformedXMLException If the XML is malformed
      * @throws InvalidXMLException If the XML is invalid
      * @throws LogIOException If unable to construct due to IO
+     * @throws AttachmentSizeException If attachments cross a size limit
      * @throws LogRuntimeException If unable to construct
      */
     public LogEntry(String filePath) throws SchemaUnavailableException,
             MalformedXMLException, InvalidXMLException, LogIOException,
-            LogRuntimeException {
+            AttachmentSizeException, LogRuntimeException {
         try {
             if(!VERIFY_SERVER) {
                 SecurityUtil.disableServerCertificateCheck();
@@ -124,8 +126,10 @@ public class LogEntry extends LogItem {
         // We could call builder.setSchema() and it would be a validating
         // parser, but then no way to differentiate Malformed vs Invalid
         validate();
+        
+        checkAndTallyAttachmentSize();
     }
-
+    
     /**
      * Factory method to obtain an existing LogEntry for viewing or revising.
      * If the intention is for viewing provide null for the reason.
@@ -137,11 +141,13 @@ public class LogEntry extends LogItem {
      * @throws MalformedXMLException If the XML is malformed
      * @throws InvalidXMLException If the XML is invalid
      * @throws LogIOException If unable to construct due to IO
+     * @throws AttachmentSizeException If attachments cross a size limit 
      * @throws LogRuntimeException If unable to construct
      */
     public static LogEntry getLogEntry(long lognumber, String reason) 
             throws SchemaUnavailableException, MalformedXMLException, 
-            InvalidXMLException, LogIOException, LogRuntimeException {
+            InvalidXMLException, LogIOException, AttachmentSizeException,
+            LogRuntimeException {
         String filePath = getGetPath(lognumber);
         LogEntry entry = new LogEntry(filePath);
         entry.setRevisionReason(reason);
