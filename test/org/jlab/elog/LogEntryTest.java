@@ -22,14 +22,14 @@ import org.junit.Test;
 
 /**
  * LogEntry JUnit tests.
- * 
+ *
  * @author ryans
  */
 public class LogEntryTest {
 
     private LogEntry entry;
     private LogEntryAdminExtension extension;
-    
+
     public LogEntryTest() {
     }
 
@@ -95,31 +95,31 @@ public class LogEntryTest {
         assertEquals(expectedCaption, actualCaption);
         assertEquals(expectedMimeType, actualMimeType);
         assertEquals(expectedContent, actualContent);
-        
+
         expectedMimeType = "application/xml";
         actualMimeType = entry.getAttachments()[1].getMimeType();
         assertEquals(expectedMimeType, actualMimeType);
-        
+
         entry.deleteAttachments();
         int expectedLength = 0;
         int actualLength = entry.getAttachments().length;
         assertEquals(expectedLength, actualLength);
     }
-    
+
     @Test(expected = AttachmentSizeException.class)
     public void testLargeAttachment() throws Exception {
         File tmp = File.createTempFile("eloglibunittest", ".tmp");
         tmp.deleteOnExit();
         BufferedWriter writer = new BufferedWriter(new FileWriter(tmp));
         int numBytes = 17 * 1024 * 1024;
-        for(int i = 0; i < numBytes; i++) {
+        for (int i = 0; i < numBytes; i++) {
             writer.write(48); // I think int 48 corresponds to ASCII char '0'
         }
-        
+
         writer.close();
         entry.addAttachment(tmp.getAbsolutePath());
     }
-    
+
     @Test
     public void testLognumber() throws LogException {
         Long expected = 1234L;
@@ -135,7 +135,7 @@ public class LogEntryTest {
         String actual = entry.getEmailNotifyCSV();
         assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testSetLogbooks() throws LogException {
         String expected = "YOULOG,MELOG,WELOG";
@@ -159,16 +159,16 @@ public class LogEntryTest {
         entry.addTags(expected);
         String actual = entry.getTagsCSV();
         assertEquals(expected, actual);
-    }   
-    
+    }
+
     @Test
     public void testSetTags() throws LogException {
         String expected = "Readme,Autolog";
         entry.setTags(expected);
         String actual = entry.getTagsCSV();
         assertEquals(expected, actual);
-    }    
-    
+    }
+
     @Test
     public void testReferences() throws LogException {
         Reference.RefType expectedType = Reference.RefType.ATLIS;
@@ -178,22 +178,22 @@ public class LogEntryTest {
         String actualId = entry.getReferences()[0].getId();
         assertEquals(expectedType, actualType);
         assertEquals(expectedId, actualId);
-        
+
         entry.deleteReferences();
         int expectedLength = 0;
         int actualLength = entry.getReferences().length;
         assertEquals(expectedLength, actualLength);
-    }    
-    
+    }
+
     @Test
     public void testAddComments() {
         long expected = 123L;
         extension.addComment(new Comment(expected, new Body(Body.ContentType.TEXT, "Hello World")));
         String xml = entry.getXML();
         long actual = Long.parseLong(xml.split("<Comment>")[1].split("</Comment>")[0].split("<lognumber>")[1].split("</lognumber>")[0]);
-        assertEquals(expected, actual);   
+        assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testSetEntrymakers() throws LogException {
         String expected = "cjs,theo";
@@ -216,9 +216,9 @@ public class LogEntryTest {
         boolean expected = true;
         entry.setSticky(expected);
         boolean actual = entry.isSticky();
-        assertEquals(expected, actual);        
+        assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testBody() throws LogException {
         Body expected = new Body(Body.ContentType.HTML, "<b>I like to make bold statements.</b>");
@@ -245,12 +245,12 @@ public class LogEntryTest {
     @Test
     public void testSubmit() throws Exception {
         Long id = entry.submit();
-        
-        if(id == 0) {
+
+        if (id == 0) {
             throw new Exception("It was queued!");
         }
     }
-    
+
     @Test
     public void testQueue() throws LogException {
         String expected = "Save and then load me";
@@ -286,17 +286,10 @@ public class LogEntryTest {
             String content = IOUtil.streamToString(is, "UTF-8");
             actual = content.substring(0, 15);
         } finally {
-            try {
-                if (is != null) {
-                    is.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            IOUtil.closeQuietly(is);
 
-            } finally {
-                if (con != null) {
-                    con.disconnect();
-                }
+            if (con != null) {
+                con.disconnect();
             }
         }
 
@@ -329,28 +322,21 @@ public class LogEntryTest {
             String content = IOUtil.streamToString(is, "UTF-8");
             actual = content.substring(0, 5);
         } finally {
-            try {
-                if (is != null) {
-                    is.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            IOUtil.closeQuietly(is);
 
-            } finally {
-                if (con != null) {
-                    con.disconnect();
-                }
+            if (con != null) {
+                con.disconnect();
             }
         }
 
         assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testRevision() throws Exception {
         LogEntry revision = LogEntry.getLogEntry(2070480L, "Testing");
         String expected = "Testing 123";
         String actual = revision.getTitle();
-        assertEquals(expected, actual);        
+        assertEquals(expected, actual);
     }
 }
