@@ -8,7 +8,7 @@
         code syntax hightlighting is created with Netbeans using the print to
         HTML feature. -->
         <style type="text/css">
-            pre {color: #000000; background-color: #ffffff; font-family: Monospaced}
+            pre {color: #000000; background-color: #eeeeee; font-family: Monospaced}
             .ST2 {font-family: Monospaced; font-weight: bold; font-style: italic}
             .ST4 {font-family: Monospaced; font-style: italic}
             .ST1 {font-family: Monospaced; font-weight: bold}
@@ -17,6 +17,7 @@
             .character {color: #ce7b00}
             .ST3 {color: #009900; font-family: Monospaced; font-style: italic}
             .keyword-directive {color: #0000e6}
+            .property-list dt {color: green; font-style: italic; font-family: Monospaced;}
         </style>
     </head>
     <body>
@@ -27,7 +28,20 @@
         <p>In order to use the library you need to include it in the classpath
             of your Java program.  The most recent version of the library is
             available from accelerator and CUE Linux machines at 
-            <em>/apps/eloglib/jlog.jar</em>.</p>
+            <em>/apps/eloglib/jlog.jar</em>.  You need to have a client 
+            certificate to make direct submissions to the server.  JLab users
+            can obtain a certificate from the server at the following URL:</p>
+            <a href="https://logbooks.jlab.org/cert">
+                https://logbooks.jlab.org/cert</a>
+        <p>You need to save the PEM formatted certificate as <em>.elogcert</em>
+        in your home directory.  If you install the certificate in your 
+        certificate store you can verify the server accepts it by navigating to:
+        </p>
+                    <a href="https://logbooks.jlab.org/authtest/">
+                https://logbooks.jlab.org/authtest/</a>
+        <p><b>Note: </b>system administrators may have generated your 
+            certificate and placed it in your home directory for you already.
+        </p>
         <h2>Example Program</h2>
         <pre>
             <code>
@@ -55,20 +69,23 @@
         </pre>
         <p>The example program is included with the <a href="#source">source</a> code and can be run 
             on an accelerator Linux machine with the following commands:</p>
-        <pre>
+        <pre><kbd>
 cd jlog
 javac -cp /apps/eloglib/jlog.jar  test/org/jlab/elog/example/BasicDemo.java
 java -cp /apps/eloglib/jlog.jar:test org.jlab.elog.example.BasicDemo 
-        </pre>
+        </kbd></pre>
         <p>Running the example on Windows is similar, but the classpath (-cp) 
             delimiter is a semicolon instead of a colon.  The path to the 
             library is likely unavailable on Windows so a copy of the library
             may need to be made.</p>
         <h2>Configuration</h2>
         <p>A Java properties file is located in the package 
-            <em>org.jlab.elog</em> and is named <em>elog.properties</em>.
+            <em>org.jlab.elog</em> and is named <em>elog.properties</em>. This
+            file contains the default properties.  You can use the 
+            <code>Library.setConfiguration</code> method to override the 
+            properties.
             The properties include:</p>
-        <dl>
+        <dl class="property-list">
             <dt>LOG_ENTRY_SCHEMA_URL</dt>
             <dd>The URL to the log entry schema.</dd>
             <dt>COMMENT_SCHEMA_URL</dt>
@@ -105,21 +122,21 @@ java -cp /apps/eloglib/jlog.jar:test org.jlab.elog.example.BasicDemo
             Alternatively you can extract the files in the jar, modify the properties,
             (with vi for example), then combine the files back into a jar using the 
             following commands:</p>
-        <pre>
+        <pre><kbd>
 jar xf jlog.jar
 vi org/jlab/elog/elog.properties
 jar cf jlog.jar org META-INF
-        </pre>        
+        </kbd></pre>        
         <h2><a id="source">Source Code</a></h2>
         <p>The Java electronic log book client API is named <em>jlog</em> and is
             stored in the git repository on devl00.  It can be
             accessed by members of the JLab accelerator group <em>epics</em> 
             from an accelerator Linux machine with the command:</p>
-        <pre>
+        <pre><kbd>
 git init jlog
 cd jlog
 git pull ssh://devl00/usr/devsite/git/jlog.git 
-        </pre>
+        </kbd></pre>
         <p>An Apache Ant build file (build.xml) is used to compile and package 
             the library.</p>        
     </body>
