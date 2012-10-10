@@ -80,7 +80,19 @@ java -cp /apps/eloglib/jlog.jar:test org.jlab.elog.example.BasicDemo
             <dd>The URL to fetch (HTTP GET) log entries and comments.</dd>
             <dt>QUEUE_PATH</dt>
             <dd>The path on the local workstation (usually a network file share) 
-                to drop (queue) log entries and comments.</dd>
+                to drop (queue) log entries and comments.  If this property is
+                missing or empty then the library will attempt to detect whether
+                the program is running on Windows or UNIX and use the default 
+                value for the OS type, as defined in DEFAULT_UNIX_QUEUE_PATH and 
+                DEFAULT_WINDOWS_QUEUE_PATH.</dd>
+            <dt>DEFAULT_UNIX_QUEUE_PATH</dt>
+            <dd>The default file path to queue files if the QUEUE_PATH property
+                is undefined and the library determines that it is running on a 
+                UNIX system.</dd>            
+            <dt>DEFAULT_WINDOWS_QUEUE_PATH</dt>
+            <dd>The default file path to queue files if the QUEUE_PATH property
+                is undefined and the library determines that it is running on a 
+                WINDOWS system.</dd>   
             <dt>ATTACH_SINGLE_MAX_BYTES</dt>
             <dd>Maximum number of bytes allowed in a single attachment file.</dd>
             <dt>ATTACH_TOTAL_MAX_BYTES</dt>
