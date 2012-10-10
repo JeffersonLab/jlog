@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.ResourceBundle;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
@@ -68,23 +68,10 @@ abstract class LogItem {
 
     private static final Logger logger = Logger.getLogger(
             LogItem.class.getName());
-    private static final String SUBMIT_URL;
-    private static final String QUEUE_PATH;
-    private static final long ATTACH_SINGLE_MAX_BYTES;
-    private static final long ATTACH_TOTAL_MAX_BYTES;
     private static final String PEM_FILE_NAME = ".elogcert";
     static final boolean VERIFY_SERVER = false;
     private static final FileNameMap mimeMap = URLConnection.getFileNameMap();
 
-    static {
-        ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
-        SUBMIT_URL = bundle.getString("SUBMIT_URL");
-        QUEUE_PATH = bundle.getString("QUEUE_PATH");
-        ATTACH_SINGLE_MAX_BYTES = Long.parseLong(bundle.getString(
-                "ATTACH_SINGLE_MAX_BYTES"));
-        ATTACH_TOTAL_MAX_BYTES = Long.parseLong(bundle.getString(
-                "ATTACH_TOTAL_MAX_BYTES"));
-    }
     Document doc;
     Element root;
     DatatypeFactory typeFactory;
@@ -173,18 +160,55 @@ abstract class LogItem {
                 System.getProperty("user.name"));
     }
 
-    void checkAttachmentSize(long length) throws AttachmentSizeException {
-        if (length > ATTACH_SINGLE_MAX_BYTES) {
+    void checkAttachmentSize(long length) throws AttachmentSizeException, 
+            LogRuntimeException {
+        Properties props = Library.getConfiguration();
+        
+        String singleFileLimitStr = props.getProperty(
+                "ATTACH_SINGLE_MAX_BYTES");
+        
+        if (singleFileLimitStr == null) {
+            throw new LogRuntimeException(
+                    "Property ATTACH_SINGLE_MAX_BYTES not found.");
+        }      
+        
+        long singleFileLimit = 0;
+        
+        try {
+            singleFileLimit = Long.parseLong(singleFileLimitStr);
+        } catch(NumberFormatException e) {
+            throw new LogRuntimeException(
+                    "ATTACH_SINGLE_MAX_BYTES must be a number.", e);
+        } 
+        
+        if (length > singleFileLimit) {
             throw new AttachmentSizeException(
                     "The maximim attachment file size of "
-                    + ATTACH_SINGLE_MAX_BYTES
+                    + singleFileLimit
                     / 1024 / 1024 + " MB has been exceeded.");
         }
 
-        if (length + totalAttachmentBytes > ATTACH_TOTAL_MAX_BYTES) {
+        String totalFileLimitStr = props.getProperty(
+                "ATTACH_TOTAL_MAX_BYTES");
+        
+        if (totalFileLimitStr == null) {
+            throw new LogRuntimeException(
+                    "Property ATTACH_TOTAL_MAX_BYTES not found.");
+        }      
+        
+        long totalFileLimit = 0;
+        
+        try {
+            totalFileLimit = Long.parseLong(totalFileLimitStr);
+        } catch(NumberFormatException e) {
+            throw new LogRuntimeException(
+                    "ATTACH_TOTAL_MAX_BYTES must be a number.", e);
+        }        
+        
+        if (length + totalAttachmentBytes > totalFileLimit) {
             throw new AttachmentSizeException(
                     "The maximim total size for all attachments of "
-                    + ATTACH_TOTAL_MAX_BYTES
+                    + totalFileLimit
                     / 1024 / 1024 + " MB has been exceeded.");
         }        
     }
@@ -655,8 +679,9 @@ abstract class LogItem {
      * Return the URL to the schema needed for validation of this log book item.
      *
      * @return The URL
+     * @throws LogRuntimeException If unable to obtain schema URL
      */
-    abstract String getSchemaURL();
+    abstract String getSchemaURL() throws LogRuntimeException;
 
     void validate() throws SchemaUnavailableException, InvalidXMLException,
             LogIOException {
@@ -841,9 +866,17 @@ abstract class LogItem {
     String getPutPath() {
         StringBuilder strBuilder = new StringBuilder();
 
-        strBuilder.append(SUBMIT_URL);
+        Properties props = Library.getConfiguration();
+        String submitURL = props.getProperty("SUBMIT_URL");
+        
+        if (submitURL == null) {
+            throw new LogRuntimeException(
+                    "Property SUBMIT_URL not found.");
+        }        
+        
+        strBuilder.append(submitURL);
 
-        if (!SUBMIT_URL.endsWith("/")) {
+        if (!submitURL.endsWith("/")) {
             strBuilder.append("/");
         }
 
@@ -942,9 +975,30 @@ abstract class LogItem {
         return filenameBuilder.toString();
     }
 
+    String getQueuePath() {
+        Properties props = Library.getConfiguration();
+        
+        String queuePath = props.getProperty("QUEUE_PATH");
+        
+        if (queuePath == null || queuePath.isEmpty()) {
+            if(SystemUtil.isWindows()) {
+                queuePath = props.getProperty("DEFAULT_WINDOWS_QUEUE_PATH");
+            } else {
+                queuePath = props.getProperty("DEFAULT_UNIX_QUEUE_PATH");
+            }
+        }        
+
+        if(queuePath == null || queuePath.isEmpty()) {
+            throw new LogRuntimeException("The QUEUE_PATH property and the "
+                    + "DEFAULT_-OS-_QUEUE_PATH property are both undefined.");
+        }
+        
+        return queuePath;
+    }
+    
     void queue() throws InvalidXMLException, LogIOException {
         String filename = generateXMLFilename();
-        String filepath = new File(QUEUE_PATH, filename).getAbsolutePath();
+        String filepath = new File(getQueuePath(), filename).getAbsolutePath();
         queue(filepath);
     }
 

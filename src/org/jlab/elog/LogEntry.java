@@ -5,7 +5,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
+import java.util.Properties;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
@@ -29,8 +29,6 @@ import org.xml.sax.SAXException;
  */
 public class LogEntry extends LogItem {
 
-    private static final String LOG_ENTRY_SCHEMA_URL;
-    private static final String FETCH_URL;
     final XPathExpression titleExpression;
     final XPathExpression logbooksExpression;
     final XPathExpression logbookListExpression;
@@ -42,13 +40,7 @@ public class LogEntry extends LogItem {
     final XPathExpression referencesExpression;
     final XPathExpression revisionReasonExpression;
 
-    static {
-        ResourceBundle bundle = ResourceBundle.getBundle("org.jlab.elog.elog");
-        LOG_ENTRY_SCHEMA_URL = bundle.getString("LOG_ENTRY_SCHEMA_URL");
-        FETCH_URL = bundle.getString("FETCH_URL");
-    }
-
-    {
+    {       
         try {
             titleExpression = xpath.compile("/Logentry/title");
             logbooksExpression = xpath.compile("/Logentry/Logbooks");
@@ -147,19 +139,28 @@ public class LogEntry extends LogItem {
     public static LogEntry getLogEntry(long lognumber, String reason) 
             throws SchemaUnavailableException, MalformedXMLException, 
             InvalidXMLException, LogIOException, AttachmentSizeException,
-            LogRuntimeException {
+            LogRuntimeException {       
+        
         String filePath = getGetPath(lognumber);
         LogEntry entry = new LogEntry(filePath);
         entry.setRevisionReason(reason);
         return entry;
     }
 
-    static String getGetPath(long id) {
+    static String getGetPath(long id) throws LogRuntimeException {
         StringBuilder strBuilder = new StringBuilder();
 
-        strBuilder.append(FETCH_URL);
+        Properties props = Library.getConfiguration();
+        String fetchURL = props.getProperty("FETCH_URL");
+        
+        if (fetchURL == null) {
+            throw new LogRuntimeException(
+                    "Property FETCH_URL not found.");
+        }          
+        
+        strBuilder.append(fetchURL);
 
-        if (!FETCH_URL.endsWith("/")) {
+        if (!fetchURL.endsWith("/")) {
             strBuilder.append("/");
         }
 
@@ -806,8 +807,17 @@ public class LogEntry extends LogItem {
     }
 
     @Override
-    String getSchemaURL() {
-        return LOG_ENTRY_SCHEMA_URL;
+    String getSchemaURL() throws LogRuntimeException {
+        Properties props = Library.getConfiguration();
+        
+        String url = props.getProperty("LOG_ENTRY_SCHEMA_URL");
+        
+        if (url == null) {
+            throw new LogRuntimeException(
+                    "Property LOG_ENTRY_SCHEMA_URL not found.");
+        } 
+        
+        return url;
     }
 
     /**

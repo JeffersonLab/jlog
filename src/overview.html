@@ -8,7 +8,7 @@
         code syntax hightlighting is created with Netbeans using the print to
         HTML feature. -->
         <style type="text/css">
-            pre {color: #000000; background-color: #eeeeee; font-family: Monospaced}
+            pre {color: #000000; background-color: #ffffff; font-family: Monospaced}
             .ST2 {font-family: Monospaced; font-weight: bold; font-style: italic}
             .ST4 {font-family: Monospaced; font-style: italic}
             .ST1 {font-family: Monospaced; font-weight: bold}
@@ -18,32 +18,34 @@
             .ST3 {color: #009900; font-family: Monospaced; font-style: italic}
             .keyword-directive {color: #0000e6}
             .property-list dt {color: green; font-style: italic; font-family: Monospaced;}
+            .overview pre {background-color: #eeeeee;}
         </style>
     </head>
     <body>
         <p>The electronic log book client API allows programmers to easily add 
             the ability for their programs to make log entries.</p>
-        <h1>Electronic Log Book Client API Overview</h1>        
-        <h2>Usage</h2>
-        <p>In order to use the library you need to include it in the classpath
-            of your Java program.  The most recent version of the library is
-            available from accelerator and CUE Linux machines at 
-            <em>/apps/eloglib/jlog.jar</em>.  You need to have a client 
-            certificate to make direct submissions to the server.  JLab users
-            can obtain a certificate from the server at the following URL:</p>
+        <div class="overview">
+            <h1>Electronic Log Book Client API Overview</h1>        
+            <h2>Usage</h2>
+            <p>In order to use the library you need to include it in the classpath
+                of your Java program.  The most recent version of the library is
+                available from accelerator and CUE Linux machines at 
+                <em>/apps/eloglib/jlog.jar</em>.  You need to have a client 
+                certificate to make direct submissions to the server.  JLab users
+                can obtain a certificate from the server at the following URL:</p>
             <a href="https://logbooks.jlab.org/cert">
                 https://logbooks.jlab.org/cert</a>
-        <p>You need to save the PEM formatted certificate as <em>.elogcert</em>
-        in your home directory.  If you install the certificate in your 
-        certificate store you can verify the server accepts it by navigating to:
-        </p>
-                    <a href="https://logbooks.jlab.org/authtest/">
+            <p>You need to save the PEM formatted certificate as <em>.elogcert</em>
+                in your home directory.  If you install the certificate in your 
+                certificate store you can verify the server accepts it by navigating to:
+            </p>
+            <a href="https://logbooks.jlab.org/authtest/">
                 https://logbooks.jlab.org/authtest/</a>
-        <p><b>Note: </b>system administrators may have generated your 
-            certificate and placed it in your home directory for you already.
-        </p>
-        <h2>Example Program</h2>
-        <pre>
+            <p><b>Note: </b>system administrators may have generated your 
+                certificate and placed it in your home directory for you already.
+            </p>
+            <h2>Example Program</h2>
+            <pre>
             <code>
      <span class="keyword-directive">public</span> <span class="keyword-directive">static</span> <span class="keyword-directive">void</span> <span class="ST2">main</span>(String[] args) <span class="keyword-directive">throws</span> LogException {
          LogEntry entry = <span class="keyword-directive">new</span> LogEntry(<span class="character">&quot;</span><span class="character">Drinking</span><span class="character">&quot;</span>, <span class="character">&quot;</span><span class="character">TLOG</span><span class="character">&quot;</span>);
@@ -66,78 +68,100 @@
          }
      }
             </code>
-        </pre>
-        <p>The example program is included with the <a href="#source">source</a> code and can be run 
-            on an accelerator Linux machine with the following commands:</p>
-        <pre><kbd>
+            </pre>
+            <p>The example program is included with the <a href="#source">source</a> code and can be run 
+                on an accelerator Linux machine with the following commands:</p>
+            <pre><kbd>
 cd jlog
 javac -cp /apps/eloglib/jlog.jar  test/org/jlab/elog/example/BasicDemo.java
 java -cp /apps/eloglib/jlog.jar:test org.jlab.elog.example.BasicDemo 
         </kbd></pre>
-        <p>Running the example on Windows is similar, but the classpath (-cp) 
-            delimiter is a semicolon instead of a colon.  The path to the 
-            library is likely unavailable on Windows so a copy of the library
-            may need to be made.</p>
-        <h2>Configuration</h2>
-        <p>A Java properties file is located in the package 
-            <em>org.jlab.elog</em> and is named <em>elog.properties</em>. This
-            file contains the default properties.  You can use the 
-            <code>Library.setConfiguration</code> method to override the 
-            properties.
-            The properties include:</p>
-        <dl class="property-list">
-            <dt>LOG_ENTRY_SCHEMA_URL</dt>
-            <dd>The URL to the log entry schema.</dd>
-            <dt>COMMENT_SCHEMA_URL</dt>
-            <dd>The URL to the comment schema.</dd>
-            <dt>SUBMIT_URL</dt>
-            <dd>The URL to submit (HTTP PUT) entries and comments to the log 
-                book server.</dd>
-            <dt>FETCH_URL</dt>
-            <dd>The URL to fetch (HTTP GET) log entries and comments.</dd>
-            <dt>QUEUE_PATH</dt>
-            <dd>The path on the local workstation (usually a network file share) 
-                to drop (queue) log entries and comments.  If this property is
-                missing or empty then the library will attempt to detect whether
-                the program is running on Windows or UNIX and use the default 
-                value for the OS type, as defined in DEFAULT_UNIX_QUEUE_PATH and 
-                DEFAULT_WINDOWS_QUEUE_PATH.</dd>
-            <dt>DEFAULT_UNIX_QUEUE_PATH</dt>
-            <dd>The default file path to queue files if the QUEUE_PATH property
-                is undefined and the library determines that it is running on a 
-                UNIX system.</dd>            
-            <dt>DEFAULT_WINDOWS_QUEUE_PATH</dt>
-            <dd>The default file path to queue files if the QUEUE_PATH property
-                is undefined and the library determines that it is running on a 
-                WINDOWS system.</dd>   
-            <dt>ATTACH_SINGLE_MAX_BYTES</dt>
-            <dd>Maximum number of bytes allowed in a single attachment file.</dd>
-            <dt>ATTACH_TOTAL_MAX_BYTES</dt>
-            <dd>Maximum number of bytes allowed across all attachments.</dd>            
-        </dl>
-        <p>If building from source then you can edit the properties file before
-            running the build.  If you already have a compiled library in a jar file
-            then you can modify the properties file that is included inside the jar.  
-            On Windows a program such as 7-Zip can be used to edit the file in place.
-            Alternatively you can extract the files in the jar, modify the properties,
-            (with vi for example), then combine the files back into a jar using the 
-            following commands:</p>
-        <pre><kbd>
+            <p>Running the example on Windows is similar, but the classpath (-cp) 
+                delimiter is a semicolon instead of a colon.  The path to the 
+                library is likely unavailable on Windows so a copy of the library
+                may need to be made.</p>
+            <h2>Configuration</h2>
+            <p>A Java properties file is located in the package 
+                <em>org.jlab.elog</em> and is named <em>elog.properties</em>. This
+                file contains the default properties.  You can use the 
+                <code>Library.setConfiguration</code> method to override the 
+                properties.
+                The properties include:</p>
+            <dl class="property-list">
+                <dt>LOG_ENTRY_SCHEMA_URL</dt>
+                <dd>The URL to the log entry schema.</dd>
+                <dt>COMMENT_SCHEMA_URL</dt>
+                <dd>The URL to the comment schema.</dd>
+                <dt>SUBMIT_URL</dt>
+                <dd>The URL to submit (HTTP PUT) entries and comments to the log 
+                    book server.</dd>
+                <dt>FETCH_URL</dt>
+                <dd>The URL to fetch (HTTP GET) log entries and comments.</dd>
+                <dt>QUEUE_PATH</dt>
+                <dd>The path on the local workstation (usually a network file share) 
+                    to drop (queue) log entries and comments.  If this property is
+                    missing or empty then the library will attempt to detect whether
+                    the program is running on Windows or UNIX and use the default 
+                    value for the OS type, as defined in DEFAULT_UNIX_QUEUE_PATH and 
+                    DEFAULT_WINDOWS_QUEUE_PATH.</dd>
+                <dt>DEFAULT_UNIX_QUEUE_PATH</dt>
+                <dd>The default file path to queue files if the QUEUE_PATH property
+                    is undefined and the library determines that it is running on a 
+                    UNIX system.</dd>            
+                <dt>DEFAULT_WINDOWS_QUEUE_PATH</dt>
+                <dd>The default file path to queue files if the QUEUE_PATH property
+                    is undefined and the library determines that it is running on a 
+                    WINDOWS system.</dd>   
+                <dt>ATTACH_SINGLE_MAX_BYTES</dt>
+                <dd>Maximum number of bytes allowed in a single attachment file.</dd>
+                <dt>ATTACH_TOTAL_MAX_BYTES</dt>
+                <dd>Maximum number of bytes allowed across all attachments.</dd>            
+            </dl>
+            <p>If building from source then you can edit the properties file before
+                running the build.  If you already have a compiled library in a jar file
+                then you can modify the properties file that is included inside the jar.  
+                On Windows a program such as 7-Zip can be used to edit the file in place.
+                Alternatively you can extract the files in the jar, modify the properties,
+                (with vi for example), then combine the files back into a jar using the 
+                following commands:</p>
+            <pre><kbd>
 jar xf jlog.jar
 vi org/jlab/elog/elog.properties
 jar cf jlog.jar org META-INF
-        </kbd></pre>        
-        <h2><a id="source">Source Code</a></h2>
-        <p>The Java electronic log book client API is named <em>jlog</em> and is
-            stored in the git repository on devl00.  It can be
-            accessed by members of the JLab accelerator group <em>epics</em> 
-            from an accelerator Linux machine with the command:</p>
-        <pre><kbd>
+        </kbd></pre> 
+            <b>Attachment Size Limits</b>
+            <p>
+                Client-side size limits on attachments are enforced to help avoid an
+                OutOfMemoryError or rejection by the server due to crossing the server
+                attachment limit.  The checks are performed when the addAttachment
+                method is called or when creating a LogEntry from an XML file.
+            </p>
+            <p>
+                These limits are much lower than the limits if using the C++ implementation.
+                The reason is because the default maximum heap size in Java is often 64MB.
+                If you increase the limits here then be sure to bump up your JVM limit as 
+                well.  For example, the command to execute Java with a max heap of 512 MB is:
+                "java -Xmx512m".
+            </p>
+            <p>
+                The server may send a LogEntry or Comment back to the client which
+                references attachments (via URLs) which are larger than these limits.  The 
+                library will download all of the attachments to verify they
+                are within the client limits.
+
+            </p>        
+            <h2><a id="source">Source Code</a></h2>
+            <p>The Java electronic log book client API is named <em>jlog</em> and is
+                stored in the git repository on devl00.  It can be
+                accessed by members of the JLab accelerator group <em>epics</em> 
+                from an accelerator Linux machine with the command:</p>
+            <pre><kbd>
 git init jlog
 cd jlog
 git pull ssh://devl00/usr/devsite/git/jlog.git 
         </kbd></pre>
-        <p>An Apache Ant build file (build.xml) is used to compile and package 
-            the library.</p>        
+            <p>An Apache Ant build file (build.xml) is used to compile and package 
+                the library.</p>   
+        </div>
     </body>
 </html>
