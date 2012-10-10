@@ -75,93 +75,118 @@
 cd jlog
 javac -cp /apps/eloglib/jlog.jar  test/org/jlab/elog/example/BasicDemo.java
 java -cp /apps/eloglib/jlog.jar:test org.jlab.elog.example.BasicDemo 
-        </kbd></pre>
+            </kbd></pre>
             <p>Running the example on Windows is similar, but the classpath (-cp) 
                 delimiter is a semicolon instead of a colon.  The path to the 
                 library is likely unavailable on Windows so a copy of the library
                 may need to be made.</p>
             <h2>Configuration</h2>
-            <p>A Java properties file is located in the package 
-                <em>org.jlab.elog</em> and is named <em>elog.properties</em>. This
-                file contains the default properties.  You can use the 
+            <p>
+                A Java properties file is located in the package 
+                <em>org.jlab.elog</em> and is named <em>elog.properties</em>. 
+                This file contains the default properties.  You can use the 
                 <code>Library.setConfiguration</code> method to override the 
-                properties.
-                The properties include:</p>
+                properties.  The properties include:
+            </p>
             <dl class="property-list">
                 <dt>LOG_ENTRY_SCHEMA_URL</dt>
-                <dd>The URL to the log entry schema.</dd>
+                <dd>
+                    The URL to the log entry schema.
+                </dd>
                 <dt>COMMENT_SCHEMA_URL</dt>
-                <dd>The URL to the comment schema.</dd>
+                <dd>
+                    The URL to the comment schema.
+                </dd>
                 <dt>SUBMIT_URL</dt>
-                <dd>The URL to submit (HTTP PUT) entries and comments to the log 
-                    book server.</dd>
+                <dd>
+                    The URL to submit (HTTP PUT) entries and comments to the log 
+                    book server.
+                </dd>
                 <dt>FETCH_URL</dt>
-                <dd>The URL to fetch (HTTP GET) log entries and comments.</dd>
+                <dd>
+                    The URL to fetch (HTTP GET) log entries and comments.
+                </dd>
                 <dt>QUEUE_PATH</dt>
-                <dd>The path on the local workstation (usually a network file share) 
-                    to drop (queue) log entries and comments.  If this property is
-                    missing or empty then the library will attempt to detect whether
-                    the program is running on Windows or UNIX and use the default 
-                    value for the OS type, as defined in DEFAULT_UNIX_QUEUE_PATH and 
-                    DEFAULT_WINDOWS_QUEUE_PATH.</dd>
+                <dd>
+                    The path on the local workstation (usually a network file 
+                    share) to drop (queue) log entries and comments.  If this
+                    property is missing or empty then the library will attempt 
+                    to detect whether the program is running on Windows or UNIX 
+                    and use the default value for the OS type, as defined in 
+                    DEFAULT_UNIX_QUEUE_PATH and DEFAULT_WINDOWS_QUEUE_PATH.
+                </dd>
                 <dt>DEFAULT_UNIX_QUEUE_PATH</dt>
-                <dd>The default file path to queue files if the QUEUE_PATH property
-                    is undefined and the library determines that it is running on a 
-                    UNIX system.</dd>            
+                <dd>
+                    The default file path to queue files if the QUEUE_PATH 
+                    property is undefined and the library determines that it is 
+                    running on a UNIX system.
+                </dd>            
                 <dt>DEFAULT_WINDOWS_QUEUE_PATH</dt>
-                <dd>The default file path to queue files if the QUEUE_PATH property
-                    is undefined and the library determines that it is running on a 
-                    WINDOWS system.</dd>   
+                <dd>
+                    The default file path to queue files if the QUEUE_PATH 
+                    property is undefined and the library determines that it is 
+                    running on a WINDOWS system.
+                </dd>   
                 <dt>ATTACH_SINGLE_MAX_BYTES</dt>
-                <dd>Maximum number of bytes allowed in a single attachment file.</dd>
+                <dd>
+                    Maximum number of bytes allowed in a single attachment file.
+                </dd>
                 <dt>ATTACH_TOTAL_MAX_BYTES</dt>
-                <dd>Maximum number of bytes allowed across all attachments.</dd>            
+                <dd>
+                    Maximum number of bytes allowed across all attachments.
+                </dd>            
             </dl>
-            <p>If building from source then you can edit the properties file before
-                running the build.  If you already have a compiled library in a jar file
-                then you can modify the properties file that is included inside the jar.  
-                On Windows a program such as 7-Zip can be used to edit the file in place.
-                Alternatively you can extract the files in the jar, modify the properties,
-                (with vi for example), then combine the files back into a jar using the 
-                following commands:</p>
+            <p>
+                If building from source then you can edit the properties file 
+                before running the build.  If you already have a compiled 
+                library in a jar file then you can modify the properties file 
+                that is included inside the jar.  On Windows a program such as
+                7-Zip can be used to edit the file in place.  Alternatively you
+                can extract the files in the jar, modify the properties,
+                (with vi for example), then combine the files back into a jar 
+                using the following commands:
+            </p>
             <pre><kbd>
 jar xf jlog.jar
 vi org/jlab/elog/elog.properties
 jar cf jlog.jar org META-INF
-        </kbd></pre> 
+            </kbd></pre> 
             <b>Attachment Size Limits</b>
             <p>
-                Client-side size limits on attachments are enforced to help avoid an
-                OutOfMemoryError or rejection by the server due to crossing the server
-                attachment limit.  The checks are performed when the addAttachment
-                method is called or when creating a LogEntry from an XML file.
+                Client-side size limits on attachments are enforced to help 
+                avoid an OutOfMemoryError or rejection by the server due to 
+                crossing the server attachment limit.  The checks are performed
+                when the addAttachment method is called or when creating a 
+                LogEntry from an XML file.
             </p>
             <p>
-                These limits are much lower than the limits if using the C++ implementation.
-                The reason is because the default maximum heap size in Java is often 64MB.
-                If you increase the limits here then be sure to bump up your JVM limit as 
-                well.  For example, the command to execute Java with a max heap of 512 MB is:
-                "java -Xmx512m".
+                By default these limits are much lower than the limits if using
+                the C++ implementation.  The reason is because the default 
+                maximum heap size in Java is often 64MB.  If you increase the
+                limits here then be sure to bump up your JVM limit as well.  
+                For example, the command to execute Java with a max heap of 
+                512 MB is: "java -Xmx512m".
             </p>
             <p>
-                The server may send a LogEntry or Comment back to the client which
-                references attachments (via URLs) which are larger than these limits.  The 
-                library will download all of the attachments to verify they
-                are within the client limits.
-
+                The server may send a LogEntry or Comment back to the client 
+                which references attachments (via URLs) which are larger than
+                these limits.  The library will download all of the attachments 
+                to verify they are within the client limits.
             </p>        
             <h2><a id="source">Source Code</a></h2>
-            <p>The Java electronic log book client API is named <em>jlog</em> and is
-                stored in the git repository on devl00.  It can be
+            <p>The Java electronic log book client API is named <em>jlog</em> 
+                and is stored in the git repository on devl00.  It can be
                 accessed by members of the JLab accelerator group <em>epics</em> 
                 from an accelerator Linux machine with the command:</p>
             <pre><kbd>
 git init jlog
 cd jlog
 git pull ssh://devl00/usr/devsite/git/jlog.git 
-        </kbd></pre>
-            <p>An Apache Ant build file (build.xml) is used to compile and package 
-                the library.</p>   
+            </kbd></pre>
+            <p>
+                An Apache Ant build file (build.xml) is used to compile and
+                package the library.
+            </p>   
         </div>
     </body>
 </html>
