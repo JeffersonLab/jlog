@@ -1,12 +1,15 @@
 package org.jlab.elog;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import javax.net.ssl.HttpsURLConnection;
+import org.jlab.elog.exception.AttachmentSizeException;
 import org.jlab.elog.exception.LogException;
 import org.jlab.elog.util.IOUtil;
 import org.jlab.elog.util.SecurityUtil;
@@ -101,6 +104,20 @@ public class LogEntryTest {
         int expectedLength = 0;
         int actualLength = entry.getAttachments().length;
         assertEquals(expectedLength, actualLength);
+    }
+    
+    @Test(expected = AttachmentSizeException.class)
+    public void testLargeAttachment() throws Exception {
+        File tmp = File.createTempFile("eloglibunittest", ".tmp");
+        tmp.deleteOnExit();
+        BufferedWriter writer = new BufferedWriter(new FileWriter(tmp));
+        int numBytes = 17 * 1024 * 1024;
+        for(int i = 0; i < numBytes; i++) {
+            writer.write(48); // I think int 48 corresponds to ASCII char '0'
+        }
+        
+        writer.close();
+        entry.addAttachment(tmp.getAbsolutePath());
     }
     
     @Test
