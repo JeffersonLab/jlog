@@ -111,7 +111,8 @@ public class Attachment {
     }
 
     /**
-     * Return the attachment data via an InputStream.
+     * Return the attachment data via an InputStream.  The user should close
+     * the InputStream when done.
      * 
      * @return The attachment data
      * @throws LogIOException If unable to obtain the InputStream
