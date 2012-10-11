@@ -72,7 +72,6 @@ abstract class LogItem {
     private static final String PEM_FILE_NAME = ".elogcert";
     static final boolean VERIFY_SERVER = false;
     private static final FileNameMap mimeMap = URLConnection.getFileNameMap();
-
     LogException submitException = null;
     Document doc;
     Element root;
@@ -162,27 +161,35 @@ abstract class LogItem {
                 System.getProperty("user.name"));
     }
 
-    void checkAttachmentSize(long length) throws AttachmentSizeException, 
+    /**
+     * Check the attachment length against the limit rules defined in the 
+     * configuration.
+     * 
+     * @param length The length to check
+     * @throws AttachmentSizeException If an attachment size limit is crossed
+     * @throws LogRuntimeException If unable to check the length
+     */
+    void checkAttachmentSize(long length) throws AttachmentSizeException,
             LogRuntimeException {
         Properties props = Library.getConfiguration();
-        
+
         String singleFileLimitStr = props.getProperty(
                 "ATTACH_SINGLE_MAX_BYTES");
-        
+
         if (singleFileLimitStr == null) {
             throw new LogRuntimeException(
                     "Property ATTACH_SINGLE_MAX_BYTES not found.");
-        }      
-        
+        }
+
         long singleFileLimit = 0;
-        
+
         try {
             singleFileLimit = Long.parseLong(singleFileLimitStr);
-        } catch(NumberFormatException e) {
+        } catch (NumberFormatException e) {
             throw new LogRuntimeException(
                     "ATTACH_SINGLE_MAX_BYTES must be a number.", e);
-        } 
-        
+        }
+
         if (length > singleFileLimit) {
             throw new AttachmentSizeException(
                     "The maximim attachment file size of "
@@ -192,71 +199,90 @@ abstract class LogItem {
 
         String totalFileLimitStr = props.getProperty(
                 "ATTACH_TOTAL_MAX_BYTES");
-        
+
         if (totalFileLimitStr == null) {
             throw new LogRuntimeException(
                     "Property ATTACH_TOTAL_MAX_BYTES not found.");
-        }      
-        
+        }
+
         long totalFileLimit = 0;
-        
+
         try {
             totalFileLimit = Long.parseLong(totalFileLimitStr);
-        } catch(NumberFormatException e) {
+        } catch (NumberFormatException e) {
             throw new LogRuntimeException(
                     "ATTACH_TOTAL_MAX_BYTES must be a number.", e);
-        }        
-        
+        }
+
         if (length + totalAttachmentBytes > totalFileLimit) {
             throw new AttachmentSizeException(
                     "The maximim total size for all attachments of "
                     + totalFileLimit
                     / 1024 / 1024 + " MB has been exceeded.");
-        }        
+        }
     }
-    
+
+    /**
+     * Return the length of the specified attachment.  This method 
+     * writes the attachment out to a temp directly and checks the length.
+     * Base64 attachments are decoded and URL attachments are
+     * downloaded.
+     * 
+     * @param attachment The attachment
+     * @return The length
+     * @throws LogIOException If unable to obtain length due to IO
+     */
     long getAttachmentLength(Attachment attachment) throws LogIOException {
         long length = 0;
         String prefix = "jlogattachment";
         String suffix = ".tmp";
-        
+
         File file = null;
         InputStream in = null;
         OutputStream out = null;
-        
+
         try {
             in = attachment.getData();
-            
+
             file = File.createTempFile(prefix, suffix);
-        
+
             out = new FileOutputStream(file);
-        
+
             IOUtil.copy(in, out);
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new LogIOException(
                     "Unable to write attachment to tmp for length measurement.",
                     e);
-            
+
         } finally {
             IOUtil.closeQuietly(in);
             IOUtil.closeQuietly(out);
             IOUtil.deleteQuietly(file);
         }
-        
+
         return length;
     }
-    
+
+    /**
+     * Check that the attachments in the log item are within limits and update
+     * the count on total attachment size so that further checking can be done
+     * when attachments are added.
+     * 
+     * @throws AttachmentSizeException If an attachment size limit is crossed
+     * @throws LogIOException If unable to check and tally due to IO
+     * 
+     */
     void checkAndTallyAttachmentSize() throws AttachmentSizeException,
             LogIOException {
         Attachment[] attachments = getAttachments();
-        
-        for(Attachment attachment: attachments) {
+
+        for (Attachment attachment : attachments) {
             long length = getAttachmentLength(attachment);
             checkAttachmentSize(length);
             totalAttachmentBytes += length;
         }
-    }     
-    
+    }
+
     /**
      * Add a file attachment with an empty caption and a hastily guessed mime
      * type. The mime type is guessed by using the readily available
@@ -269,11 +295,11 @@ abstract class LogItem {
      * @throws LogIOException If unable to add the attachment due to IO
      * @throws LogRuntimeException If unable to add the attachment
      */
-    public void addAttachment(String filepath) throws AttachmentSizeException, 
+    public void addAttachment(String filepath) throws AttachmentSizeException,
             LogIOException, LogRuntimeException {
         addAttachment(filepath, "", mimeMap.getContentTypeFor(filepath));
-    }   
-    
+    }
+
     /**
      * Add a file attachment with the specified caption and mime type.
      *
@@ -285,7 +311,7 @@ abstract class LogItem {
      * @throws LogRuntimeException If unable to add the attachment
      */
     public void addAttachment(String filepath, String caption, String mimeType)
-            throws AttachmentSizeException, LogIOException, 
+            throws AttachmentSizeException, LogIOException,
             LogRuntimeException {
         String data = null;
         Element attachmentsElement = null;
@@ -493,6 +519,13 @@ abstract class LogItem {
         return author;
     }
 
+    /**
+     * Set the log number.
+     * 
+     * @param lognumber The log number
+     * @throws LogRuntimeException If unable to set the log number
+     * 
+     */
     void setLogNumber(long lognumber) throws LogRuntimeException {
         Element lognumberElement = null;
 
@@ -685,6 +718,13 @@ abstract class LogItem {
      */
     abstract String getSchemaURL() throws LogRuntimeException;
 
+    /**
+     * Validates the DOM that makes up this log item using the log item schema.
+     * 
+     * @throws SchemaUnavailableException If the schema is unavailable
+     * @throws InvalidXMLException If the XML generated from the DOM is invalid
+     * @throws LogIOException If unable to validate due to IO
+     */
     void validate() throws SchemaUnavailableException, InvalidXMLException,
             LogIOException {
         Schema schema = null;
@@ -714,7 +754,15 @@ abstract class LogItem {
         }
     }
 
-    long parseResponse(InputStream is) throws LogIOException,
+    /**
+     * Parses the XML response sent from the server after an HTTP PUT request.
+     * 
+     * @param is The InputStream containing the response
+     * @return The log number contained within the response
+     * @throws LogIOException If unable to parse due to IO
+     * @throws LogRuntimeException  If unable to parse
+     */
+    long parseServerResponse(InputStream is) throws LogIOException,
             LogRuntimeException {
         long id;
 
@@ -758,7 +806,17 @@ abstract class LogItem {
         return id;
     }
 
-    long putToServer(String pemFilePath) throws LogIOException,
+    /**
+     * Performs the HTTP PUT request to the server with the log item.
+     * 
+     * @param pemFilePath The path to the client certificate file
+     * @return The log number returned in the server response
+     * @throws LogIOException If unable to perform the request due to IO
+     * @throws LogCertificateException If unable to perform the request due to
+     * certificate
+     * @throws LogRuntimeException If unable to perform the request
+     */
+    long performHttpPutToServer(String pemFilePath) throws LogIOException,
             LogCertificateException, LogRuntimeException {
         long id;
 
@@ -770,7 +828,7 @@ abstract class LogItem {
         InputStream error = null;
 
         try {
-            URL url = new URL(getPutPath());
+            URL url = new URL(buildHttpPutUrl());
             con = (HttpsURLConnection) url.openConnection();
             con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(
                     pemFilePath, VERIFY_SERVER));
@@ -789,7 +847,7 @@ abstract class LogItem {
                 System.err.println(errorMsg);
             }
 
-            id = parseResponse(is);
+            id = parseServerResponse(is);
         } catch (MalformedURLException e) {
             throw new LogIOException(
                     "Invalid submission URL: check config file.", e);
@@ -853,29 +911,52 @@ abstract class LogItem {
         return id;
     }
 
+    /**
+     * Returns the Document object for the Document Object Model (DOM).
+     * 
+     * @return The Document
+     */
     Document getDocument() {
         return doc;
     }
 
+    /**
+     * Returns the root Element of this log item.
+     * 
+     * @return The root (document) Element
+     */
     Element getRoot() {
         return root;
     }
 
+    /**
+     * Returns the XPath object used to compile XPath expressions.
+     * 
+     * @return The XPath object
+     */
     XPath getXPath() {
         return xpath;
     }
 
-    String getPutPath() {
+    /**
+     * Constructs the HTTP PUT URL to use when submitting log entries and
+     * comments using the the SUBMIT_URL configuration property and the
+     * generateXMLFilename method.
+     *
+     * @return The HTTP PUT URL
+     * @throws LogRuntimeException If unable to construct
+     */
+    String buildHttpPutUrl() throws LogRuntimeException {
         StringBuilder strBuilder = new StringBuilder();
 
         Properties props = Library.getConfiguration();
         String submitURL = props.getProperty("SUBMIT_URL");
-        
+
         if (submitURL == null) {
             throw new LogRuntimeException(
                     "Property SUBMIT_URL not found.");
-        }        
-        
+        }
+
         strBuilder.append(submitURL);
 
         if (!submitURL.endsWith("/")) {
@@ -887,6 +968,11 @@ abstract class LogItem {
         return strBuilder.toString();
     }
 
+    /**
+     * Returns the default client certificate path.
+     * 
+     * @return The default client certificate path
+     */
     String getDefaultCertificatePath() {
         return new File(System.getProperty("user.home"),
                 PEM_FILE_NAME).getAbsolutePath();
@@ -909,7 +995,7 @@ abstract class LogItem {
      * Submit the log item using the queue mechanism as a fallback and using the
      * specified client certificate and return the log number. If the log number
      * is zero then the submission was queued instead of being consumed directly
-     * by the server.  You can use the whyQueued method to obtain the 
+     * by the server. You can use the whyQueued method to obtain the
      * LogException encountered if any while attempting to submit directly to
      * the server.
      *
@@ -923,7 +1009,7 @@ abstract class LogItem {
         long id = 0L;
 
         try {
-            id = putToServer(pemFilePath);
+            id = performHttpPutToServer(pemFilePath);
         } catch (LogException e) {
             submitException = e;
             queue();
@@ -944,9 +1030,16 @@ abstract class LogItem {
      */
     public long submitNow() throws LogIOException, LogCertificateException,
             LogRuntimeException {
-        return putToServer(getDefaultCertificatePath());
+        return performHttpPutToServer(getDefaultCertificatePath());
     }
 
+    /**
+     * Generate an XML filename for log entries and comments submission.  The
+     * format expected by the logbook server is:
+     * [timestamp]_[pid]_[hostname]_[random].xml
+     * 
+     * @return The filename
+     */
     String generateXMLFilename() {
         StringBuilder filenameBuilder = new StringBuilder();
 
@@ -979,43 +1072,64 @@ abstract class LogItem {
         return filenameBuilder.toString();
     }
 
+    /**
+     * Returns the queue path.  The queue path is determined by first looking at
+     * the QUEUE_PATH configuration property.  If it is defined then it is used,
+     * if not, then the DEFAULT_WINDOWS_QUEUE_PATH or DEFAULT_UNIX_QUEUE_PATH
+     * configuration property is used based on the detected OS.
+     * 
+     * @return The queue path
+     */
     String getQueuePath() {
         Properties props = Library.getConfiguration();
-        
+
         String queuePath = props.getProperty("QUEUE_PATH");
-        
+
         if (queuePath == null || queuePath.isEmpty()) {
-            if(SystemUtil.isWindows()) {
+            if (SystemUtil.isWindows()) {
                 queuePath = props.getProperty("DEFAULT_WINDOWS_QUEUE_PATH");
             } else {
                 queuePath = props.getProperty("DEFAULT_UNIX_QUEUE_PATH");
             }
-        }        
+        }
 
-        if(queuePath == null || queuePath.isEmpty()) {
+        if (queuePath == null || queuePath.isEmpty()) {
             throw new LogRuntimeException("The QUEUE_PATH property and the "
                     + "DEFAULT_-OS-_QUEUE_PATH property are both undefined.");
         }
-        
+
         return queuePath;
     }
-    
+
     /**
-     * Returns the LogException which prevented direct submission to the server 
+     * Returns the LogException which prevented direct submission to the server
      * on the most recent attempt, or null if none.
-     * 
+     *
      * @return The LogException or null
      */
     public LogException whyQueued() {
         return submitException;
     }
-    
+
+    /**
+     * Queues the log item into configured file path.
+     * 
+     * @throws InvalidXMLException If the XML is invalid
+     * @throws LogIOException If unable to queue due to IO
+     */
     void queue() throws InvalidXMLException, LogIOException {
         String filename = generateXMLFilename();
         String filepath = new File(getQueuePath(), filename).getAbsolutePath();
         queue(filepath);
     }
 
+    /**
+     * Queues the log item into the specified file path.
+     * 
+     * @param filepath The queue file path
+     * @throws InvalidXMLException If the XML is invalid
+     * @throws LogIOException If unable to queue due to IO
+     */
     void queue(String filepath) throws InvalidXMLException, LogIOException {
         try {
             validate();

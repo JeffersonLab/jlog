@@ -40,7 +40,7 @@ public class LogEntry extends LogItem {
     final XPathExpression referencesExpression;
     final XPathExpression revisionReasonExpression;
 
-    {       
+    {
         try {
             titleExpression = xpath.compile("/Logentry/title");
             logbooksExpression = xpath.compile("/Logentry/Logbooks");
@@ -82,7 +82,7 @@ public class LogEntry extends LogItem {
 
     /**
      * Construct a new LogEntry from the specified XML file.
-     * 
+     *
      * @param filePath The path to the XML file
      * @throws SchemaUnavailableException If the XML schema is unavailable
      * @throws MalformedXMLException If the XML is malformed
@@ -95,22 +95,22 @@ public class LogEntry extends LogItem {
             MalformedXMLException, InvalidXMLException, LogIOException,
             AttachmentSizeException, LogRuntimeException {
         try {
-            if(!VERIFY_SERVER) {
+            if (!VERIFY_SERVER) {
                 SecurityUtil.disableServerCertificateCheck();
             }
-            
+
             doc = builder.parse(filePath);
             root = doc.getDocumentElement();
-            
+
             SecurityUtil.enableServerCertificateCheck();
         } catch (SAXException e) {
             throw new MalformedXMLException("File is not well formed XML.", e);
         } catch (IOException e) {
             throw new LogIOException("Unable to parse XML file.", e);
-        } catch(NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new LogRuntimeException(
                     "Unable to disable server certificate check", e);
-        } catch(KeyManagementException e) {
+        } catch (KeyManagementException e) {
             throw new LogRuntimeException(
                     "Unable to disable server certificate check", e);
         }
@@ -118,14 +118,14 @@ public class LogEntry extends LogItem {
         // We could call builder.setSchema() and it would be a validating
         // parser, but then no way to differentiate Malformed vs Invalid
         validate();
-        
+
         checkAndTallyAttachmentSize();
     }
-    
+
     /**
-     * Factory method to obtain an existing LogEntry for viewing or revising.
-     * If the intention is for viewing provide null for the reason.
-     * 
+     * Factory method to obtain an existing LogEntry for viewing or revising. If
+     * the intention is for viewing provide null for the reason.
+     *
      * @param lognumber The log number.
      * @param reason The reason for the revision
      * @return The LogEntry
@@ -133,44 +133,58 @@ public class LogEntry extends LogItem {
      * @throws MalformedXMLException If the XML is malformed
      * @throws InvalidXMLException If the XML is invalid
      * @throws LogIOException If unable to construct due to IO
-     * @throws AttachmentSizeException If attachments cross a size limit 
+     * @throws AttachmentSizeException If attachments cross a size limit
      * @throws LogRuntimeException If unable to construct
      */
-    public static LogEntry getLogEntry(long lognumber, String reason) 
-            throws SchemaUnavailableException, MalformedXMLException, 
+    public static LogEntry getLogEntry(long lognumber, String reason)
+            throws SchemaUnavailableException, MalformedXMLException,
             InvalidXMLException, LogIOException, AttachmentSizeException,
-            LogRuntimeException {       
-        
-        String filePath = getGetPath(lognumber);
+            LogRuntimeException {
+
+        String filePath = buildHttpGetUrl(lognumber);
         LogEntry entry = new LogEntry(filePath);
         entry.setRevisionReason(reason);
         return entry;
     }
 
-    static String getGetPath(long id) throws LogRuntimeException {
+    /**
+     * Constructs the HTTP GET URL to use for fetching log entries based on the
+     * log number and the FETCH_URL configuration property.
+     *
+     * @param lognumber The log number
+     * @return The HTTP GET URL
+     * @throws LogRuntimeException If unable to construct the URL
+     */
+    static String buildHttpGetUrl(long lognumber) throws LogRuntimeException {
         StringBuilder strBuilder = new StringBuilder();
 
         Properties props = Library.getConfiguration();
         String fetchURL = props.getProperty("FETCH_URL");
-        
+
         if (fetchURL == null) {
             throw new LogRuntimeException(
                     "Property FETCH_URL not found.");
-        }          
-        
+        }
+
         strBuilder.append(fetchURL);
 
         if (!fetchURL.endsWith("/")) {
             strBuilder.append("/");
         }
 
-        strBuilder.append(id);
+        strBuilder.append(lognumber);
         strBuilder.append("/xml");
 
         return strBuilder.toString();
     }
 
-    void setRevisionReason(String reason) {
+    /**
+     * Sets the revision reason.
+     * 
+     * @param reason The revision reason
+     * @throws LogRuntimeException If unable to set the revision reason
+     */
+    void setRevisionReason(String reason) throws LogRuntimeException {
         Element revisionReasonElement = null;
 
         try {
@@ -193,24 +207,24 @@ public class LogEntry extends LogItem {
     }
 
     /**
-     * Add an array of log books to this log entry.
-     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
-     * of valid logbooks.
-     * 
+     * Add an array of log books to this log entry. See the <a
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * logbooks.
+     *
      * @param books The log books
-     * @throws LogRuntimeException If unable to add log books 
+     * @throws LogRuntimeException If unable to add log books
      */
     public void addLogboks(String[] books) throws LogRuntimeException {
         addLogbooks(IOUtil.arrayToCSV(books));
     }
 
     /**
-     * Add a comma-separated list of log books to this log entry.
-     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
-     * of valid logbooks.
-     * 
+     * Add a comma-separated list of log books to this log entry. See the <a
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * logbooks.
+     *
      * @param books The log books
-     * @throws LogRuntimeException If unable to add log books 
+     * @throws LogRuntimeException If unable to add log books
      */
     public void addLogbooks(String books) throws LogRuntimeException {
         if (books == null || books.isEmpty()) {
@@ -220,7 +234,7 @@ public class LogEntry extends LogItem {
         Element logbooksElement = null;
 
         try {
-            logbooksElement = (Element) logbooksExpression.evaluate(doc, 
+            logbooksElement = (Element) logbooksExpression.evaluate(doc,
                     XPathConstants.NODE);
 
             if (logbooksElement == null) {
@@ -234,17 +248,17 @@ public class LogEntry extends LogItem {
                     "Unexpected node type in XML DOM.", e);
         }
 
-        XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, 
+        XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement,
                 "logbook", books);
     }
 
     /**
-     * Replace the existing log books with the specified array.
-     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
-     * of valid logbooks.
-     * 
+     * Replace the existing log books with the specified array. See the <a
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * logbooks.
+     *
      * @param books The log books
-     * @throws LogRuntimeException If unable to set log books 
+     * @throws LogRuntimeException If unable to set log books
      */
     public void setLogbooks(String[] books) throws LogRuntimeException {
         setLogbooks(IOUtil.arrayToCSV(books));
@@ -252,11 +266,11 @@ public class LogEntry extends LogItem {
 
     /**
      * Replace the existing log books with the specified comma-separated-values.
-     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
+     * See the <a href="../../../overview-summary.html">Overview</a> for a list
      * of valid logbooks.
-     * 
+     *
      * @param books The log books
-     * @throws LogRuntimeException If unable to set the log books 
+     * @throws LogRuntimeException If unable to set the log books
      */
     public void setLogbooks(String books) throws LogRuntimeException {
         if (books == null) {
@@ -266,7 +280,7 @@ public class LogEntry extends LogItem {
         Element logbooksElement = null;
 
         try {
-            logbooksElement = (Element) logbooksExpression.evaluate(doc, 
+            logbooksElement = (Element) logbooksExpression.evaluate(doc,
                     XPathConstants.NODE);
 
             if (logbooksElement == null) {
@@ -281,15 +295,15 @@ public class LogEntry extends LogItem {
         }
 
         XMLUtil.removeChildren(logbooksElement);
-        XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement, 
+        XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement,
                 "logbook", books);
     }
 
     /**
      * Return the log books as comma-separated-values.
-     * 
+     *
      * @return The log books
-     * @throws LogRuntimeException If unable to return the log books 
+     * @throws LogRuntimeException If unable to return the log books
      */
     public String getLogbooksCSV() throws LogRuntimeException {
         return IOUtil.arrayToCSV(getLogbooks());
@@ -297,15 +311,15 @@ public class LogEntry extends LogItem {
 
     /**
      * Return the log books as an array.
-     * 
+     *
      * @return The log books
-     * @throws LogRuntimeException If unable to return the log books 
+     * @throws LogRuntimeException If unable to return the log books
      */
     public String[] getLogbooks() throws LogRuntimeException {
         NodeList logbookElements = null;
 
         try {
-            logbookElements = (NodeList) logbookListExpression.evaluate(doc, 
+            logbookElements = (NodeList) logbookListExpression.evaluate(doc,
                     XPathConstants.NODESET);
 
             if (logbookElements == null) {
@@ -323,24 +337,24 @@ public class LogEntry extends LogItem {
     }
 
     /**
-     * Add an array of tags to the log entry.
-     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
-     * of valid tags.
-     * 
+     * Add an array of tags to the log entry. See the <a
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * tags.
+     *
      * @param tags The tags
-     * @throws LogRuntimeException If unable to add tags 
+     * @throws LogRuntimeException If unable to add tags
      */
     public void addTags(String[] tags) throws LogRuntimeException {
         addTags(IOUtil.arrayToCSV(tags));
     }
 
     /**
-     * Add a comma-separated list of tags to the log entry.
-     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
-     * of valid tags.
-     * 
+     * Add a comma-separated list of tags to the log entry. See the <a
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * tags.
+     *
      * @param tags The tags
-     * @throws LogRuntimeException If unable to add tags 
+     * @throws LogRuntimeException If unable to add tags
      */
     public void addTags(String tags) throws LogRuntimeException {
         if (tags == null || tags.isEmpty()) {
@@ -350,7 +364,7 @@ public class LogEntry extends LogItem {
         Element tagsElement = null;
 
         try {
-            tagsElement = (Element) tagsExpression.evaluate(doc, 
+            tagsElement = (Element) tagsExpression.evaluate(doc,
                     XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException(
@@ -365,35 +379,35 @@ public class LogEntry extends LogItem {
             root.appendChild(tagsElement);
         }
 
-        XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, "tag", 
+        XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, "tag",
                 tags);
     }
 
     /**
-     * Replace the existing tags with the specified array of tags.
-     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
-     * of valid tags.
-     * 
+     * Replace the existing tags with the specified array of tags. See the <a
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * tags.
+     *
      * @param tags The tags
-     * @throws LogRuntimeException If unable to set tags 
+     * @throws LogRuntimeException If unable to set tags
      */
     public void setTags(String[] tags) throws LogRuntimeException {
         setTags(IOUtil.arrayToCSV(tags));
     }
 
     /**
-     * Replace the existing tags with the specified comma-separated-values.
-     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
-     * of valid tags.
-     * 
+     * Replace the existing tags with the specified comma-separated-values. See
+     * the <a href="../../../overview-summary.html">Overview</a> for a list of
+     * valid tags.
+     *
      * @param tags The tags
-     * @throws LogRuntimeException If unable to set the tags 
+     * @throws LogRuntimeException If unable to set the tags
      */
     public void setTags(String tags) throws LogRuntimeException {
         Element tagsElement = null;
 
         try {
-            tagsElement = (Element) tagsExpression.evaluate(doc, 
+            tagsElement = (Element) tagsExpression.evaluate(doc,
                     XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException(
@@ -413,16 +427,16 @@ public class LogEntry extends LogItem {
         }
 
         if (tags != null && !tags.isEmpty()) {
-            XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, 
+            XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement,
                     "tag", tags);
         }
     }
 
     /**
      * Return the tags as comma-separated-values.
-     * 
+     *
      * @return The tags
-     * @throws LogRuntimeException If unable to return the tags 
+     * @throws LogRuntimeException If unable to return the tags
      */
     public String getTagsCSV() throws LogRuntimeException {
         return IOUtil.arrayToCSV(getTags());
@@ -430,16 +444,16 @@ public class LogEntry extends LogItem {
 
     /**
      * Return the tags as an array.
-     * 
+     *
      * @return The tags
-     * @throws LogRuntimeException If unable to get the tags 
+     * @throws LogRuntimeException If unable to get the tags
      */
     public String[] getTags() throws LogRuntimeException {
         NodeList tagElements = null;
         String[] tags;
 
         try {
-            tagElements = (NodeList) tagListExpression.evaluate(doc, 
+            tagElements = (NodeList) tagListExpression.evaluate(doc,
                     XPathConstants.NODESET);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException(
@@ -459,12 +473,12 @@ public class LogEntry extends LogItem {
     }
 
     /**
-     * Add a reference to this log entry.
-     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
-     * of valid reference types.
-     * 
+     * Add a reference to this log entry. See the <a
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * reference types.
+     *
      * @param ref The reference
-     * @throws LogRuntimeException If unable to add a reference 
+     * @throws LogRuntimeException If unable to add a reference
      */
     public void addReference(Reference ref) throws LogRuntimeException {
         if (ref == null) {
@@ -474,7 +488,7 @@ public class LogEntry extends LogItem {
         Element referencesElement = null;
 
         try {
-            referencesElement = (Element) referencesExpression.evaluate(doc, 
+            referencesElement = (Element) referencesExpression.evaluate(doc,
                     XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException(
@@ -498,9 +512,9 @@ public class LogEntry extends LogItem {
 
     /**
      * Return the references.
-     * 
+     *
      * @return The references
-     * @throws LogRuntimeException If unable to get the references 
+     * @throws LogRuntimeException If unable to get the references
      */
     public Reference[] getReferences() throws LogRuntimeException {
         List<Reference> references = new ArrayList<Reference>();
@@ -508,7 +522,7 @@ public class LogEntry extends LogItem {
         Element referencesElement = null;
 
         try {
-            referencesElement = (Element) referencesExpression.evaluate(doc, 
+            referencesElement = (Element) referencesExpression.evaluate(doc,
                     XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException(
@@ -539,14 +553,14 @@ public class LogEntry extends LogItem {
 
     /**
      * Remove the references from the log entry.
-     * 
+     *
      * @throws LogRuntimeException If unable to remove the references
      */
     public void deleteReferences() throws LogRuntimeException {
         Element referencesElement = null;
 
         try {
-            referencesElement = (Element) referencesExpression.evaluate(doc, 
+            referencesElement = (Element) referencesExpression.evaluate(doc,
                     XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException(
@@ -563,15 +577,15 @@ public class LogEntry extends LogItem {
 
     /**
      * Set the title to a new value.
-     * 
+     *
      * @param title The new title
-     * @throws LogRuntimeException If unable to set the title 
+     * @throws LogRuntimeException If unable to set the title
      */
     public void setTitle(String title) throws LogRuntimeException {
         Element titleElement = null;
 
         try {
-            titleElement = (Element) titleExpression.evaluate(doc, 
+            titleElement = (Element) titleExpression.evaluate(doc,
                     XPathConstants.NODE);
 
             if (titleElement == null) {
@@ -590,7 +604,7 @@ public class LogEntry extends LogItem {
 
     /**
      * Return the title.
-     * 
+     *
      * @return The title
      * @throws LogRuntimeException If unable to get the title
      */
@@ -598,7 +612,7 @@ public class LogEntry extends LogItem {
         Element titleElement = null;
 
         try {
-            titleElement = (Element) titleExpression.evaluate(doc, 
+            titleElement = (Element) titleExpression.evaluate(doc,
                     XPathConstants.NODE);
 
             if (titleElement == null) {
@@ -617,7 +631,7 @@ public class LogEntry extends LogItem {
 
     /**
      * Add an array of entry makers to the log entry.
-     * 
+     *
      * @param entrymakers The entry makers
      * @throws LogRuntimeException If unable to add entry makers
      */
@@ -628,7 +642,7 @@ public class LogEntry extends LogItem {
 
     /**
      * Add a comma-separated list of entry makers to the log entry.
-     * 
+     *
      * @param entrymakers The entry makers
      * @throws LogRuntimeException If unable to add entry makers
      */
@@ -636,7 +650,7 @@ public class LogEntry extends LogItem {
         Element entrymakersElement = null;
 
         try {
-            entrymakersElement = (Element) entrymakersExpression.evaluate(doc, 
+            entrymakersElement = (Element) entrymakersExpression.evaluate(doc,
                     XPathConstants.NODE);
 
         } catch (XPathExpressionException e) {
@@ -652,13 +666,13 @@ public class LogEntry extends LogItem {
             root.appendChild(entrymakersElement);
         }
 
-        XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, 
+        XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc,
                 entrymakersElement, "Entrymaker", "username", entrymakers);
     }
 
     /**
      * Replace the entry makers with the specified array.
-     * 
+     *
      * @param entrymakers the entry makers
      * @throws LogRuntimeException If unable to set the entry makers
      */
@@ -669,7 +683,7 @@ public class LogEntry extends LogItem {
 
     /**
      * Replace the entry makers with the specified comma-separated-values.
-     * 
+     *
      * @param entrymakers The entry makers
      * @throws LogRuntimeException If unable to set the entry makers
      */
@@ -681,7 +695,7 @@ public class LogEntry extends LogItem {
         Element entrymakersElement = null;
 
         try {
-            entrymakersElement = (Element) entrymakersExpression.evaluate(doc, 
+            entrymakersElement = (Element) entrymakersExpression.evaluate(doc,
                     XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException(
@@ -698,15 +712,15 @@ public class LogEntry extends LogItem {
             XMLUtil.removeChildren(entrymakersElement);
         }
 
-        XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc, 
+        XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc,
                 entrymakersElement, "Entrymaker", "username", entrymakers);
     }
 
     /**
      * Return the entry makers as comma-separated-values.
-     * 
+     *
      * @return The entry makers
-     * @throws LogRuntimeException If unable to get the entry makers 
+     * @throws LogRuntimeException If unable to get the entry makers
      */
     public String getEntryMakersCSV() throws LogRuntimeException {
         return IOUtil.arrayToCSV(getEntryMakers());
@@ -714,15 +728,15 @@ public class LogEntry extends LogItem {
 
     /**
      * Return the entry makers as an array.
-     * 
+     *
      * @return The entry makers
-     * @throws LogRuntimeException If unable to get the entry makers 
+     * @throws LogRuntimeException If unable to get the entry makers
      */
     public String[] getEntryMakers() throws LogRuntimeException {
         NodeList usernameElements = null;
 
         try {
-            usernameElements = (NodeList) usernameListExpression.evaluate(doc, 
+            usernameElements = (NodeList) usernameListExpression.evaluate(doc,
                     XPathConstants.NODESET);
 
             if (usernameElements == null) {
@@ -741,7 +755,7 @@ public class LogEntry extends LogItem {
 
     /**
      * Set the sticky value of this log entry.
-     * 
+     *
      * @param sticky true if sticky, false if not
      * @throws LogRuntimeException If unable to set the sticky value
      */
@@ -749,7 +763,7 @@ public class LogEntry extends LogItem {
         Element stickyElement = null;
 
         try {
-            stickyElement = (Element) stickyExpression.evaluate(doc, 
+            stickyElement = (Element) stickyExpression.evaluate(doc,
                     XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException(
@@ -774,7 +788,7 @@ public class LogEntry extends LogItem {
 
     /**
      * Return true if sticky, false if not.
-     * 
+     *
      * @return true if sticky, false if not
      * @throws LogRuntimeException If unable to get the sticky value
      */
@@ -784,7 +798,7 @@ public class LogEntry extends LogItem {
         Element stickyElement = null;
 
         try {
-            stickyElement = (Element) stickyExpression.evaluate(doc, 
+            stickyElement = (Element) stickyExpression.evaluate(doc,
                     XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException(
@@ -815,20 +829,20 @@ public class LogEntry extends LogItem {
     @Override
     String getSchemaURL() throws LogRuntimeException {
         Properties props = Library.getConfiguration();
-        
+
         String url = props.getProperty("LOG_ENTRY_SCHEMA_URL");
-        
+
         if (url == null) {
             throw new LogRuntimeException(
                     "Property LOG_ENTRY_SCHEMA_URL not found.");
-        } 
-        
+        }
+
         return url;
     }
 
     /**
      * Set the body to the specified plain text content.
-     * 
+     *
      * @param content The content
      * @throws LogRuntimeException If unable to set the body
      */
@@ -838,7 +852,7 @@ public class LogEntry extends LogItem {
 
     /**
      * Set the body to the specified content and content type.
-     * 
+     *
      * @param content The content
      * @param type the type
      * @throws LogRuntimeException If unable to set the body
