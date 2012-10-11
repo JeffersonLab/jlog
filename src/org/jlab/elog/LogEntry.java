@@ -194,6 +194,8 @@ public class LogEntry extends LogItem {
 
     /**
      * Add an array of log books to this log entry.
+     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
+     * of valid logbooks.
      * 
      * @param books The log books
      * @throws LogRuntimeException If unable to add log books 
@@ -204,6 +206,8 @@ public class LogEntry extends LogItem {
 
     /**
      * Add a comma-separated list of log books to this log entry.
+     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
+     * of valid logbooks.
      * 
      * @param books The log books
      * @throws LogRuntimeException If unable to add log books 
@@ -236,6 +240,8 @@ public class LogEntry extends LogItem {
 
     /**
      * Replace the existing log books with the specified array.
+     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
+     * of valid logbooks.
      * 
      * @param books The log books
      * @throws LogRuntimeException If unable to set log books 
@@ -246,6 +252,8 @@ public class LogEntry extends LogItem {
 
     /**
      * Replace the existing log books with the specified comma-separated-values.
+     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
+     * of valid logbooks.
      * 
      * @param books The log books
      * @throws LogRuntimeException If unable to set the log books 
@@ -316,6 +324,8 @@ public class LogEntry extends LogItem {
 
     /**
      * Add an array of tags to the log entry.
+     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
+     * of valid tags.
      * 
      * @param tags The tags
      * @throws LogRuntimeException If unable to add tags 
@@ -326,6 +336,8 @@ public class LogEntry extends LogItem {
 
     /**
      * Add a comma-separated list of tags to the log entry.
+     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
+     * of valid tags.
      * 
      * @param tags The tags
      * @throws LogRuntimeException If unable to add tags 
@@ -359,6 +371,8 @@ public class LogEntry extends LogItem {
 
     /**
      * Replace the existing tags with the specified array of tags.
+     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
+     * of valid tags.
      * 
      * @param tags The tags
      * @throws LogRuntimeException If unable to set tags 
@@ -369,6 +383,8 @@ public class LogEntry extends LogItem {
 
     /**
      * Replace the existing tags with the specified comma-separated-values.
+     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
+     * of valid tags.
      * 
      * @param tags The tags
      * @throws LogRuntimeException If unable to set the tags 
@@ -444,6 +460,8 @@ public class LogEntry extends LogItem {
 
     /**
      * Add a reference to this log entry.
+     * See the <a href="../../../overview-summary.html">Overview</a> for a list 
+     * of valid reference types.
      * 
      * @param ref The reference
      * @throws LogRuntimeException If unable to add a reference 

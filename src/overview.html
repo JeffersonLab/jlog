@@ -3,22 +3,6 @@
     <head>
         <title>Electronic Log Book Client API Overview</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <!-- You have to manully copy and paste these styles into the generated 
-        javadoc stylesheet.css for the code syntax highlighting to work.  The
-        code syntax hightlighting is created with Netbeans using the print to
-        HTML feature. -->
-        <style type="text/css">
-            .overview pre {color: #000000; background-color: #eeeeee; font-family: Monospaced}
-            .ST2 {font-family: Monospaced; font-weight: bold; font-style: italic}
-            .ST4 {font-family: Monospaced; font-style: italic}
-            .ST1 {font-family: Monospaced; font-weight: bold}
-            .ST0 {color: #969696; font-family: Monospaced; font-weight: bold}
-            .comment {color: #969696}
-            .character {color: #ce7b00}
-            .ST3 {color: #009900; font-family: Monospaced; font-style: italic}
-            .keyword-directive {color: #0000e6}
-            .property-list dt {color: green; font-style: italic; font-family: Monospaced;}
-        </style>
     </head>
     <body>
         <p>The electronic log book client API allows programmers to easily add 
@@ -42,7 +26,7 @@
             <p><b>Note: </b>system administrators may have generated your 
                 certificate and placed it in your home directory for you already.
             </p>
-            <h2>Example Program</h2>
+            <b>Example Program</b>
             <pre><code>
      <span class="keyword-directive">public</span> <span class="keyword-directive">static</span> <span class="keyword-directive">void</span> <span class="ST2">main</span>(String[] args) <span class="keyword-directive">throws</span> LogException {
          LogEntry entry = <span class="keyword-directive">new</span> LogEntry(<span class="character">&quot;</span><span class="character">Drinking</span><span class="character">&quot;</span>, <span class="character">&quot;</span><span class="character">TLOG</span><span class="character">&quot;</span>);
@@ -76,6 +60,19 @@ java -cp /apps/eloglib/jlog.jar:test org.jlab.elog.example.BasicDemo
                 delimiter is a semicolon instead of a colon.  The path to the 
                 library is likely unavailable on Windows so a copy of the library
                 may need to be made.</p>
+            <b>Valid Tags, References, and Logbooks</b>
+            <p>
+                The valid tags are listed here:
+                <a href="https://logbooks.jlab.org/tags">https://logbooks.jlab.org/tags</a>
+            </p>
+            <p>
+                The valid logbooks are listed here:
+                <a href="https://logbooks.jlab.org/logbooks">https://logbooks.jlab.org/logbooks</a>
+            </p>            
+            <p>
+                All enumerations are defined in the schema here:
+                <a href="http://logbooks.jlab.org/schema/TypeDefinitions.xsd">http://logbooks.jlab.org/schema/TypeDefinitions.xsd</a>
+            </p>           
             <h2>Configuration</h2>
             <p>
                 A Java properties file is located in the package 
@@ -181,8 +178,13 @@ git pull ssh://devl00/usr/devsite/git/jlog.git
             </kbd></pre>
             <p>
                 An Apache Ant build file (build.xml) is used to compile and
-                package the library.
+                package the library.  The library includes JUnit tests; in order
+                to invoke the <em>test</em> ant target be sure to pass in the 
+                path to the JUnit 4 jar.  For example:
             </p>   
+            <pre><kbd>
+ant -Djunit.jar.path="../lib/junit-4.10.jar" test                   
+            </kbd></pre>           
         </div>
     </body>
 </html>
