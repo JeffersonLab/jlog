@@ -3,7 +3,6 @@ package org.jlab.elog;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -247,7 +246,7 @@ public class LogEntryTest {
         Long id = entry.submit();
 
         if (id == 0) {
-            throw new Exception("It was queued!");
+            throw new Exception("It was queued!", entry.whyQueued());
         }
     }
 

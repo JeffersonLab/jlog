@@ -46,6 +46,7 @@ import javax.xml.xpath.XPathFactory;
 import org.jlab.elog.exception.AttachmentSizeException;
 import org.jlab.elog.exception.InvalidXMLException;
 import org.jlab.elog.exception.LogCertificateException;
+import org.jlab.elog.exception.LogException;
 import org.jlab.elog.exception.LogIOException;
 import org.jlab.elog.exception.LogRuntimeException;
 import org.jlab.elog.exception.SchemaUnavailableException;
@@ -72,6 +73,7 @@ abstract class LogItem {
     static final boolean VERIFY_SERVER = false;
     private static final FileNameMap mimeMap = URLConnection.getFileNameMap();
 
+    LogException submitException = null;
     Document doc;
     Element root;
     DatatypeFactory typeFactory;
@@ -907,7 +909,9 @@ abstract class LogItem {
      * Submit the log item using the queue mechanism as a fallback and using the
      * specified client certificate and return the log number. If the log number
      * is zero then the submission was queued instead of being consumed directly
-     * by the server.
+     * by the server.  You can use the whyQueued method to obtain the 
+     * LogException encountered if any while attempting to submit directly to
+     * the server.
      *
      * @param pemFilePath The path to the PEM-encoded client certificate
      * @return The log number, zero means queued
@@ -920,8 +924,8 @@ abstract class LogItem {
 
         try {
             id = putToServer(pemFilePath);
-        } catch (Exception e) {
-            // Ignore exceptions
+        } catch (LogException e) {
+            submitException = e;
             queue();
         }
 
@@ -994,6 +998,16 @@ abstract class LogItem {
         }
         
         return queuePath;
+    }
+    
+    /**
+     * Returns the LogException which prevented direct submission to the server 
+     * on the most recent attempt, or null if none.
+     * 
+     * @return The LogException or null
+     */
+    public LogException whyQueued() {
+        return submitException;
     }
     
     void queue() throws InvalidXMLException, LogIOException {
