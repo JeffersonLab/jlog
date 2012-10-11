@@ -10,7 +10,7 @@
     <property name="test.classes.dir" value="${test.build.dir}/classes"/>
     <property name="test.results.dir" value="${test.build.dir}/results"/>
     <property name="dist.dir" value="dist"/>    
-    <target name="dist">
+    <target name="dist" depends="compile">
         <mkdir dir="${dist.dir}"/>
         <jar destfile="${dist.dir}/jlog.jar" basedir="${classes.dir}"/>
     </target>
