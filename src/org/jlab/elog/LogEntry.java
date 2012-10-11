@@ -474,8 +474,7 @@ public class LogEntry extends LogItem {
         Element refElement = doc.createElement("reference");
         referencesElement.appendChild(refElement);
 
-        refElement.setAttribute("type", ref.getType() == null ? "" : 
-                ref.getType().name().toLowerCase());
+        refElement.setAttribute("type", ref.getType());
         refElement.setTextContent(ref.getId());
     }
 
@@ -512,18 +511,7 @@ public class LogEntry extends LogItem {
                 }
 
                 Element refElement = (Element) children.item(i);
-                Reference.RefType type = null;
-                String typeStr = refElement.getAttribute("type");
-
-                if (typeStr != null && !typeStr.isEmpty()) {
-                    try {
-                        type = Reference.RefType.valueOf(typeStr.toUpperCase());
-                    } catch (IllegalArgumentException e) {
-                        throw new LogRuntimeException(
-                                "Unexpected RefType in XML reference.", e);
-                    }
-                }
-
+                String type = refElement.getAttribute("type");
                 String id = refElement.getTextContent();
                 references.add(new Reference(type, id));
             }

@@ -171,10 +171,10 @@ public class LogEntryTest {
 
     @Test
     public void testReferences() throws LogException {
-        Reference.RefType expectedType = Reference.RefType.ATLIS;
+        String expectedType = "atlis";
         String expectedId = "123";
         entry.addReference(new Reference(expectedType, expectedId));
-        Reference.RefType actualType = entry.getReferences()[0].getType();
+        String actualType = entry.getReferences()[0].getType();
         String actualId = entry.getReferences()[0].getId();
         assertEquals(expectedType, actualType);
         assertEquals(expectedId, actualId);

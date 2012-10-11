@@ -6,16 +6,8 @@ package org.jlab.elog;
  * @author ryans
  */
 public class Reference {
-
-    /**
-     * The reference type.
-     */
-    public enum RefType {
-
-        LOGBOOK, ATLIS, CTLIS, FELIST, HALIST, HBLIST, HCLIST, HDLIST, INSVACTL, TATL, PSSLOG
-    };
     
-    private final RefType type;
+    private final String type;
     private final String id;
     
     /**
@@ -24,7 +16,7 @@ public class Reference {
      * @param type The type
      * @param id The id
      */
-    public Reference(RefType type, String id) {
+    public Reference(String type, String id) {
         this.type = type;
         this.id = id;
     }
@@ -34,7 +26,7 @@ public class Reference {
      * 
      * @return The type
      */
-    public RefType getType() {
+    public String getType() {
         return type;
     }
 
