@@ -376,8 +376,10 @@ abstract class LogItem {
         if (attachmentsElement != null) {
             NodeList children = attachmentsElement.getChildNodes();
 
-            for (int i = 0; i < children.getLength(); i++) {
-                attachments.add(new Attachment((Element) children.item(i)));
+            for (int i = 0; i < children.getLength(); i++) {      
+                if(children.item(i) instanceof Element) {
+                    attachments.add(new Attachment((Element) children.item(i)));
+                }
             }
         }
 
