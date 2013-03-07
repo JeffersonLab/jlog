@@ -338,4 +338,23 @@ public class LogEntryTest {
         String actual = revision.getTitle();
         assertEquals(expected, actual);
     }
+    
+    @Test
+    public void testLargeSubmit() throws Exception {
+        StringBuilder builder = new StringBuilder();
+        
+        //Inefficiently create a 64MB string!
+        for(int i = 0; i < 67108864; i++) {
+            builder.append(0);
+        }
+        
+        // Circumvent size checks by using body, not attachment!
+        entry.setBody(builder.toString());
+        
+        Long id = entry.submit();
+
+        if (id == 0) {
+            throw new Exception("It was queued!", entry.whyQueued());
+        }
+    }    
 }
