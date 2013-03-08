@@ -351,7 +351,7 @@ public class LogEntryTest {
         // Circumvent size checks by using body, not attachment!
         entry.setBody(builder.toString());
         
-        Long id = entry.submit();
+        Long id = entry.submitNow(); // Don't bother queuing
 
         if (id == 0) {
             throw new Exception("It was queued!", entry.whyQueued());
