@@ -61,8 +61,12 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
- * An item that can be posted to the electronic log book.
- *
+ * An item that can be submitted to the electronic log book. An item can be
+ * serialized to XML for data transfer and then submitted via one of two 
+ * methods: (1) HTTP PUT request, (2) write to file system queue directory. 
+ * This API requires that submissions must first attempt the HTTP PUT request,
+ * and then may optionally attempt the queue submission.
+ * 
  * @author ryans
  */
 abstract class LogItem {
@@ -1123,7 +1127,9 @@ abstract class LogItem {
 
     /**
      * Return the LogException which prevented direct submission to the server
-     * on the most recent attempt, or null if none.
+     * on the most recent attempt, or null if none.  This method allows access
+     * to the exception which is masked when the submit method is called and 
+     * returns with a zero value indicating the submission was queued.
      *
      * @return The LogException or null
      */

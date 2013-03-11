@@ -46,7 +46,27 @@
             <p><b>Note: </b>system administrators may have generated your 
                 certificate and placed it in your home directory for you already.
             </p>
-            <b>Example Program</b>
+            <b>Example Program 1: Hello World</b>
+            <pre><code>
+     <span class="keyword-directive">public</span> <span class="keyword-directive">static</span> <span class="keyword-directive">void</span> <span class="ST2">main</span>(String[] args) <span class="keyword-directive">throws</span> LogException {
+         LogEntry entry = <span class="keyword-directive">new</span> LogEntry(<span class="character">&quot;</span><span class="character">Hello World</span><span class="character">&quot;</span>, <span class="character">&quot;</span><span class="character">TLOG</span><span class="character">&quot;</span>);
+         
+         <span class="keyword-directive">long</span> lognumber = entry.submitNow();
+
+         System.<span class="ST3">out</span>.println(<span class="character">&quot;</span><span class="character">Successfully submitted log entry number: </span><span class="character">&quot;</span> + lognumber);
+     }
+            </code></pre>
+            <p>The example program is included with the <a href="#source">source</a> code and can be run 
+                on an accelerator Linux machine with the following commands:</p>
+            <pre><kbd>
+cd jlog
+javac -cp /cs/certified/apps/eloglib/java/jlog2.jar  test/org/jlab/elog/example/HelloWorldDemo.java
+java -cp /cs/certified/apps/eloglib/java/jlog2.jar:test org.jlab.elog.example.HelloWorldDemo 
+            </kbd></pre>
+            <p>Running the example on Windows is similar, but the classpath (-cp) 
+                delimiter is a semicolon instead of a colon.  The path to the 
+                library is different as well.</p>           
+            <b>Example Program 2: Basic Usage</b>
             <pre><code>
      <span class="keyword-directive">public</span> <span class="keyword-directive">static</span> <span class="keyword-directive">void</span> <span class="ST2">main</span>(String[] args) <span class="keyword-directive">throws</span> LogException {
          LogEntry entry = <span class="keyword-directive">new</span> LogEntry(<span class="character">&quot;</span><span class="character">Drinking</span><span class="character">&quot;</span>, <span class="character">&quot;</span><span class="character">TLOG</span><span class="character">&quot;</span>);
@@ -69,16 +89,7 @@
          }
      }
             </code></pre>
-            <p>The example program is included with the <a href="#source">source</a> code and can be run 
-                on an accelerator Linux machine with the following commands:</p>
-            <pre><kbd>
-cd jlog
-javac -cp /cs/certified/apps/eloglib/java/jlog2.jar  test/org/jlab/elog/example/BasicDemo.java
-java -cp /cs/certified/apps/eloglib/java/jlog2.jar:test org.jlab.elog.example.BasicDemo 
-            </kbd></pre>
-            <p>Running the example on Windows is similar, but the classpath (-cp) 
-                delimiter is a semicolon instead of a colon.  The path to the 
-                library is different as well.</p>
+            <p>The example program is included with the <a href="#source">source</a> code and is named <em>org.jlab.elog.example.BasicDemo</em></p>
             <b>Valid Tags, References, and Logbooks</b>
             <p>
                 The valid tags are listed here:
