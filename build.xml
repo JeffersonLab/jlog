@@ -27,7 +27,7 @@
     </target>    
     <target name="doc">
         <javadoc packagenames="org.jlab.elog,org.jlab.elog.exception" sourcepath="${src.dir}" destdir="${dist.dir}/javadoc" overview="${src.dir}/overview.html" stylesheetfile="${src.dir}/stylesheet.css">
-            <header>eLog Client API Version 2.3</header>
+            <header>eLog Client API Version 2.6</header>
             <doctitle>Electronic Logbook Client API Overview</doctitle>
             <link href="http://docs.oracle.com/javase/6/docs/api/"/>
         </javadoc>

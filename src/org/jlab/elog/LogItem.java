@@ -353,7 +353,7 @@ abstract class LogItem {
     }
 
     /**
-     * Returns the file attachments.
+     * Return the file attachments.
      *
      * @return The attachments
      * @throws LogRuntimeException If unable to return the attachments
@@ -387,7 +387,7 @@ abstract class LogItem {
     }
 
     /**
-     * Removes the file attachments.
+     * Remove the file attachments.
      *
      * @throws LogRuntimeException If unable to remove the file attachments
      */
@@ -721,7 +721,7 @@ abstract class LogItem {
     abstract String getSchemaURL() throws LogRuntimeException;
 
     /**
-     * Validates the DOM that makes up this log item using the log item schema.
+     * Validate the DOM that makes up this log item using the log item schema.
      * 
      * @throws SchemaUnavailableException If the schema is unavailable
      * @throws InvalidXMLException If the XML generated from the DOM is invalid
@@ -757,7 +757,7 @@ abstract class LogItem {
     }
 
     /**
-     * Parses the XML response sent from the server after an HTTP PUT request.
+     * Parse the XML response sent from the server after an HTTP PUT request.
      * 
      * @param is The InputStream containing the response
      * @return The log number contained within the response
@@ -809,7 +809,7 @@ abstract class LogItem {
     }
 
     /**
-     * Performs the HTTP PUT request to the server with the log item.
+     * Perform the HTTP PUT request to the server with the log item.
      * 
      * @param pemFilePath The path to the client certificate file
      * @return The log number returned in the server response
@@ -914,7 +914,7 @@ abstract class LogItem {
     }
 
     /**
-     * Returns the Document object for the Document Object Model (DOM).
+     * Return the Document object for the Document Object Model (DOM).
      * 
      * @return The Document
      */
@@ -923,7 +923,7 @@ abstract class LogItem {
     }
 
     /**
-     * Returns the root Element of this log item.
+     * Return the root Element of this log item.
      * 
      * @return The root (document) Element
      */
@@ -932,7 +932,7 @@ abstract class LogItem {
     }
 
     /**
-     * Returns the XPath object used to compile XPath expressions.
+     * Return the XPath object used to compile XPath expressions.
      * 
      * @return The XPath object
      */
@@ -941,7 +941,7 @@ abstract class LogItem {
     }
 
     /**
-     * Constructs the HTTP PUT URL to use when submitting log entries and
+     * Construct the HTTP PUT URL to use when submitting log entries and
      * comments using the the SUBMIT_URL configuration property and the
      * generateXMLFilename method.
      *
@@ -1021,9 +1021,10 @@ abstract class LogItem {
     }
 
     /**
-     * Submits the log item using only direct submission to the server and
-     * returns the log number. If an error occurs during submission then
-     * Exceptions will be thrown instead of falling back to the queue method.
+     * Submit the log item using only direct submission to the server using the 
+     * client certificate named <em>.elogcert</em> in the user's home directory 
+     * and return the log number. If an error occurs during submission then an
+     * Exception will be thrown instead of falling back to the queue method.
      *
      * @return The log number
      * @throws LogIOException If unable to submit due to IO
@@ -1035,6 +1036,23 @@ abstract class LogItem {
         return performHttpPutToServer(getDefaultCertificatePath());
     }
 
+    /**
+     * Submit the log item using only direct submission to the server with the 
+     * specified client certificate and return the log number.
+     * If an error occurs during submission then an
+     * Exception will be thrown instead of falling back to the queue method.
+     *
+     * @param pemFilePath The path to the PEM-encoded client certificate
+     * @return The log number
+     * @throws LogIOException If unable to submit due to IO
+     * @throws LogCertificateException If unable to submit due to certificate
+     * @throws LogRuntimeException If unable to submit
+     */
+    public long submitNow(String pemFilePath) throws LogIOException, LogCertificateException,
+            LogRuntimeException {
+        return performHttpPutToServer(pemFilePath);
+    }    
+    
     /**
      * Generate an XML filename for log entries and comments submission.  The
      * format expected by the logbook server is:
@@ -1075,7 +1093,7 @@ abstract class LogItem {
     }
 
     /**
-     * Returns the queue path.  The queue path is determined by first looking at
+     * Return the queue path.  The queue path is determined by first looking at
      * the QUEUE_PATH configuration property.  If it is defined then it is used,
      * if not, then the DEFAULT_WINDOWS_QUEUE_PATH or DEFAULT_UNIX_QUEUE_PATH
      * configuration property is used based on the detected OS.
@@ -1104,7 +1122,7 @@ abstract class LogItem {
     }
 
     /**
-     * Returns the LogException which prevented direct submission to the server
+     * Return the LogException which prevented direct submission to the server
      * on the most recent attempt, or null if none.
      *
      * @return The LogException or null
@@ -1114,7 +1132,7 @@ abstract class LogItem {
     }
 
     /**
-     * Queues the log item into configured file path.
+     * Queue the log item into configured file path.
      * 
      * @throws InvalidXMLException If the XML is invalid
      * @throws LogIOException If unable to queue due to IO
@@ -1126,7 +1144,7 @@ abstract class LogItem {
     }
 
     /**
-     * Queues the log item into the specified file path.
+     * Queue the log item into the specified file path.
      * 
      * @param filepath The queue file path
      * @throws InvalidXMLException If the XML is invalid
