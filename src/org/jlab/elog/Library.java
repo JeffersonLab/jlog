@@ -13,7 +13,7 @@ import org.jlab.elog.exception.LogRuntimeException;
  */
 public final class Library {
 
-    private static final String version = "2.3";
+    private static final String version = "2.7";
     private static Properties configuration;
 
     static {

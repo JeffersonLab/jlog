@@ -305,10 +305,29 @@ abstract class LogItem {
     }
 
     /**
+     * Add a file attachment with the specified caption and a hastily guessed 
+     * mime type. The mime type is guessed by using the readily available
+     * java.net.URLConnection file name map, which simply looks at file
+     * extension and compares with the very limited lookup file at:
+     * <verbatim>[JRE_HOME]\lib\content-types.properties</verbatim>
+     *
+     * @param filepath The file path
+     * @param caption The caption
+     * @throws AttachmentSizeException If the attachment crosses a size limit
+     * @throws LogIOException If unable to add the attachment due to IO
+     * @throws LogRuntimeException If unable to add the attachment
+     */
+    public void addAttachment(String filepath, String caption) 
+            throws AttachmentSizeException,
+            LogIOException, LogRuntimeException {
+        addAttachment(filepath, caption, mimeMap.getContentTypeFor(filepath));
+    }    
+    
+    /**
      * Add a file attachment with the specified caption and mime type.
      *
      * @param filepath The file path
-     * @param caption The The caption
+     * @param caption The caption
      * @param mimeType The mime type
      * @throws AttachmentSizeException If the attachment crosses a size limit
      * @throws LogIOException If unable to add the attachment due to IO
