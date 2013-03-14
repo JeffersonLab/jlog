@@ -1,15 +1,19 @@
 package org.jlab.elog;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import javax.net.ssl.HttpsURLConnection;
 import org.jlab.elog.exception.AttachmentSizeException;
 import org.jlab.elog.exception.LogException;
+import org.jlab.elog.exception.LogIOException;
 import org.jlab.elog.util.IOUtil;
 import org.jlab.elog.util.SecurityUtil;
 import org.junit.After;
@@ -331,16 +335,24 @@ public class LogEntryTest {
         assertEquals(expected, actual);
     }
 
+    @Test(expected = LogIOException.class)
+    public void testMissingEntry() throws Exception {
+        LogEntry revision = LogEntry.getLogEntry(2070480L, "Testing Missing");
+        String expected = "Testing 123";
+        String actual = revision.getTitle();
+        assertEquals(expected, actual);        
+    }
+    
     @Test
     public void testRevision() throws Exception {
-        LogEntry revision = LogEntry.getLogEntry(2070480L, "Testing");
-        String expected = "Testing 123";
+        LogEntry revision = LogEntry.getLogEntry(3001286L, "Testing Revision");
+        String expected = "Long Shutdown Summary, presented 2013-03-14";
         String actual = revision.getTitle();
         assertEquals(expected, actual);
     }
     
     @Test
-    public void testLargeSubmit() throws Exception {
+    public void testLargeBodySubmit() throws Exception {
         StringBuilder builder = new StringBuilder();
         
         //Inefficiently create a 64MB string!
@@ -348,13 +360,43 @@ public class LogEntryTest {
             builder.append(0);
         }
         
-        // Circumvent size checks by using body, not attachment!
         entry.setBody(builder.toString());
         
         Long id = entry.submitNow(); // Don't bother queuing
-
-        if (id == 0) {
-            throw new Exception("It was queued!", entry.whyQueued());
-        }
+        
+        System.out.println("Created log entry: " + id);
     }    
+    
+    @Test(expected = AttachmentSizeException.class)
+    public void testLargeAttachmentSubmit() throws Exception {
+        StringBuilder builder = new StringBuilder();
+        
+        //Inefficiently create a 64MB string!
+        for(int i = 0; i < 67108864; i++) {
+            builder.append(0);
+        }
+        
+        File tmp = File.createTempFile("jlogUnitTest", ".tmp");
+        
+        InputStream in = null;
+        OutputStream out = null;
+        
+        try {
+            
+            in = new ByteArrayInputStream(builder.toString().getBytes("UTF-8"));
+            out = new FileOutputStream(tmp);
+            
+            IOUtil.copy(in, out);
+            
+            entry.addAttachment(tmp.getAbsolutePath());
+            
+            Long id = entry.submitNow(); // Don't bother queuing 
+            
+            System.out.println("Created log entry: " + id);
+        } finally {
+            IOUtil.closeQuietly(in);
+            IOUtil.closeQuietly(out);
+            IOUtil.deleteQuietly(tmp);
+        }
+    }
 }
