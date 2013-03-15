@@ -2,7 +2,6 @@ package org.jlab.elog;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -707,7 +706,7 @@ abstract class LogItem {
             if (body.getType() == Body.ContentType.HTML) {
                 bodyElement.setAttribute("type", "html");
             }
-
+            
             CDATASection data = doc.createCDATASection(body.getContent());
             bodyElement.appendChild(data);
         }
@@ -860,7 +859,7 @@ abstract class LogItem {
             con.setRequestMethod("PUT");
             con.setDoOutput(true);
             con.connect();
-            writer = new OutputStreamWriter(con.getOutputStream());
+            writer = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
             writer.write(xml);
             writer.close();
 
@@ -1184,10 +1183,10 @@ abstract class LogItem {
 
         String xml = getXML();
 
-        FileWriter writer = null;
+        OutputStreamWriter writer = null;
 
         try {
-            writer = new FileWriter(filepath);
+            writer = new OutputStreamWriter(new FileOutputStream(filepath), "UTF-8");
 
             writer.write(xml);
         } catch (IOException e) {

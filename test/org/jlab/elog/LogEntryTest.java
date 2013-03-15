@@ -335,6 +335,13 @@ public class LogEntryTest {
         assertEquals(expected, actual);
     }
 
+    @Test
+    public void testCharacterEncoding() throws Exception {
+        entry.setTitle("ΩΨΣΦΠΔ");
+        entry.setBody("ΩΨΣΦΠΔ");
+        entry.submit();
+    }
+    
     @Test(expected = LogIOException.class)
     public void testMissingEntry() throws Exception {
         LogEntry revision = LogEntry.getLogEntry(2070480L, "Testing Missing");
