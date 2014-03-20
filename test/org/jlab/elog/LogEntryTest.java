@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
+import java.util.Properties;
 import javax.net.ssl.HttpsURLConnection;
 import org.jlab.elog.exception.AttachmentSizeException;
 import org.jlab.elog.exception.LogException;
@@ -48,6 +49,12 @@ public class LogEntryTest {
     public void setUp() throws LogException {
         entry = new LogEntry("Testing 123", "TLOG");
         extension = new LogEntryAdminExtension(entry);
+
+        Properties config = Library.getConfiguration();
+
+        String logbookHostname = "logbooktest.acc.jlab.org";
+
+        config.setProperty("SUBMIT_URL", "https://" + logbookHostname + "/incoming");
     }
 
     @After
@@ -255,6 +262,16 @@ public class LogEntryTest {
     }
 
     @Test
+    public void testSubmitNow() throws Exception {
+        try {
+            entry.submitNow();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @Test
     public void testQueue() throws LogException {
         String expected = "Save and then load me";
         entry.setTitle(expected);
@@ -341,15 +358,15 @@ public class LogEntryTest {
         entry.setBody("ΩΨΣΦΠΔ");
         entry.submit();
     }
-    
+
     @Test(expected = LogIOException.class)
     public void testMissingEntry() throws Exception {
         LogEntry revision = LogEntry.getLogEntry(2070480L, "Testing Missing");
         String expected = "Testing 123";
         String actual = revision.getTitle();
-        assertEquals(expected, actual);        
+        assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testRevision() throws Exception {
         LogEntry revision = LogEntry.getLogEntry(3001286L, "Testing Revision");
@@ -357,48 +374,48 @@ public class LogEntryTest {
         String actual = revision.getTitle();
         assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testLargeBodySubmit() throws Exception {
         StringBuilder builder = new StringBuilder();
-        
+
         //Inefficiently create a 64MB string!
-        for(int i = 0; i < 67108864; i++) {
+        for (int i = 0; i < 67108864; i++) {
             builder.append(0);
         }
-        
+
         entry.setBody(builder.toString());
-        
+
         Long id = entry.submitNow(); // Don't bother queuing
-        
+
         System.out.println("Created log entry: " + id);
-    }    
-    
+    }
+
     @Test(expected = AttachmentSizeException.class)
     public void testLargeAttachmentSubmit() throws Exception {
         StringBuilder builder = new StringBuilder();
-        
+
         //Inefficiently create a 64MB string!
-        for(int i = 0; i < 67108864; i++) {
+        for (int i = 0; i < 67108864; i++) {
             builder.append(0);
         }
-        
+
         File tmp = File.createTempFile("jlogUnitTest", ".tmp");
-        
+
         InputStream in = null;
         OutputStream out = null;
-        
+
         try {
-            
+
             in = new ByteArrayInputStream(builder.toString().getBytes("UTF-8"));
             out = new FileOutputStream(tmp);
-            
+
             IOUtil.copy(in, out);
-            
+
             entry.addAttachment(tmp.getAbsolutePath());
-            
+
             Long id = entry.submitNow(); // Don't bother queuing 
-            
+
             System.out.println("Created log entry: " + id);
         } finally {
             IOUtil.closeQuietly(in);
