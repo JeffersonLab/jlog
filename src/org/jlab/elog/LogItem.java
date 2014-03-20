@@ -858,6 +858,11 @@ abstract class LogItem {
                     pemFilePath, VERIFY_SERVER));
             con.setRequestMethod("PUT");
             con.setDoOutput(true);
+            
+            // Java Version 7 Supports Expect Header which prevents flooding server during renegotiate.  We'll probably want this at some point...
+            //con.setChunkedStreamingMode(0);
+            //con.setRequestProperty("Expect", "100-Continue");
+            
             con.connect();
             writer = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
             writer.write(xml);
