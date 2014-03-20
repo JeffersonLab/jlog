@@ -859,7 +859,9 @@ abstract class LogItem {
             con.setRequestMethod("PUT");
             con.setDoOutput(true);
             
-            // Java Version 7 Supports Expect Header which prevents flooding server during renegotiate.  We'll probably want this at some point...
+            // Java Version 7 Supports Expect Header which prevents flooding 
+            // server during renegotiate.  We'll probably want this at 
+            // some point...
             //con.setChunkedStreamingMode(0);
             //con.setRequestProperty("Expect", "100-Continue");
             
