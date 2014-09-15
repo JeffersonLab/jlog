@@ -55,6 +55,7 @@ public class LogEntryTest {
         String logbookHostname = "logbooktest.acc.jlab.org";
 
         config.setProperty("SUBMIT_URL", "https://" + logbookHostname + "/incoming");
+        config.setProperty("FETCH_URL", "https://" + logbookHostname + "/entry");
     }
 
     @After
@@ -422,5 +423,23 @@ public class LogEntryTest {
             IOUtil.closeQuietly(out);
             IOUtil.deleteQuietly(tmp);
         }
+    }
+    
+    @Test
+    public void testProblemReport() throws Exception {
+        ProblemReport report = new ProblemReport(ProblemReportType.OPS, true, 62, 9, 16413);
+        entry.setProblemReport(report);
+        /*System.out.println(entry.getXML());*/
+        entry.submit();
+    }    
+    
+    /*@Test*/
+    public void testLoadProblemReport() throws Exception {
+        LogEntry revision = LogEntry.getLogEntry(3293630L, "Testing Problem Report");
+        int expected = 16413;
+        ProblemReport report = revision.getProblemReport();
+        /*System.out.println(revision.getXML());*/
+        int actual = report.getComponentId();
+        assertEquals(expected, actual);        
     }
 }
