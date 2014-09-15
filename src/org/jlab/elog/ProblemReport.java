@@ -3,11 +3,13 @@ package org.jlab.elog;
 import org.jlab.elog.exception.LogRuntimeException;
 
 /**
- * An immutable problem report associated with a log entry.
+ * <p>An immutable problem report associated with a log entry.</p>
  * 
- * System IDs can be obtained from  https://accweb/hco/data/systems.
- * Group IDs can be obtained from  https://accweb/hco/data/groups.
- * Component IDs can be obtained from https://accweb/hco/data/components.
+ * <ul>
+ * <li>System IDs can be obtained from  <a href="https://accweb/hco/data/systems">https://accweb/hco/data/systems</a>.</li>
+ * <li>Group IDs can be obtained from  <a href="https://accweb/hco/data/groups">https://accweb/hco/data/groups</a>.</li>
+ * <li>Component IDs can be obtained from <a href="https://accweb/hco/data/components">https://accweb/hco/data/components</a>.</li>
+ * </ul>
  * 
  * @author ryans
  */

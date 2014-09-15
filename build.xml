@@ -20,7 +20,7 @@
     </target>    
     <target name="compile">
         <mkdir dir="${classes.dir}"/>
-        <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false"/>
+        <javac target="1.6" source="1.6" debug="off" srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false"/>
         <copy todir="${classes.dir}">
             <fileset dir="${src.dir}" excludes="**/*.java"/>
         </copy>        
