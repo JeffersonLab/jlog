@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Java eloglib Release Notes</title>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        <h1>Java eloglib Release Notes</h1>
+        <h2>September 16, 2014 - Version 2.9</h2>
+        <p>Added support for problem reports: a tool for operations to record issues they 
+            encounter in the elog. A log entry now has an optional problem report section.</p>
+        <h2>March 15, 2013 - Version 2.8</h2>
+        <p>This version fixes a bug in the Java elog Client API. When writing out the 
+            XML either to a file for queuing or to an HTTP server via PUT, the Java IO stream 
+            constructors assume platform character encoding. The character encoding is now 
+            always UTF-8 as intended.</p>
+        <h2>March 14, 2013 - Version 2.7</h2>
+        <p>This version adds a new &quot;addAttachment&quot; overloaded method which allows 
+            specification of a caption, but with auto-detection of mime-type. This is needed 
+            for the elog command line interface project. </p>
+        <h2>March 12, 2013 - Version 2.6</h2>
+        <p>Added a new method named submitNow that takes an argument specifying a path 
+            to a certificate file. There was already a method named SubmitNow, but it doesn't 
+            take any arguments and just uses the default certificate path. I've also added 
+            an additional example program named HelloWorldDemo and updated the docs to reflect 
+            this. The reason for these two changes is someone from offsite is about to use 
+            the API and we noticed there were deficiencies with the offsite scenario mostly 
+            due to the fact that there is not going to be a queue directory available. The 
+            example program we had originally is not good for offsite people because if 
+            they don't setup their certificate correctly or invert the arguments to the 
+            LogEntry constructor the exception generated is masked by the queue directory 
+            not found exception until they code some try catches with whyQueued or switch 
+            to the submitNow method. The HelloWorldDemo just uses submitNow and is good 
+            for offsite users. </p>
+        <h2>January 15, 2013 - Version 2.5</h2>
+        <p>Fixed bug where accessing attachments from an existing XML file would fail 
+            if the existing XML had spaces around the attachment tag. (Added check to DOM 
+            traversal code to ensure node was an instance of Element instead of TextNode).</p>
+        <h2>January 2, 2013 - Version 2.4</h2>
+        <p>Updated default UNIX queue path configuration parameter in the elog.properties 
+            file from &quot;/u/group/elogbooks/logentryq/new&quot; to &quot;/group/elogbooks/logentryq/new&quot;.</p>
+        <h2>October 12, 2012 - Version 2.3</h2>
+        <p>This is the initial public release of the Java implementation of the Electronic 
+            Logbooks API.</p>
+    </body>
+</html>
