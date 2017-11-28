@@ -61,11 +61,11 @@ import org.xml.sax.SAXException;
 
 /**
  * An item that can be submitted to the electronic log book. An item can be
- * serialized to XML for data transfer and then submitted via one of two 
- * methods: (1) HTTP PUT request, (2) write to file system queue directory. 
- * This API requires that submissions must first attempt the HTTP PUT request,
- * and then may optionally attempt the queue submission.
- * 
+ * serialized to XML for data transfer and then submitted via one of two
+ * methods: (1) HTTP PUT request, (2) write to file system queue directory. This
+ * API requires that submissions must first attempt the HTTP PUT request, and
+ * then may optionally attempt the queue submission.
+ *
  * @author ryans
  */
 abstract class LogItem {
@@ -165,9 +165,9 @@ abstract class LogItem {
     }
 
     /**
-     * Check the attachment length against the limit rules defined in the 
+     * Check the attachment length against the limit rules defined in the
      * configuration.
-     * 
+     *
      * @param length The length to check
      * @throws AttachmentSizeException If an attachment size limit is crossed
      * @throws LogRuntimeException If unable to check the length
@@ -226,11 +226,10 @@ abstract class LogItem {
     }
 
     /**
-     * Return the length of the specified attachment.  This method 
-     * writes the attachment out to a temp directly and checks the length.
-     * Base64 attachments are decoded and URL attachments are
-     * downloaded.
-     * 
+     * Return the length of the specified attachment. This method writes the
+     * attachment out to a temp directly and checks the length. Base64
+     * attachments are decoded and URL attachments are downloaded.
+     *
      * @param attachment The attachment
      * @return The length
      * @throws LogIOException If unable to obtain length due to IO
@@ -241,25 +240,19 @@ abstract class LogItem {
         String suffix = ".tmp";
 
         File file = null;
-        InputStream in = null;
-        OutputStream out = null;
 
-        try {
-            in = attachment.getData();
+        try (InputStream in = attachment.getData()) {
 
             file = File.createTempFile(prefix, suffix);
 
-            out = new FileOutputStream(file);
-
-            IOUtil.copy(in, out);
+            try (OutputStream out = new FileOutputStream(file)) {
+                IOUtil.copy(in, out);
+            }
         } catch (IOException e) {
             throw new LogIOException(
-                    "Unable to write attachment to tmp for length measurement.",
+                    "Unable to write attachment to tmp directory for length measurement.",
                     e);
-
         } finally {
-            IOUtil.closeQuietly(in);
-            IOUtil.closeQuietly(out);
             IOUtil.deleteQuietly(file);
         }
 
@@ -270,10 +263,10 @@ abstract class LogItem {
      * Check that the attachments in the log item are within limits and update
      * the count on total attachment size so that further checking can be done
      * when attachments are added.
-     * 
+     *
      * @throws AttachmentSizeException If an attachment size limit is crossed
      * @throws LogIOException If unable to check and tally due to IO
-     * 
+     *
      */
     void checkAndTallyAttachmentSize() throws AttachmentSizeException,
             LogIOException {
@@ -304,7 +297,7 @@ abstract class LogItem {
     }
 
     /**
-     * Add a file attachment with the specified caption and a hastily guessed 
+     * Add a file attachment with the specified caption and a hastily guessed
      * mime type. The mime type is guessed by using the readily available
      * java.net.URLConnection file name map, which simply looks at file
      * extension and compares with the very limited lookup file at:
@@ -316,12 +309,12 @@ abstract class LogItem {
      * @throws LogIOException If unable to add the attachment due to IO
      * @throws LogRuntimeException If unable to add the attachment
      */
-    public void addAttachment(String filepath, String caption) 
+    public void addAttachment(String filepath, String caption)
             throws AttachmentSizeException,
             LogIOException, LogRuntimeException {
         addAttachment(filepath, caption, mimeMap.getContentTypeFor(filepath));
-    }    
-    
+    }
+
     /**
      * Add a file attachment with the specified caption and mime type.
      *
@@ -398,8 +391,8 @@ abstract class LogItem {
         if (attachmentsElement != null) {
             NodeList children = attachmentsElement.getChildNodes();
 
-            for (int i = 0; i < children.getLength(); i++) {      
-                if(children.item(i) instanceof Element) {
+            for (int i = 0; i < children.getLength(); i++) {
+                if (children.item(i) instanceof Element) {
                     attachments.add(new Attachment((Element) children.item(i)));
                 }
             }
@@ -516,7 +509,6 @@ abstract class LogItem {
             addresses = new String[0];
         }
 
-
         return addresses;
     }
 
@@ -545,10 +537,10 @@ abstract class LogItem {
 
     /**
      * Set the log number.
-     * 
+     *
      * @param lognumber The log number
      * @throws LogRuntimeException If unable to set the log number
-     * 
+     *
      */
     void setLogNumber(long lognumber) throws LogRuntimeException {
         Element lognumberElement = null;
@@ -706,7 +698,7 @@ abstract class LogItem {
             if (body.getType() == Body.ContentType.HTML) {
                 bodyElement.setAttribute("type", "html");
             }
-            
+
             CDATASection data = doc.createCDATASection(body.getContent());
             bodyElement.appendChild(data);
         }
@@ -744,7 +736,7 @@ abstract class LogItem {
 
     /**
      * Validate the DOM that makes up this log item using the log item schema.
-     * 
+     *
      * @throws SchemaUnavailableException If the schema is unavailable
      * @throws InvalidXMLException If the XML generated from the DOM is invalid
      * @throws LogIOException If unable to validate due to IO
@@ -780,11 +772,11 @@ abstract class LogItem {
 
     /**
      * Parse the XML response sent from the server after an HTTP PUT request.
-     * 
+     *
      * @param is The InputStream containing the response
      * @return The log number contained within the response
      * @throws LogIOException If unable to parse due to IO
-     * @throws LogRuntimeException  If unable to parse
+     * @throws LogRuntimeException If unable to parse
      */
     long parseServerResponse(InputStream is) throws LogIOException,
             LogRuntimeException {
@@ -832,7 +824,7 @@ abstract class LogItem {
 
     /**
      * Perform the HTTP PUT request to the server with the log item.
-     * 
+     *
      * @param pemFilePath The path to the client certificate file
      * @return The log number returned in the server response
      * @throws LogIOException If unable to perform the request due to IO
@@ -847,9 +839,6 @@ abstract class LogItem {
         String xml = getXML();
 
         HttpsURLConnection con;
-        OutputStreamWriter writer = null;
-        InputStream is = null;
-        InputStream error = null;
 
         try {
             URL url = new URL(buildHttpPutUrl());
@@ -858,27 +847,25 @@ abstract class LogItem {
                     pemFilePath, VERIFY_SERVER));
             con.setRequestMethod("PUT");
             con.setDoOutput(true);
-            
-            // Java Version 7 Supports Expect Header which prevents flooding 
-            // server during renegotiate.  We'll probably want this at 
-            // some point...
-            //con.setChunkedStreamingMode(0);
-            //con.setRequestProperty("Expect", "100-Continue");
-            
+            con.setChunkedStreamingMode(0);
+            con.setRequestProperty("Expect", "100-Continue");
             con.connect();
-            writer = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
-            writer.write(xml);
-            writer.close();
 
-            is = con.getInputStream();
-            error = con.getErrorStream();
-
-            if (error != null) {
-                String errorMsg = IOUtil.streamToString(error, "UTF-8");
-                System.err.println(errorMsg);
+            try (OutputStream out = con.getOutputStream();
+                    OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8")) {
+                writer.write(xml);
             }
 
-            id = parseServerResponse(is);
+            try (InputStream error = con.getErrorStream()) {
+                if (error != null) {
+                    String errorMsg = IOUtil.streamToString(error, "UTF-8");
+                    throw new IOException(errorMsg);
+                }
+            }
+
+            try (InputStream is = con.getInputStream()) {
+                id = parseServerResponse(is);
+            }
         } catch (MalformedURLException e) {
             throw new LogIOException(
                     "Invalid submission URL: check config file.", e);
@@ -910,33 +897,6 @@ abstract class LogItem {
             throw new LogCertificateException(
                     "Unable to obtain SSL connection due to certificate error.",
                     e);
-        } finally {
-            try {
-                if (writer != null) {
-                    writer.close();
-                }
-            } catch (IOException e) {
-                logger.log(Level.WARNING,
-                        "Unable to close output stream during put request.", e);
-            }
-
-            try {
-                if (is != null) {
-                    is.close();
-                }
-            } catch (IOException e) {
-                logger.log(Level.WARNING,
-                        "Unable to close input stream during put request.", e);
-            }
-
-            try {
-                if (error != null) {
-                    error.close();
-                }
-            } catch (IOException e) {
-                logger.log(Level.WARNING,
-                        "Unable to close error stream during put request.", e);
-            }
         }
 
         return id;
@@ -944,7 +904,7 @@ abstract class LogItem {
 
     /**
      * Return the Document object for the Document Object Model (DOM).
-     * 
+     *
      * @return The Document
      */
     Document getDocument() {
@@ -953,7 +913,7 @@ abstract class LogItem {
 
     /**
      * Return the root Element of this log item.
-     * 
+     *
      * @return The root (document) Element
      */
     Element getRoot() {
@@ -962,7 +922,7 @@ abstract class LogItem {
 
     /**
      * Return the XPath object used to compile XPath expressions.
-     * 
+     *
      * @return The XPath object
      */
     XPath getXPath() {
@@ -1001,7 +961,7 @@ abstract class LogItem {
 
     /**
      * Returns the default client certificate path.
-     * 
+     *
      * @return The default client certificate path
      */
     String getDefaultCertificatePath() {
@@ -1050,8 +1010,8 @@ abstract class LogItem {
     }
 
     /**
-     * Submit the log item using only direct submission to the server using the 
-     * client certificate named <em>.elogcert</em> in the user's home directory 
+     * Submit the log item using only direct submission to the server using the
+     * client certificate named <em>.elogcert</em> in the user's home directory
      * and return the log number. If an error occurs during submission then an
      * Exception will be thrown instead of falling back to the queue method.
      *
@@ -1066,10 +1026,10 @@ abstract class LogItem {
     }
 
     /**
-     * Submit the log item using only direct submission to the server with the 
-     * specified client certificate and return the log number.
-     * If an error occurs during submission then an
-     * Exception will be thrown instead of falling back to the queue method.
+     * Submit the log item using only direct submission to the server with the
+     * specified client certificate and return the log number. If an error
+     * occurs during submission then an Exception will be thrown instead of
+     * falling back to the queue method.
      *
      * @param pemFilePath The path to the PEM-encoded client certificate
      * @return The log number
@@ -1080,13 +1040,13 @@ abstract class LogItem {
     public long submitNow(String pemFilePath) throws LogIOException, LogCertificateException,
             LogRuntimeException {
         return performHttpPutToServer(pemFilePath);
-    }    
-    
+    }
+
     /**
-     * Generate an XML filename for log entries and comments submission.  The
+     * Generate an XML filename for log entries and comments submission. The
      * format expected by the logbook server is:
      * [timestamp]_[pid]_[hostname]_[random].xml
-     * 
+     *
      * @return The filename
      */
     String generateXMLFilename() {
@@ -1122,11 +1082,11 @@ abstract class LogItem {
     }
 
     /**
-     * Return the queue path.  The queue path is determined by first looking at
-     * the QUEUE_PATH configuration property.  If it is defined then it is used,
+     * Return the queue path. The queue path is determined by first looking at
+     * the QUEUE_PATH configuration property. If it is defined then it is used,
      * if not, then the DEFAULT_WINDOWS_QUEUE_PATH or DEFAULT_UNIX_QUEUE_PATH
      * configuration property is used based on the detected OS.
-     * 
+     *
      * @return The queue path
      */
     String getQueuePath() {
@@ -1152,8 +1112,8 @@ abstract class LogItem {
 
     /**
      * Return the LogException which prevented direct submission to the server
-     * on the most recent attempt, or null if none.  This method allows access
-     * to the exception which is masked when the submit method is called and 
+     * on the most recent attempt, or null if none. This method allows access to
+     * the exception which is masked when the submit method is called and
      * returns with a zero value indicating the submission was queued.
      *
      * @return The LogException or null
@@ -1164,7 +1124,7 @@ abstract class LogItem {
 
     /**
      * Queue the log item into configured file path.
-     * 
+     *
      * @throws InvalidXMLException If the XML is invalid
      * @throws LogIOException If unable to queue due to IO
      */
@@ -1176,7 +1136,7 @@ abstract class LogItem {
 
     /**
      * Queue the log item into the specified file path.
-     * 
+     *
      * @param filepath The queue file path
      * @throws InvalidXMLException If the XML is invalid
      * @throws LogIOException If unable to queue due to IO
@@ -1190,22 +1150,11 @@ abstract class LogItem {
 
         String xml = getXML();
 
-        OutputStreamWriter writer = null;
-
-        try {
-            writer = new OutputStreamWriter(new FileOutputStream(filepath), "UTF-8");
-
+        try (FileOutputStream out = new FileOutputStream(filepath);
+                OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8")) {
             writer.write(xml);
         } catch (IOException e) {
             throw new LogIOException("Unable to write XML file.", e);
-        } finally {
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    System.err.println("Unable to close XML file.");
-                }
-            }
         }
     }
 }
