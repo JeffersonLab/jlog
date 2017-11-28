@@ -26,8 +26,8 @@ public final class IOUtil {
     }
 
     /**
-     * Closes a Closeable without generating any checked Exceptions. 
-     * If an IOException does occur while closing it is logged as a WARNING.
+     * Closes a Closeable without generating any checked Exceptions. If an
+     * IOException does occur while closing it is logged as a WARNING.
      *
      * @param c The Closeable
      */
@@ -43,9 +43,9 @@ public final class IOUtil {
     }
 
     /**
-     * Deletes a file without generating any checked Exceptions.  
-     * If unable to delete then a WARNING will be logged.
-     * 
+     * Deletes a file without generating any checked Exceptions. If unable to
+     * delete then a WARNING will be logged.
+     *
      * @param file The file
      */
     public static void deleteQuietly(File file) {
@@ -53,7 +53,7 @@ public final class IOUtil {
             boolean success = file.delete();
 
             if (!success) {
-                logger.log(Level.WARNING, 
+                logger.log(Level.WARNING,
                         "Unable to delete temporary file: {0}", file.getName());
             }
         }
@@ -73,14 +73,10 @@ public final class IOUtil {
     public static byte[] fileToBytes(final File file) throws IOException {
         final byte[] bytes = new byte[(int) file.length()];
 
-        DataInputStream dis = null;
-
-        try {
-            dis = new DataInputStream(new FileInputStream(file));
+        try (FileInputStream fis = new FileInputStream(file);
+                DataInputStream dis = new DataInputStream(fis)) {
 
             dis.readFully(bytes);
-        } finally {
-            closeQuietly(dis);
         }
 
         return bytes;
