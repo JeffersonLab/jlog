@@ -241,6 +241,15 @@ abstract class LogItem {
 
         File file = null;
 
+        try {
+            if (!VERIFY_SERVER) {
+                SecurityUtil.disableServerCertificateCheck();
+            }
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new LogRuntimeException(
+                    "Unable to disable server certificate check", e);
+        }
+
         try (InputStream in = attachment.getData()) {
 
             file = File.createTempFile(prefix, suffix);
@@ -254,6 +263,8 @@ abstract class LogItem {
                     e);
         } finally {
             IOUtil.deleteQuietly(file);
+
+            SecurityUtil.enableServerCertificateCheck();
         }
 
         return length;
