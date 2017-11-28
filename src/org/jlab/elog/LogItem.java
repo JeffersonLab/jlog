@@ -295,7 +295,7 @@ abstract class LogItem {
      * type. The mime type is guessed by using the readily available
      * java.net.URLConnection file name map, which simply looks at file
      * extension and compares with the very limited lookup file at:
-     * <verbatim>[JRE_HOME]\lib\content-types.properties</verbatim>
+     * <pre>{@code[JRE_HOME]\lib\content-types.properties}</pre>
      *
      * @param filepath The file path
      * @throws AttachmentSizeException If the attachment crosses a size limit
@@ -312,7 +312,7 @@ abstract class LogItem {
      * mime type. The mime type is guessed by using the readily available
      * java.net.URLConnection file name map, which simply looks at file
      * extension and compares with the very limited lookup file at:
-     * <verbatim>[JRE_HOME]\lib\content-types.properties</verbatim>
+     * <pre>{@code[JRE_HOME]\lib\content-types.properties}</pre>
      *
      * @param filepath The file path
      * @param caption The caption

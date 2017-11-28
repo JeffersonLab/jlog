@@ -28,7 +28,7 @@ public final class ProblemReport {
      * @param systemId The system ID 
      * @param groupId The group ID
      * @param componentId The optional component ID (may be null)
-     * @throws LogEntryRuntimeException if type is null
+     * @throws LogRuntimeException if type is null
      */
     public ProblemReport(ProblemReportType type, boolean needsAttention, int systemId, int groupId,
             Integer componentId) throws LogRuntimeException {
