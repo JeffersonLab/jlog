@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.XMLConstants;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -70,10 +68,7 @@ import org.xml.sax.SAXException;
  */
 abstract class LogItem {
 
-    private static final Logger logger = Logger.getLogger(
-            LogItem.class.getName());
     private static final String PEM_FILE_NAME = ".elogcert";
-    static final boolean VERIFY_SERVER = false;
     private static final FileNameMap mimeMap = URLConnection.getFileNameMap();
     LogException submitException = null;
     Document doc;
@@ -241,8 +236,11 @@ abstract class LogItem {
 
         File file = null;
 
+        Properties props = Library.getConfiguration();
+        boolean ignoreServerCert = "true".equals(props.getProperty("IGNORE_SERVER_CERT_ERRORS"));
+
         try {
-            if (!VERIFY_SERVER) {
+            if (ignoreServerCert) {
                 SecurityUtil.disableServerCertificateCheck();
             }
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
@@ -756,7 +754,19 @@ abstract class LogItem {
             LogIOException {
         Schema schema = null;
 
+        Properties props = Library.getConfiguration();
+        boolean ignoreServerCert = "true".equals(props.getProperty("IGNORE_SERVER_CERT_ERRORS"));
+
         try {
+            if (ignoreServerCert) {
+                try {
+                    SecurityUtil.disableServerCertificateCheck();
+                } catch (NoSuchAlgorithmException | KeyManagementException e) {
+                    throw new LogRuntimeException(
+                            "Unable to disable server certificate check", e);
+                }
+            }        
+
             URL schemaURL = new URL(getSchemaURL());
             SchemaFactory factory = SchemaFactory.newInstance(
                     XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -765,6 +775,8 @@ abstract class LogItem {
             throw new SchemaUnavailableException("Schema URL malformed.", e);
         } catch (SAXException e) {
             throw new SchemaUnavailableException("Unable to parse schema.", e);
+        } finally {
+            SecurityUtil.enableServerCertificateCheck();
         }
 
         Validator validator = schema.newValidator();
@@ -851,11 +863,14 @@ abstract class LogItem {
 
         HttpsURLConnection con;
 
+        Properties props = Library.getConfiguration();
+        boolean ignoreServerCert = "true".equals(props.getProperty("IGNORE_SERVER_CERT_ERRORS"));
+
         try {
             URL url = new URL(buildHttpPutUrl());
             con = (HttpsURLConnection) url.openConnection();
             con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(
-                    pemFilePath, VERIFY_SERVER));
+                    pemFilePath, !ignoreServerCert));
             con.setRequestMethod("PUT");
             con.setDoOutput(true);
             con.setChunkedStreamingMode(0);

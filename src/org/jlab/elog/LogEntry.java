@@ -28,7 +28,7 @@ import org.xml.sax.SAXException;
  * @author ryans
  */
 public class LogEntry extends LogItem {
-    
+
     final XPathExpression titleExpression;
     final XPathExpression logbooksExpression;
     final XPathExpression logbookListExpression;
@@ -40,7 +40,7 @@ public class LogEntry extends LogItem {
     final XPathExpression referencesExpression;
     final XPathExpression revisionReasonExpression;
     final XPathExpression problemReportExpression;
-    
+
     {
         try {
             titleExpression = xpath.compile("/Logentry/title");
@@ -60,11 +60,12 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unable to construct XML XPath query", e);
         }
-        
+
     }
 
     /**
-     * Construct a new LogEntry with the specified title and log books designation.
+     * Construct a new LogEntry with the specified title and log books
+     * designation.
      *
      * @param title The title
      * @param books A comma-separated list of log books
@@ -72,9 +73,9 @@ public class LogEntry extends LogItem {
      */
     public LogEntry(String title, String books) throws LogRuntimeException {
         super("Logentry");
-        
+
         XMLUtil.appendElementWithText(doc, root, "title", title);
-        
+
         Element logbooks = doc.createElement("Logbooks");
         root.appendChild(logbooks);
         XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooks, "logbook",
@@ -95,42 +96,50 @@ public class LogEntry extends LogItem {
     public LogEntry(String filePath) throws SchemaUnavailableException,
             MalformedXMLException, InvalidXMLException, LogIOException,
             AttachmentSizeException, LogRuntimeException {
+
+        parse(filePath);
+
+        // We could call builder.setSchema() and it would be a validating
+        // parser, but then no way to differentiate Malformed vs Invalid
+        validate();
+
+        checkAndTallyAttachmentSize();
+    }
+
+    private void parse(String filePath) throws MalformedXMLException, LogIOException {
+        Properties props = Library.getConfiguration();
+        boolean ignoreServerCert = "true".equals(props.getProperty("IGNORE_SERVER_CERT_ERRORS"));
+
         try {
-            if (!VERIFY_SERVER) {
-                SecurityUtil.disableServerCertificateCheck();
+            if (ignoreServerCert) {
+                try {
+                    SecurityUtil.disableServerCertificateCheck();
+                } catch (NoSuchAlgorithmException | KeyManagementException e) {
+                    throw new LogRuntimeException(
+                            "Unable to disable server certificate check", e);
+                }
             }
-            
             doc = builder.parse(filePath);
             root = doc.getDocumentElement();
-            
+
             SecurityUtil.enableServerCertificateCheck();
         } catch (SAXException e) {
             throw new MalformedXMLException("File is not well formed XML.", e);
         } catch (IOException e) {
             throw new LogIOException("Unable to parse XML file.", e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new LogRuntimeException(
-                    "Unable to disable server certificate check", e);
-        } catch (KeyManagementException e) {
-            throw new LogRuntimeException(
-                    "Unable to disable server certificate check", e);
+        } finally {
+            SecurityUtil.enableServerCertificateCheck();
         }
-
-        // We could call builder.setSchema() and it would be a validating
-        // parser, but then no way to differentiate Malformed vs Invalid
-        validate();
-        
-        checkAndTallyAttachmentSize();
     }
-    
+
     /**
-     * Set the problem report information.   Use null to clear it.
-     * 
+     * Set the problem report information. Use null to clear it.
+     *
      * @param report The problem report information.
      */
     public void setProblemReport(ProblemReport report) {
         Element problemReportElement = null;
-        
+
         try {
             problemReportElement = (Element) problemReportExpression.evaluate(doc,
                     XPathConstants.NODE);
@@ -141,53 +150,53 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         if (report == null) {
             if (problemReportElement == null) {
                 doc.removeChild(problemReportElement);
             }
-            
+
             return;
         }
-        
+
         if (problemReportElement == null) {
             problemReportElement = doc.createElement("ProblemReport");
             root.appendChild(problemReportElement);
         }
-        
+
         problemReportElement.setAttribute("type", report.getType().name());
-        
+
         Element needsAttentionElement = XMLUtil.getChildElementByName(problemReportElement,
                 "needs_attention");
-        
+
         if (needsAttentionElement == null) {
             needsAttentionElement = doc.createElement("needs_attention");
             problemReportElement.appendChild(needsAttentionElement);
         }
-        
+
         needsAttentionElement.setTextContent(report.isNeedsAttention() ? "1" : "0");
-        
+
         Element systemIdElement = XMLUtil.getChildElementByName(problemReportElement, "system_id");
-        
+
         if (systemIdElement == null) {
             systemIdElement = doc.createElement("system_id");
             problemReportElement.appendChild(systemIdElement);
         }
-        
+
         systemIdElement.setTextContent(String.valueOf(report.getSystemId()));
-        
+
         Element groupIdElement = XMLUtil.getChildElementByName(problemReportElement, "group_id");
-        
+
         if (groupIdElement == null) {
             groupIdElement = doc.createElement("group_id");
             problemReportElement.appendChild(groupIdElement);
         }
-        
+
         groupIdElement.setTextContent(String.valueOf(report.getGroupId()));
-        
+
         Element componentsElement = XMLUtil.getChildElementByName(problemReportElement,
-                "Components");        
-        
+                "Components");
+
         if (report.getComponentId() == null) {
             if (componentsElement != null) {
                 problemReportElement.removeChild(componentsElement);
@@ -197,28 +206,28 @@ public class LogEntry extends LogItem {
                 componentsElement = doc.createElement("Components");
                 problemReportElement.appendChild(componentsElement);
             }
-            
+
             Element componentIdElement = XMLUtil.getChildElementByName(componentsElement,
-                    "component_id");            
-            
+                    "component_id");
+
             if (componentIdElement == null) {
                 componentIdElement = doc.createElement("component_id");
                 componentsElement.appendChild(componentIdElement);
             }
-            
+
             componentIdElement.setTextContent(String.valueOf(report.getComponentId()));
         }
     }
-    
+
     /**
      * Get the problem report information.
-     * 
+     *
      * @return The problem report information or null if none
      */
     public ProblemReport getProblemReport() {
         Element problemReportElement = null;
         ProblemReport report = null;
-        
+
         try {
             problemReportElement = (Element) problemReportExpression.evaluate(doc,
                     XPathConstants.NODE);
@@ -229,31 +238,31 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         if (problemReportElement != null) {
             ProblemReportType type = ProblemReportType.valueOf(problemReportElement.getAttribute(
                     "type"));
-            
+
             Element needsAttentionElement = XMLUtil.getChildElementByName(problemReportElement,
                     "needs_attention");
-            
+
             if (needsAttentionElement == null) {
                 throw new LogRuntimeException("Unexpected XML DOM structure; "
                         + "ProblemReport needsAttention element missing.");
             }
-            
+
             boolean needsAttention = needsAttentionElement.getTextContent().equals("1");
-            
+
             Element systemIdElement = XMLUtil.getChildElementByName(problemReportElement,
                     "system_id");
-            
+
             if (systemIdElement == null) {
                 throw new LogRuntimeException("Unexpected XML DOM structure; "
                         + "ProblemReport system_id element missing.");
             }
-            
+
             int systemId;
-            
+
             try {
                 systemId = Integer.parseInt(systemIdElement.getTextContent());
             } catch (NumberFormatException e) {
@@ -262,17 +271,17 @@ public class LogEntry extends LogItem {
                         + " is not an integer or is out-of-range",
                         e);
             }
-            
+
             Element groupIdElement = XMLUtil.getChildElementByName(problemReportElement,
                     "group_id");
-            
+
             if (groupIdElement == null) {
                 throw new LogRuntimeException("Unexpected XML DOM structure; "
                         + "ProblemReport group_id element missing.");
             }
-            
+
             int groupId;
-            
+
             try {
                 groupId = Integer.parseInt(groupIdElement.getTextContent());
             } catch (NumberFormatException e) {
@@ -281,15 +290,15 @@ public class LogEntry extends LogItem {
                         + " is not an integer or is out-of-range",
                         e);
             }
-            
+
             Element componentsElement = XMLUtil.getChildElementByName(problemReportElement,
                     "Components");
-            
+
             Integer componentId = null;
             if (componentsElement != null) {
                 Element componentIdElement = XMLUtil.getChildElementByName(componentsElement,
                         "component_id");
-                
+
                 if (componentIdElement != null) {
                     try {
                         componentId = Integer.parseInt(componentIdElement.getTextContent());
@@ -301,16 +310,16 @@ public class LogEntry extends LogItem {
                     }
                 }
             }
-            
+
             report = new ProblemReport(type, needsAttention, systemId, groupId, componentId);
         }
-        
+
         return report;
     }
 
     /**
-     * Factory method to obtain an existing LogEntry for viewing or revising. If the intention is
-     * for viewing provide null for the reason.
+     * Factory method to obtain an existing LogEntry for viewing or revising. If
+     * the intention is for viewing provide null for the reason.
      *
      * @param lognumber The log number.
      * @param reason The reason for the revision
@@ -326,7 +335,7 @@ public class LogEntry extends LogItem {
             throws SchemaUnavailableException, MalformedXMLException,
             InvalidXMLException, LogIOException, AttachmentSizeException,
             LogRuntimeException {
-        
+
         String filePath = buildHttpGetUrl(lognumber);
         LogEntry entry = new LogEntry(filePath);
         entry.setRevisionReason(reason);
@@ -334,8 +343,8 @@ public class LogEntry extends LogItem {
     }
 
     /**
-     * Constructs the HTTP GET URL to use for fetching log entries based on the log number and the
-     * FETCH_URL configuration property.
+     * Constructs the HTTP GET URL to use for fetching log entries based on the
+     * log number and the FETCH_URL configuration property.
      *
      * @param lognumber The log number
      * @return The HTTP GET URL
@@ -343,24 +352,24 @@ public class LogEntry extends LogItem {
      */
     static String buildHttpGetUrl(long lognumber) throws LogRuntimeException {
         StringBuilder strBuilder = new StringBuilder();
-        
+
         Properties props = Library.getConfiguration();
         String fetchURL = props.getProperty("FETCH_URL");
-        
+
         if (fetchURL == null) {
             throw new LogRuntimeException(
                     "Property FETCH_URL not found.");
         }
-        
+
         strBuilder.append(fetchURL);
-        
+
         if (!fetchURL.endsWith("/")) {
             strBuilder.append("/");
         }
-        
+
         strBuilder.append(lognumber);
         strBuilder.append("/xml");
-        
+
         return strBuilder.toString();
     }
 
@@ -372,7 +381,7 @@ public class LogEntry extends LogItem {
      */
     void setRevisionReason(String reason) throws LogRuntimeException {
         Element revisionReasonElement = null;
-        
+
         try {
             revisionReasonElement = (Element) revisionReasonExpression.evaluate(
                     doc, XPathConstants.NODE);
@@ -383,18 +392,19 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         if (revisionReasonElement == null) {
             revisionReasonElement = doc.createElement("revision_reason");
             root.appendChild(revisionReasonElement);
         }
-        
+
         revisionReasonElement.setTextContent(reason);
     }
 
     /**
      * Add an array of log books to this log entry. See the <a
-     * href="../../../overview-summary.html">Overview</a> for a list of valid logbooks.
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * logbooks.
      *
      * @param books The log books
      * @throws LogRuntimeException If unable to add log books
@@ -405,7 +415,8 @@ public class LogEntry extends LogItem {
 
     /**
      * Add a comma-separated list of log books to this log entry. See the <a
-     * href="../../../overview-summary.html">Overview</a> for a list of valid logbooks.
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * logbooks.
      *
      * @param books The log books
      * @throws LogRuntimeException If unable to add log books
@@ -414,13 +425,13 @@ public class LogEntry extends LogItem {
         if (books == null || books.isEmpty()) {
             return;
         }
-        
+
         Element logbooksElement = null;
-        
+
         try {
             logbooksElement = (Element) logbooksExpression.evaluate(doc,
                     XPathConstants.NODE);
-            
+
             if (logbooksElement == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
@@ -431,14 +442,15 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement,
                 "logbook", books);
     }
 
     /**
      * Replace the existing log books with the specified array. See the <a
-     * href="../../../overview-summary.html">Overview</a> for a list of valid logbooks.
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * logbooks.
      *
      * @param books The log books
      * @throws LogRuntimeException If unable to set log books
@@ -448,8 +460,10 @@ public class LogEntry extends LogItem {
     }
 
     /**
-     * Replace the existing log books with the specified comma-separated-values. See the <a
-     * href="../../../overview-summary.html">Overview</a> for a list of valid logbooks.
+     * Replace the existing log books with the specified comma-separated-values.
+     * See the <a
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * logbooks.
      *
      * @param books The log books
      * @throws LogRuntimeException If unable to set the log books
@@ -458,13 +472,13 @@ public class LogEntry extends LogItem {
         if (books == null) {
             books = "";
         }
-        
+
         Element logbooksElement = null;
-        
+
         try {
             logbooksElement = (Element) logbooksExpression.evaluate(doc,
                     XPathConstants.NODE);
-            
+
             if (logbooksElement == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
@@ -475,7 +489,7 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         XMLUtil.removeChildren(logbooksElement);
         XMLUtil.appendCommaDelimitedElementsWithText(doc, logbooksElement,
                 "logbook", books);
@@ -499,11 +513,11 @@ public class LogEntry extends LogItem {
      */
     public String[] getLogbooks() throws LogRuntimeException {
         NodeList logbookElements = null;
-        
+
         try {
             logbookElements = (NodeList) logbookListExpression.evaluate(doc,
                     XPathConstants.NODESET);
-            
+
             if (logbookElements == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
@@ -514,13 +528,14 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         return XMLUtil.buildArrayFromText(logbookElements);
     }
 
     /**
      * Add an array of tags to the log entry. See the <a
-     * href="../../../overview-summary.html">Overview</a> for a list of valid tags.
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * tags.
      *
      * @param tags The tags
      * @throws LogRuntimeException If unable to add tags
@@ -531,7 +546,8 @@ public class LogEntry extends LogItem {
 
     /**
      * Add a comma-separated list of tags to the log entry. See the <a
-     * href="../../../overview-summary.html">Overview</a> for a list of valid tags.
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * tags.
      *
      * @param tags The tags
      * @throws LogRuntimeException If unable to add tags
@@ -540,9 +556,9 @@ public class LogEntry extends LogItem {
         if (tags == null || tags.isEmpty()) {
             return;
         }
-        
+
         Element tagsElement = null;
-        
+
         try {
             tagsElement = (Element) tagsExpression.evaluate(doc,
                     XPathConstants.NODE);
@@ -553,19 +569,20 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         if (tagsElement == null) {
             tagsElement = doc.createElement("Tags");
             root.appendChild(tagsElement);
         }
-        
+
         XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement, "tag",
                 tags);
     }
 
     /**
      * Replace the existing tags with the specified array of tags. See the <a
-     * href="../../../overview-summary.html">Overview</a> for a list of valid tags.
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * tags.
      *
      * @param tags The tags
      * @throws LogRuntimeException If unable to set tags
@@ -575,15 +592,17 @@ public class LogEntry extends LogItem {
     }
 
     /**
-     * Replace the existing tags with the specified comma-separated-values. See the <a
-     * href="../../../overview-summary.html">Overview</a> for a list of valid tags.
+     * Replace the existing tags with the specified comma-separated-values. See
+     * the <a
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * tags.
      *
      * @param tags The tags
      * @throws LogRuntimeException If unable to set the tags
      */
     public void setTags(String tags) throws LogRuntimeException {
         Element tagsElement = null;
-        
+
         try {
             tagsElement = (Element) tagsExpression.evaluate(doc,
                     XPathConstants.NODE);
@@ -594,7 +613,7 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         if (tagsElement == null) {
             if (tags != null && !tags.isEmpty()) {
                 tagsElement = doc.createElement("Tags");
@@ -603,7 +622,7 @@ public class LogEntry extends LogItem {
         } else {
             XMLUtil.removeChildren(tagsElement);
         }
-        
+
         if (tags != null && !tags.isEmpty()) {
             XMLUtil.appendCommaDelimitedElementsWithText(doc, tagsElement,
                     "tag", tags);
@@ -629,7 +648,7 @@ public class LogEntry extends LogItem {
     public String[] getTags() throws LogRuntimeException {
         NodeList tagElements = null;
         String[] tags;
-        
+
         try {
             tagElements = (NodeList) tagListExpression.evaluate(doc,
                     XPathConstants.NODESET);
@@ -640,19 +659,20 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         if (tagElements != null) {
             tags = XMLUtil.buildArrayFromText(tagElements);
         } else {
             tags = new String[0];
         }
-        
+
         return tags;
     }
 
     /**
      * Add a reference to this log entry. See the <a
-     * href="../../../overview-summary.html">Overview</a> for a list of valid reference types.
+     * href="../../../overview-summary.html">Overview</a> for a list of valid
+     * reference types.
      *
      * @param ref The reference
      * @throws LogRuntimeException If unable to add a reference
@@ -661,9 +681,9 @@ public class LogEntry extends LogItem {
         if (ref == null) {
             return;
         }
-        
+
         Element referencesElement = null;
-        
+
         try {
             referencesElement = (Element) referencesExpression.evaluate(doc,
                     XPathConstants.NODE);
@@ -674,15 +694,15 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         if (referencesElement == null) {
             referencesElement = doc.createElement("References");
             root.appendChild(referencesElement);
         }
-        
+
         Element refElement = doc.createElement("reference");
         referencesElement.appendChild(refElement);
-        
+
         refElement.setAttribute("type", ref.getType());
         refElement.setTextContent(ref.getId());
     }
@@ -694,10 +714,10 @@ public class LogEntry extends LogItem {
      * @throws LogRuntimeException If unable to get the references
      */
     public Reference[] getReferences() throws LogRuntimeException {
-        List<Reference> references = new ArrayList<Reference>();
-        
+        List<Reference> references = new ArrayList<>();
+
         Element referencesElement = null;
-        
+
         try {
             referencesElement = (Element) referencesExpression.evaluate(doc,
                     XPathConstants.NODE);
@@ -708,17 +728,17 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         if (referencesElement != null) {
             NodeList children = referencesElement.getChildNodes();
-            
+
             for (int i = 0; i < children.getLength(); i++) {
                 if (!(children.item(i) instanceof Element)) {
                     throw new LogRuntimeException(
                             "Unexpected node type in XML DOM; "
                             + "expected reference element.");
                 }
-                
+
                 Element refElement = (Element) children.item(i);
                 String type = refElement.getAttribute("type");
                 String id = refElement.getTextContent();
@@ -735,7 +755,7 @@ public class LogEntry extends LogItem {
      */
     public void deleteReferences() throws LogRuntimeException {
         Element referencesElement = null;
-        
+
         try {
             referencesElement = (Element) referencesExpression.evaluate(doc,
                     XPathConstants.NODE);
@@ -746,7 +766,7 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         if (referencesElement != null) {
             root.removeChild(referencesElement);
         }
@@ -760,11 +780,11 @@ public class LogEntry extends LogItem {
      */
     public void setTitle(String title) throws LogRuntimeException {
         Element titleElement = null;
-        
+
         try {
             titleElement = (Element) titleExpression.evaluate(doc,
                     XPathConstants.NODE);
-            
+
             if (titleElement == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
@@ -775,7 +795,7 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         titleElement.setTextContent(title);
     }
 
@@ -787,11 +807,11 @@ public class LogEntry extends LogItem {
      */
     public String getTitle() throws LogRuntimeException {
         Element titleElement = null;
-        
+
         try {
             titleElement = (Element) titleExpression.evaluate(doc,
                     XPathConstants.NODE);
-            
+
             if (titleElement == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
@@ -802,7 +822,7 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         return titleElement.getTextContent();
     }
 
@@ -825,11 +845,11 @@ public class LogEntry extends LogItem {
      */
     public void addEntryMakers(String entrymakers) throws LogRuntimeException {
         Element entrymakersElement = null;
-        
+
         try {
             entrymakersElement = (Element) entrymakersExpression.evaluate(doc,
                     XPathConstants.NODE);
-            
+
         } catch (XPathExpressionException e) {
             throw new LogRuntimeException(
                     "Unable to evaluate XPath query on XML DOM.", e);
@@ -837,12 +857,12 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         if (entrymakersElement == null) {
             entrymakersElement = doc.createElement("Entrymakers");
             root.appendChild(entrymakersElement);
         }
-        
+
         XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc,
                 entrymakersElement, "Entrymaker", "username", entrymakers);
     }
@@ -868,9 +888,9 @@ public class LogEntry extends LogItem {
         if (entrymakers == null) {
             entrymakers = "";
         }
-        
+
         Element entrymakersElement = null;
-        
+
         try {
             entrymakersElement = (Element) entrymakersExpression.evaluate(doc,
                     XPathConstants.NODE);
@@ -881,14 +901,14 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         if (entrymakersElement == null) {
             entrymakersElement = doc.createElement("Entrymakers");
             root.appendChild(entrymakersElement);
         } else {
             XMLUtil.removeChildren(entrymakersElement);
         }
-        
+
         XMLUtil.appendCommaDelimitedElementsWithGrandchildAndText(doc,
                 entrymakersElement, "Entrymaker", "username", entrymakers);
     }
@@ -911,11 +931,11 @@ public class LogEntry extends LogItem {
      */
     public String[] getEntryMakers() throws LogRuntimeException {
         NodeList usernameElements = null;
-        
+
         try {
             usernameElements = (NodeList) usernameListExpression.evaluate(doc,
                     XPathConstants.NODESET);
-            
+
             if (usernameElements == null) {
                 throw new LogRuntimeException("Element not found in XML DOM.");
             }
@@ -926,7 +946,7 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         return XMLUtil.buildArrayFromText(usernameElements);
     }
 
@@ -938,7 +958,7 @@ public class LogEntry extends LogItem {
      */
     public void setSticky(boolean sticky) throws LogRuntimeException {
         Element stickyElement = null;
-        
+
         try {
             stickyElement = (Element) stickyExpression.evaluate(doc,
                     XPathConstants.NODE);
@@ -949,7 +969,7 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         if (stickyElement == null && sticky) {
             stickyElement = doc.createElement("sticky");
             root.appendChild(stickyElement);
@@ -971,9 +991,9 @@ public class LogEntry extends LogItem {
      */
     public boolean isSticky() throws LogRuntimeException {
         boolean sticky = false;
-        
+
         Element stickyElement = null;
-        
+
         try {
             stickyElement = (Element) stickyExpression.evaluate(doc,
                     XPathConstants.NODE);
@@ -984,13 +1004,13 @@ public class LogEntry extends LogItem {
             throw new LogRuntimeException(
                     "Unexpected node type in XML DOM.", e);
         }
-        
+
         if (stickyElement != null) {
             String value = stickyElement.getTextContent();
-            
+
             try {
                 int number = Integer.parseInt(value);
-                
+
                 if (number != 0) {
                     sticky = true;
                 }
@@ -999,21 +1019,21 @@ public class LogEntry extends LogItem {
                         "Unable to obtain sticky due to non-numeric format.", e);
             }
         }
-        
+
         return sticky;
     }
-    
+
     @Override
     String getSchemaURL() throws LogRuntimeException {
         Properties props = Library.getConfiguration();
-        
+
         String url = props.getProperty("LOG_ENTRY_SCHEMA_URL");
-        
+
         if (url == null) {
             throw new LogRuntimeException(
                     "Property LOG_ENTRY_SCHEMA_URL not found.");
         }
-        
+
         return url;
     }
 
@@ -1037,7 +1057,7 @@ public class LogEntry extends LogItem {
     public void setBody(String content, Body.ContentType type) {
         setBody(new Body(type, content));
     }
-    
+
     @Override
     public void setBody(Body body) throws LogRuntimeException {
         super.setBody(body);
