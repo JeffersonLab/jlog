@@ -12,22 +12,23 @@
             <p>
                 In order to use the library you need to include it in the 
                 classpath of your Java program.  The most recent revision of the 
-                version 2 series of the library is available from the following 
+                version 3 series of the library is available from the following 
                 paths:
             </p>
             <dl class="property-list">                
                 <dt>CUE Linux</dt>
-                <dd>/site/ace/certified/apps/eloglib/java/jlog2.jar</dd> 
+                <dd>/site/ace/certified/apps/eloglib/java/jlog3.jar</dd> 
                 <dt>ACE Linux</dt>
-                <dd>/cs/certified/apps/eloglib/java/jlog2.jar</dd>
+                <dd>/cs/certified/apps/eloglib/java/jlog3.jar</dd>
                 <dt>CUE and ACE Windows</dt>
-                <dd>K:\ace\certified\apps\eloglib\java\jlog2.jar</dd>                
+                <dd>K:\ace\certified\apps\eloglib\java\jlog3.jar</dd>                
             </dl>
             <p>
-                The versioning is organized into "major.minor" where major 
-                versions indicate API changes and minor versions are for bug 
+                Semantic versioning is used: "major.minor.patch", where major 
+                versions indicate API changes, minor versions are for new 
+                features, and patch versions are for bug 
                 fixes and implementation changes.  It is relatively safe to 
-                include the jlog2.jar in your classpath, but you may 
+                include the jlog3.jar in your classpath, but you may 
                 alternatively include a specified minor version such as 
                 jlog-2.3.jar. 
             </p>
@@ -60,8 +61,8 @@
                 on an accelerator Linux machine with the following commands:</p>
             <pre><kbd>
 cd jlog
-javac -cp /cs/certified/apps/eloglib/java/jlog2.jar  test/org/jlab/elog/example/HelloWorldDemo.java
-java -cp /cs/certified/apps/eloglib/java/jlog2.jar:test org.jlab.elog.example.HelloWorldDemo 
+javac -cp /cs/certified/apps/eloglib/java/jlog3.jar  test/org/jlab/elog/example/HelloWorldDemo.java
+java -cp /cs/certified/apps/eloglib/java/jlog3.jar:test org.jlab.elog.example.HelloWorldDemo 
             </kbd></pre>
             <p>Running the example on Windows is similar, but the classpath (-cp) 
                 delimiter is a semicolon instead of a colon.  The path to the 
@@ -161,7 +162,12 @@ java -cp /cs/certified/apps/eloglib/java/jlog2.jar:test org.jlab.elog.example.He
                 <dt>ATTACH_TOTAL_MAX_BYTES</dt>
                 <dd>
                     Maximum number of bytes allowed across all attachments.
-                </dd>            
+                </dd>   
+                <dt>IGNORE_SERVER_CERT_ERRORS</dt>
+                <dd>
+                    For testing it is often useful to ignore self signed 
+                    certificates such as those used on logbooktest.acc.jlab.org.
+                </dd>                 
             </dl>
             <p>
                 If building from source then you can edit the properties file 
