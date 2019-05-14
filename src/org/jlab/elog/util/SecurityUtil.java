@@ -20,10 +20,12 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -40,7 +42,8 @@ public final class SecurityUtil {
             SecurityUtil.class.getName());
     private static SSLSocketFactory defaultFactory =
             (SSLSocketFactory) SSLSocketFactory.getDefault();
-
+    private static HostnameVerifier defaultVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+    
     private SecurityUtil() {
         // Can't instantiate publicly
     }
@@ -56,6 +59,14 @@ public final class SecurityUtil {
             throws NoSuchAlgorithmException, KeyManagementException {
         SSLSocketFactory factory = getTrustySocketFactory();
         HttpsURLConnection.setDefaultSSLSocketFactory(factory);
+        
+        HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+            @Override
+            public boolean verify(String s, SSLSession sslSession) {
+                return true;
+            }
+        });
+        
     }
 
     /**
@@ -64,6 +75,8 @@ public final class SecurityUtil {
      */
     public static void enableServerCertificateCheck() {
         HttpsURLConnection.setDefaultSSLSocketFactory(defaultFactory);
+        
+        HttpsURLConnection.setDefaultHostnameVerifier(defaultVerifier);
     }
 
     /**
