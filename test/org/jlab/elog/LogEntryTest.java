@@ -66,6 +66,15 @@ public class LogEntryTest {
     }
 
     @Test
+    public void testAdminSetAuthor() throws LogException {
+        String expected = "theo";
+        extension.setAuthor(expected);
+        Long id = entry.submitNow();
+        entry = LogEntry.getLogEntry(id, "checking");
+        assertEquals(expected, entry.getAuthor());
+    }    
+    
+    @Test
     public void testTitle() throws LogException {
         String expected = "Testing title";
         entry.setTitle(expected);
