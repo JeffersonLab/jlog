@@ -101,7 +101,7 @@ public class LogEntry extends LogItem {
 
         // We could call builder.setSchema() and it would be a validating
         // parser, but then no way to differentiate Malformed vs Invalid
-        validate();
+        //validate();
 
         checkAndTallyAttachmentSize();
     }

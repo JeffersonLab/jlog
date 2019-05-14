@@ -1168,12 +1168,6 @@ abstract class LogItem {
      * @throws LogIOException If unable to queue due to IO
      */
     void queue(String filepath) throws InvalidXMLException, LogIOException {
-        try {
-            validate();
-        } catch (SchemaUnavailableException e) {
-            // Ignore!
-        }
-
         String xml = getXML();
 
         try (FileOutputStream out = new FileOutputStream(filepath);
