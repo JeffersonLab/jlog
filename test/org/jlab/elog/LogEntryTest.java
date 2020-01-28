@@ -5,12 +5,16 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.security.cert.CertificateException;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import java.util.Properties;
+
+import javax.naming.InvalidNameException;
 import javax.net.ssl.HttpsURLConnection;
 import org.jlab.elog.exception.AttachmentSizeException;
 import org.jlab.elog.exception.LogException;
@@ -59,6 +63,10 @@ public class LogEntryTest {
         config.setProperty("LOG_ENTRY_SCHEMA_URL", "https://" + logbookHostname + "/schema/Logentry.xsd");
         config.setProperty("COMMENT_SCHEMA_URL", "https://" + logbookHostname + "/schema/Comment.xsd");
         config.setProperty("IGNORE_SERVER_CERT_ERRORS", "true");
+        config.setProperty("DEFAULT_UNIX_QUEUE_PATH", System.getProperty("java.io.tmpdir"));
+        config.setProperty("DEFAULT_WINDOWS_QUEUE_PATH", System.getProperty("java.io.tmpdir"));
+        
+        config.list(System.out);
     }
 
     @After
@@ -261,6 +269,16 @@ public class LogEntryTest {
     }
 
     @Test
+    public void testGetAuthorFromXMLWithCertificate() throws LogException, CertificateException, IOException, InvalidNameException {
+    		File pemFile = new File(System.getProperty("user.home"), ".elogcert");
+        String xml = entry.getXML(pemFile.getAbsolutePath());
+        //System.out.println(xml);
+        String expected = SecurityUtil.getCommonNameFromCertificate(SecurityUtil.fetchCertificateFromPEM(IOUtil.fileToBytes(pemFile)));
+        String actual = xml.split("<username>")[1].split("</username>")[0];
+        assertEquals(expected, actual);
+    }
+    
+    @Test
     public void testValidate() throws LogException {
         entry.validate();
     }
@@ -452,7 +470,10 @@ public class LogEntryTest {
         ProblemReport report = new ProblemReport(ProblemReportType.OPS, true, 62, 9, 16413);
         entry.setProblemReport(report);
         /*System.out.println(entry.getXML());*/
-        entry.submit();
+        long entryId = entry.submit();
+        if (entryId == 0) {
+        	throw new Exception("It was queued!", entry.whyQueued());
+        }
     }
 
     /*@Test*/
