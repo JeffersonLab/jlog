@@ -15,6 +15,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Properties;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.XMLConstants;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -54,6 +56,7 @@ import org.jlab.elog.util.XMLUtil;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -156,7 +159,7 @@ abstract class LogItem {
         Element authorElement = doc.createElement("Author");
         root.appendChild(authorElement);
         XMLUtil.appendElementWithText(doc, authorElement, "username",
-                System.getProperty("user.name"));
+            System.getProperty("user.name"));
     }
 
     /**
@@ -734,6 +737,31 @@ abstract class LogItem {
 
         return xml;
     }
+    
+    /**
+     * Return the XML of the LogItem, substituting the CN of the certificate subject for the author.
+     *
+     * @return The XML
+     * @throws LogRuntimeException If unable to get the XML
+     */
+    public String getXML(String pemFilePath) throws LogRuntimeException {
+	    	// try to set the author to the CN on the certificate
+	      try {
+	        X509Certificate cert = SecurityUtil.fetchCertificateFromPEM(IOUtil.fileToBytes(new File(pemFilePath)));
+	        String commonName = SecurityUtil.getCommonNameFromCertificate(cert);
+	        if (commonName != null) {
+	        	Node authorNode = (Node) authorTextExpression.evaluate(doc, XPathConstants.NODE);
+            if (authorNode != null) {
+            	authorNode.setNodeValue(commonName);
+            }
+	        }
+	      }
+	      catch (Exception ex) {
+	      	// do nothing
+	      	ex.printStackTrace();
+	      }
+        return getXML();
+    }
 
     /**
      * Return the URL to the schema needed for validation of this log book item.
@@ -767,7 +795,7 @@ abstract class LogItem {
                 }
             }        
 
-            URL schemaURL = new URL(getSchemaURL());
+            java.net.URL schemaURL = new URL(getSchemaURL());
             SchemaFactory factory = SchemaFactory.newInstance(
                     XMLConstants.W3C_XML_SCHEMA_NS_URI);
             schema = factory.newSchema(schemaURL);
@@ -858,8 +886,8 @@ abstract class LogItem {
     long performHttpPutToServer(String pemFilePath) throws LogIOException,
             LogCertificateException, LogRuntimeException {
         long id;
-
-        String xml = getXML();
+        
+        String xml = getXML(pemFilePath);
 
         HttpsURLConnection con;
 
@@ -867,7 +895,8 @@ abstract class LogItem {
         boolean ignoreServerCert = "true".equals(props.getProperty("IGNORE_SERVER_CERT_ERRORS"));
 
         try {
-            URL url = new URL(buildHttpPutUrl());
+        		String putUrl = buildHttpPutUrl();
+            java.net.URL url = new URL(putUrl);
             con = (HttpsURLConnection) url.openConnection();
             con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(
                     pemFilePath, !ignoreServerCert));
@@ -990,7 +1019,7 @@ abstract class LogItem {
      *
      * @return The default client certificate path
      */
-    String getDefaultCertificatePath() {
+    static String getDefaultCertificatePath() {
         return new File(System.getProperty("user.home"),
                 PEM_FILE_NAME).getAbsolutePath();
     }
@@ -1027,8 +1056,13 @@ abstract class LogItem {
 
         try {
             id = performHttpPutToServer(pemFilePath);
-        } catch (LogException e) {
-            submitException = e;
+        } catch (Exception e) {
+        		if (e instanceof LogException) {
+        			submitException = (LogException) e;
+        		}
+        		else {
+        			submitException = new LogException(e.getMessage(), e);
+        		}
             queue();
         }
 
@@ -1115,7 +1149,7 @@ abstract class LogItem {
      *
      * @return The queue path
      */
-    String getQueuePath() {
+    static String getQueuePath() {
         Properties props = Library.getConfiguration();
 
         String queuePath = props.getProperty("QUEUE_PATH");
@@ -1174,7 +1208,7 @@ abstract class LogItem {
                 OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8")) {
             writer.write(xml);
         } catch (IOException e) {
-            throw new LogIOException("Unable to write XML file.", e);
+            throw new LogIOException("Unable to write XML file to queue.", e);
         }
     }
 }
