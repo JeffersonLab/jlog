@@ -20,6 +20,10 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
@@ -29,7 +33,11 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.security.auth.x500.X500Principal;
 import javax.xml.bind.DatatypeConverter;
+import javax.xml.xpath.XPathConstants;
+
+import org.w3c.dom.NodeList;
 
 /**
  * Security Utilities.
@@ -143,13 +151,8 @@ public final class SecurityUtil {
         SSLContext context = SSLContext.getInstance("TLS");
 
         byte[] certAndKey = IOUtil.fileToBytes(new File(pemPath));
-        byte[] certBytes = parseDERFromPEM(certAndKey,
-                "-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----");
-        byte[] keyBytes = parseDERFromPEM(certAndKey,
-                "-----BEGIN PRIVATE KEY-----", "-----END PRIVATE KEY-----");
-
-        X509Certificate cert = generateX509CertificateFromDER(certBytes);
-        RSAPrivateKey key = generateRSAPrivateKeyFromDER(keyBytes);
+        X509Certificate cert = fetchCertificateFromPEM(certAndKey);
+        RSAPrivateKey key = fetchPrivateKeyFromPEM(certAndKey);
 
         KeyStore keystore = KeyStore.getInstance("JKS");
         keystore.load(null);
@@ -274,6 +277,39 @@ public final class SecurityUtil {
     }
 
     /**
+     * Get an X509Certificate from PEM bytes
+     * 
+     * @param pem
+     * @return The X509Certificate
+     * @throws CertificateException
+     */
+    public static X509Certificate fetchCertificateFromPEM(byte[] pem) throws CertificateException {
+		    String data = new String(pem);
+		    String[] tokens = data.split("-----BEGIN CERTIFICATE-----");
+		    tokens = tokens[1].split( "-----END CERTIFICATE-----");
+        byte[] certBytes = DatatypeConverter.parseBase64Binary(tokens[0]);
+        X509Certificate cert = generateX509CertificateFromDER(certBytes);
+        return cert;
+		}
+    
+    /**
+     * Get an RSAPublicKey from PEM bytes
+     * 
+     * @param pem
+     * @return The RSAPrivateKey
+     * @throws InvalidKeySpecException
+     * @throws NoSuchAlgorithmException
+     */
+    public static RSAPrivateKey fetchPrivateKeyFromPEM(byte[] pem) throws InvalidKeySpecException, NoSuchAlgorithmException {
+		    String data = new String(pem);
+		    String[] tokens = data.split("-----BEGIN PRIVATE KEY-----");
+		    tokens = tokens[1].split("-----END PRIVATE KEY-----");
+		    byte[] keyBytes = DatatypeConverter.parseBase64Binary(tokens[0]);
+        RSAPrivateKey key = generateRSAPrivateKeyFromDER(keyBytes);
+        return key;
+    }
+    
+    /**
      * Generates an RSAPrivateKey from an array of DER encoded bytes.
      *
      * @param keyBytes the bytes
@@ -304,5 +340,24 @@ public final class SecurityUtil {
 
         return (X509Certificate) factory.generateCertificate(
                 new ByteArrayInputStream(certBytes));
+    }
+    
+    /**
+     * Get the CN from the subject DN on an X509Certificate
+     * 
+     * @param cert
+     * @return The CN string
+     * @throws InvalidNameException
+     */
+    public static String getCommonNameFromCertificate(X509Certificate cert) throws InvalidNameException {
+    		String commonName = null;
+        LdapName ln = new LdapName(cert.getSubjectX500Principal().getName(X500Principal.RFC2253));
+        for (Rdn rdn : ln.getRdns()) {
+          if (rdn.getType().equalsIgnoreCase("CN")) {
+            commonName = String.valueOf(rdn.getValue());
+            break;
+          }
+        }
+        return commonName;
     }
 }
