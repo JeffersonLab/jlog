@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import javax.xml.xpath.XPathConstants;
@@ -11,6 +12,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import org.jlab.elog.exception.AttachmentSizeException;
 import org.jlab.elog.exception.InvalidXMLException;
+import org.jlab.elog.exception.LogException;
 import org.jlab.elog.exception.LogIOException;
 import org.jlab.elog.exception.LogRuntimeException;
 import org.jlab.elog.exception.MalformedXMLException;
@@ -1061,5 +1063,79 @@ public class LogEntry extends LogItem {
     @Override
     public void setBody(Body body) throws LogRuntimeException {
         super.setBody(body);
+    }
+    
+    public static void main(String[] args) throws Exception {
+    	ArrayList<String> possibleArgs = new ArrayList<String>();
+    	java.lang.reflect.Method[] methods = LogEntry.class.getDeclaredMethods();
+      for (java.lang.reflect.Method method : methods) {
+      	if (method.getName().startsWith("set")) {
+      		java.lang.reflect.Parameter[] methodParams = method.getParameters();
+      		if (methodParams != null && methodParams.length == 1 && methodParams[0].getType().equals(String.class)) {
+	      		char c[] = method.getName().substring(3).toCharArray();
+	      		c[0] = Character.toLowerCase(c[0]);
+	      		String arg = new String(c);
+	      		if (!possibleArgs.contains(arg)) {
+	      			possibleArgs.add(arg);
+	      		}
+      		}
+      	}
+      }
+    	Properties mainArgs = new Properties();
+    	if (args != null) {
+    		for (String arg : args) {
+    			if ("-help".equals(arg)){
+    				System.out.println(String.format("Usage: %s {args}", LogEntry.class.getName()));
+    				System.out.println("Possible args:");
+    				System.out.println("  -help: Print this message");
+    				System.out.println("The rest of these args must be supplied in the form: -argName=argValue");
+    				for (String possibleArg : possibleArgs) {
+    					System.out.println(String.format("  -%s (string): The log entry's %s", possibleArg, possibleArg));
+    				}
+    				System.out.println(String.format("  -bodyType (string): The content type of the log entry's body.  Can be one of the following: %s", Arrays.asList(Body.ContentType.values())));
+    				System.out.println(String.format("  -pemFilePath (string): The location of the client certificate/private key combination (PEM file) used for submitting the log entry to the server.  If not supplied, the system will attempt to use this default: %s", getDefaultCertificatePath()));
+    				System.out.println(String.format("  -allowQueue (boolean): If submission to the server fails, allow the log entry to be queued to: %s", getQueuePath()));
+    				System.exit(0);
+    			}
+    			int firstEquals = arg.indexOf("=");
+    			if (firstEquals > -1) {
+	    			String argName = arg.substring(0, firstEquals);
+	    			String argValue = arg.substring(firstEquals + 1);
+	    			if (argName != null && argValue != null) {
+	    				mainArgs.put(argName, argValue);
+	    			}
+    			}
+    		}
+    	}
+      String title = mainArgs.getProperty("-title");
+      String logbooks = mainArgs.getProperty("-logbooks");
+      if (title == null || logbooks == null) {
+      	throw new LogException("Title and logbooks are required");
+      }
+      LogEntry entry = new LogEntry(title, logbooks.toUpperCase());
+      String entryMakers = mainArgs.getProperty("-entryMakers");
+      if (entryMakers != null) {
+      	entry.addEntryMakers(entryMakers);
+      }
+      String body = mainArgs.getProperty("-body");
+      if (body != null) {
+	      String bodyType = mainArgs.getProperty("-bodyType");
+	      if (bodyType != null) {
+	      	entry.setBody(body, Body.ContentType.valueOf(bodyType));
+	      }
+	      else {
+	      	entry.setBody(body);
+	      }
+      }
+      String pemFilePath = mainArgs.getProperty("-pemFilePath");
+      Boolean allowQueue = Boolean.parseBoolean(mainArgs.getProperty("-allowQueue"));
+      Long entryId = null;
+      if (pemFilePath != null) {
+      	entryId = allowQueue ? entry.submit(pemFilePath) : entry.submitNow(pemFilePath);
+      }
+      else {
+      	entryId = allowQueue ? entry.submit() : entry.submitNow();
+      }
+      System.out.println(entryId);   	
     }
 }
