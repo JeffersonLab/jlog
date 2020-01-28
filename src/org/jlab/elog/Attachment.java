@@ -132,7 +132,7 @@ public class Attachment {
             String urlStr = dataElement.getTextContent();
 
             try {
-                URL url = new URL(urlStr);
+                java.net.URL url = new URL(urlStr);
                 is = url.openStream();
             } catch (MalformedURLException e) {
                 throw new LogIOException("Unable to open input stream.", e);
