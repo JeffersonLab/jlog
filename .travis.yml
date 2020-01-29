@@ -1,0 +1,8 @@
+dist: xenial
+language: java
+jdk: openjdk8
+addons:
+  apt:
+    packages:
+      - ant
+script: ant test
