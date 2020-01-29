@@ -5,4 +5,5 @@ addons:
   apt:
     packages:
       - ant
+      - ant-optional
 script: ant -Djunit.jar.path="./lib/junit-4.10.jar" test
