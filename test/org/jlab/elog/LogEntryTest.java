@@ -287,16 +287,16 @@ public class LogEntryTest {
         //entry.validate();
     }*/
 
-    @Test
+    /*@Test
     public void testSubmit() throws Exception {
         Long id = entry.submit();
 
         if (id == 0) {
             throw new Exception("It was queued!", entry.whyQueued());
         }
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void testSubmitNow() throws Exception {
         try {
             entry.submitNow();
@@ -304,7 +304,7 @@ public class LogEntryTest {
             e.printStackTrace();
             throw e;
         }
-    }
+    }*/
 
     @Test
     public void testQueue() throws LogException {
@@ -418,7 +418,7 @@ public class LogEntryTest {
         assertEquals(expected, actual);
     }
 
-    @Test
+    /*@Test
     public void testLargeBodySubmit() throws Exception {
         StringBuilder builder = new StringBuilder();
 
@@ -437,7 +437,7 @@ public class LogEntryTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     @Test(expected = AttachmentSizeException.class)
     public void testLargeAttachmentSubmit() throws Exception {
@@ -472,16 +472,15 @@ public class LogEntryTest {
         }
     }
 
-    @Test
+    /*@Test
     public void testProblemReport() throws Exception {
         ProblemReport report = new ProblemReport(ProblemReportType.OPS, true, 62, 9, 16413);
         entry.setProblemReport(report);
-        /*System.out.println(entry.getXML());*/
         long entryId = entry.submit();
         if (entryId == 0) {
         	throw new Exception("It was queued!", entry.whyQueued());
         }
-    }
+    }*/
 
     @Test
     public void testLoadProblemReport() throws Exception {

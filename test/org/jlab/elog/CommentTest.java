@@ -57,8 +57,8 @@ public class CommentTest {
         comment.validate();
     }
     
-    @Test
+    /*@Test
     public void testSubmit() throws Exception {
         comment.submit();
-    }    
+    }*/
 }
