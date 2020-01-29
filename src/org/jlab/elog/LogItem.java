@@ -741,6 +741,7 @@ abstract class LogItem {
     /**
      * Return the XML of the LogItem, substituting the CN of the certificate subject for the author.
      *
+     * @param pemFilePath The path to the PEM-encoded client certificate
      * @return The XML
      * @throws LogRuntimeException If unable to get the XML
      */
