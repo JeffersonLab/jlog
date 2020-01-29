@@ -47,7 +47,7 @@
                 <pathelement location="${test.classes.dir}"/>                
                 <pathelement location="${junit.jar.path}"/>                
             </classpath>            
-            <formatter type="plain"/>
+            <formatter type="plain" usefile="false"/>
             <batchtest todir="${test.results.dir}">
                 <fileset dir="${test.src.dir}">
                     <include name="**/*Test*.java"/>
