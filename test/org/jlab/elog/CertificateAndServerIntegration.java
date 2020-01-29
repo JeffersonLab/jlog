@@ -62,7 +62,7 @@ public class CertificateAndServerIntegration {
         config.setProperty("DEFAULT_UNIX_QUEUE_PATH", System.getProperty("java.io.tmpdir"));
         config.setProperty("DEFAULT_WINDOWS_QUEUE_PATH", System.getProperty("java.io.tmpdir"));
         
-        config.list(System.out);
+        /*config.list(System.out);*/
     }
 
     @After
