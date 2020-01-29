@@ -72,7 +72,8 @@ public class CertificateAndServerIntegration {
     @Test
     public void testGetAuthorFromXMLWithCertificate() throws LogException, CertificateException, IOException, InvalidNameException {
     	File pemFile = new File(System.getProperty("user.home"), ".elogcert");
-        String xml = entry.getXML(pemFile.getAbsolutePath());
+        entry.setClientCertificatePath(pemFile.getAbsolutePath(), true);
+        String xml = entry.getXML();
         //System.out.println(xml);
         String expected = SecurityUtil.getCommonNameFromCertificate(SecurityUtil.fetchCertificateFromPEM(IOUtil.fileToBytes(pemFile)));
         String actual = xml.split("<username>")[1].split("</username>")[0];

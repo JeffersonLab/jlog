@@ -1131,11 +1131,11 @@ public class LogEntry extends LogItem {
       Boolean allowQueue = Boolean.parseBoolean(mainArgs.getProperty("-allowQueue"));
       Long entryId = null;
       if (pemFilePath != null) {
-      	entryId = allowQueue ? entry.submit(pemFilePath) : entry.submitNow(pemFilePath);
+          entry.setClientCertificatePath(pemFilePath, true);
       }
-      else {
-      	entryId = allowQueue ? entry.submit() : entry.submitNow();
-      }
+
+      entryId = allowQueue ? entry.submit() : entry.submitNow();
+
       System.out.println(entryId);   	
     }
 }

@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Properties;
+import javax.naming.InvalidNameException;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.XMLConstants;
@@ -159,7 +160,7 @@ abstract class LogItem {
         Element authorElement = doc.createElement("Author");
         root.appendChild(authorElement);
         XMLUtil.appendElementWithText(doc, authorElement, "username",
-            System.getProperty("user.name"));
+                System.getProperty("user.name"));
     }
 
     /**
@@ -737,32 +738,6 @@ abstract class LogItem {
 
         return xml;
     }
-    
-    /**
-     * Return the XML of the LogItem, substituting the CN of the certificate subject for the author.
-     *
-     * @param pemFilePath The path to the PEM-encoded client certificate
-     * @return The XML
-     * @throws LogRuntimeException If unable to get the XML
-     */
-    public String getXML(String pemFilePath) throws LogRuntimeException {
-	    	// try to set the author to the CN on the certificate
-	      try {
-	        X509Certificate cert = SecurityUtil.fetchCertificateFromPEM(IOUtil.fileToBytes(new File(pemFilePath)));
-	        String commonName = SecurityUtil.getCommonNameFromCertificate(cert);
-	        if (commonName != null) {
-	        	Node authorNode = (Node) authorTextExpression.evaluate(doc, XPathConstants.NODE);
-            if (authorNode != null) {
-            	authorNode.setNodeValue(commonName);
-            }
-	        }
-	      }
-	      catch (Exception ex) {
-	      	// do nothing
-	      	ex.printStackTrace();
-	      }
-        return getXML();
-    }
 
     /**
      * Return the URL to the schema needed for validation of this log book item.
@@ -794,7 +769,7 @@ abstract class LogItem {
                     throw new LogRuntimeException(
                             "Unable to disable server certificate check", e);
                 }
-            }        
+            }
 
             java.net.URL schemaURL = new URL(getSchemaURL());
             SchemaFactory factory = SchemaFactory.newInstance(
@@ -877,18 +852,19 @@ abstract class LogItem {
     /**
      * Perform the HTTP PUT request to the server with the log item.
      *
-     * @param pemFilePath The path to the client certificate file
      * @return The log number returned in the server response
      * @throws LogIOException If unable to perform the request due to IO
      * @throws LogCertificateException If unable to perform the request due to
      * certificate
      * @throws LogRuntimeException If unable to perform the request
      */
-    long performHttpPutToServer(String pemFilePath) throws LogIOException,
+    long performHttpPutToServer() throws LogIOException,
             LogCertificateException, LogRuntimeException {
         long id;
-        
-        String xml = getXML(pemFilePath);
+
+        String pemFilePath = getClientCertificatePath();
+
+        String xml = getXML();
 
         HttpsURLConnection con;
 
@@ -896,8 +872,8 @@ abstract class LogItem {
         boolean ignoreServerCert = "true".equals(props.getProperty("IGNORE_SERVER_CERT_ERRORS"));
 
         try {
-        		String putUrl = buildHttpPutUrl();
-            java.net.URL url = new URL(putUrl);
+            String putUrl = buildHttpPutUrl();
+            URL url = new URL(putUrl);
             con = (HttpsURLConnection) url.openConnection();
             con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(
                     pemFilePath, !ignoreServerCert));
@@ -1016,6 +992,56 @@ abstract class LogItem {
     }
 
     /**
+     * Get the path to the PEM-encoded client certificate.
+     *
+     * @return certificatePath The path to the PEM-encoded client certificate
+     */
+    public String getClientCertificatePath() {
+        Properties props = Library.getConfiguration();
+
+        String certificatePath = props.getProperty(
+                "CLIENT_CERTIFICATE_PATH");
+
+        if (certificatePath == null || certificatePath.isEmpty()) {
+            certificatePath = getDefaultCertificatePath();
+        }
+
+        return certificatePath;
+    }
+
+    /**
+     * Set the path to the PEM-encoded client certificate.
+     *
+     * @param certificatePath The path to the PEM-encoded client certificate
+     * @param updateAuthor If true, the author field is updated to match
+     * username in certificate
+     */
+    public void setClientCertificatePath(String certificatePath, boolean updateAuthor) throws LogException {
+        Properties props = Library.getConfiguration();
+
+        props.setProperty("CLIENT_CERTIFICATE_PATH", certificatePath);
+
+        if (updateAuthor) {
+            setAuthorToCertUser(certificatePath);
+        }
+    }
+
+    private void setAuthorToCertUser(String certificatePath) throws LogException {
+        try {
+            X509Certificate cert = SecurityUtil.fetchCertificateFromPEM(IOUtil.fileToBytes(new File(certificatePath)));
+            String commonName = SecurityUtil.getCommonNameFromCertificate(cert);
+            if (commonName != null) {
+                Node authorNode = (Node) authorTextExpression.evaluate(doc, XPathConstants.NODE);
+                if (authorNode != null) {
+                    authorNode.setNodeValue(commonName);
+                }
+            }
+        } catch(IOException | CertificateException | InvalidNameException | XPathExpressionException e) {
+            throw new LogException("Unable to set author to certificate user", e);
+        }
+    }
+
+    /**
      * Returns the default client certificate path.
      *
      * @return The default client certificate path
@@ -1035,35 +1061,16 @@ abstract class LogItem {
      * @throws LogIOException If unable to submit due to IO
      */
     public long submit() throws InvalidXMLException, LogIOException {
-        return submit(getDefaultCertificatePath());
-    }
-
-    /**
-     * Submit the log item using the queue mechanism as a fallback and using the
-     * specified client certificate and return the log number. If the log number
-     * is zero then the submission was queued instead of being consumed directly
-     * by the server. You can use the whyQueued method to obtain the
-     * LogException encountered if any while attempting to submit directly to
-     * the server.
-     *
-     * @param pemFilePath The path to the PEM-encoded client certificate
-     * @return The log number, zero means queued
-     * @throws InvalidXMLException If unable to submit to do invalid XML
-     * @throws LogIOException If unable to submit due to IO
-     */
-    public long submit(String pemFilePath) throws InvalidXMLException,
-            LogIOException {
         long id = 0L;
 
         try {
-            id = performHttpPutToServer(pemFilePath);
+            id = performHttpPutToServer();
         } catch (Exception e) {
-        		if (e instanceof LogException) {
-        			submitException = (LogException) e;
-        		}
-        		else {
-        			submitException = new LogException(e.getMessage(), e);
-        		}
+            if (e instanceof LogException) {
+                submitException = (LogException) e;
+            } else {
+                submitException = new LogException(e.getMessage(), e);
+            }
             queue();
         }
 
@@ -1083,24 +1090,7 @@ abstract class LogItem {
      */
     public long submitNow() throws LogIOException, LogCertificateException,
             LogRuntimeException {
-        return performHttpPutToServer(getDefaultCertificatePath());
-    }
-
-    /**
-     * Submit the log item using only direct submission to the server with the
-     * specified client certificate and return the log number. If an error
-     * occurs during submission then an Exception will be thrown instead of
-     * falling back to the queue method.
-     *
-     * @param pemFilePath The path to the PEM-encoded client certificate
-     * @return The log number
-     * @throws LogIOException If unable to submit due to IO
-     * @throws LogCertificateException If unable to submit due to certificate
-     * @throws LogRuntimeException If unable to submit
-     */
-    public long submitNow(String pemFilePath) throws LogIOException, LogCertificateException,
-            LogRuntimeException {
-        return performHttpPutToServer(pemFilePath);
+        return performHttpPutToServer();
     }
 
     /**
