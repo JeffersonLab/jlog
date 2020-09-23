@@ -41,6 +41,9 @@ public class CommentTest {
         String xml = comment.getXML();
         String expected = "<![CDATA[Hello World]]>";
         String actual = xml.split("<body>")[1].split("</body>")[0];
+
+        actual = actual.trim();
+
         assertEquals(expected, actual);
     }
     
