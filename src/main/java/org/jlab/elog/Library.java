@@ -18,7 +18,7 @@ public final class Library {
 
     static {
         InputStream in = Library.class.getClassLoader().getResourceAsStream(
-                "org/jlab/elog/elog.properties");
+                "elog.properties");
 
         configuration = new Properties();
 
