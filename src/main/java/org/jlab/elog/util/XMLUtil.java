@@ -2,8 +2,8 @@ package org.jlab.elog.util;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.GregorianCalendar;
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.transform.OutputKeys;
@@ -61,26 +61,6 @@ public final class XMLUtil {
     public static GregorianCalendar toGregorianCalendar(String xmlDateTime) {
         return typeFactory.newXMLGregorianCalendar(xmlDateTime).normalize().
                 toGregorianCalendar();
-    }
-
-    /**
-     * Encodes an array of bytes to base64.
-     *
-     * @param data The bytes
-     * @return A base64 encoded String
-     */
-    public static String encodeBase64(byte[] data) {
-        return DatatypeConverter.printBase64Binary(data);
-    }
-
-    /**
-     * Decodes a base64 String to an array of bytes.
-     *
-     * @param data The base64 encoded String
-     * @return The bytes
-     */
-    public static byte[] decodeBase64(String data) {
-        return DatatypeConverter.parseBase64Binary(data);
     }
 
     /**

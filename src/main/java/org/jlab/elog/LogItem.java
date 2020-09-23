@@ -349,7 +349,7 @@ abstract class LogItem {
         checkAttachmentSize(file.length());
 
         try {
-            data = XMLUtil.encodeBase64(IOUtil.fileToBytes(file));
+            data = IOUtil.encodeBase64(IOUtil.fileToBytes(file));
             attachmentsElement = (Element) attachmentsExpression.evaluate(doc,
                     XPathConstants.NODE);
         } catch (IOException e) {

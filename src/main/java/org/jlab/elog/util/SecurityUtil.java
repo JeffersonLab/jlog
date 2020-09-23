@@ -34,8 +34,6 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.security.auth.x500.X500Principal;
-import javax.xml.bind.DatatypeConverter;
-import javax.xml.xpath.XPathConstants;
 
 import org.w3c.dom.NodeList;
 
@@ -273,7 +271,7 @@ public final class SecurityUtil {
         String data = new String(pem);
         String[] tokens = data.split(beginDelimiter);
         tokens = tokens[1].split(endDelimiter);
-        return DatatypeConverter.parseBase64Binary(tokens[0]);
+        return IOUtil.decodeBase64(tokens[0]);
     }
 
     /**
@@ -287,7 +285,7 @@ public final class SecurityUtil {
 		    String data = new String(pem);
 		    String[] tokens = data.split("-----BEGIN CERTIFICATE-----");
 		    tokens = tokens[1].split( "-----END CERTIFICATE-----");
-        byte[] certBytes = DatatypeConverter.parseBase64Binary(tokens[0]);
+        byte[] certBytes = IOUtil.decodeBase64(tokens[0]);
         X509Certificate cert = generateX509CertificateFromDER(certBytes);
         return cert;
 		}
@@ -304,7 +302,7 @@ public final class SecurityUtil {
 		    String data = new String(pem);
 		    String[] tokens = data.split("-----BEGIN PRIVATE KEY-----");
 		    tokens = tokens[1].split("-----END PRIVATE KEY-----");
-		    byte[] keyBytes = DatatypeConverter.parseBase64Binary(tokens[0]);
+		    byte[] keyBytes = IOUtil.decodeBase64(tokens[0]);
         RSAPrivateKey key = generateRSAPrivateKeyFromDER(keyBytes);
         return key;
     }

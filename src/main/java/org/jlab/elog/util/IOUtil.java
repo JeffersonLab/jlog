@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Base64;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -155,5 +156,25 @@ public final class IOUtil {
      */
     public static String[] csvToArray(String values) {
         return values.split("\\s*,\\s*");
+    }
+
+    /**
+     * Encodes an array of bytes to base64.
+     *
+     * @param data The bytes
+     * @return A base64 encoded String
+     */
+    public static String encodeBase64(byte[] data) {
+        return Base64.getEncoder().encodeToString(data);
+    }
+
+    /**
+     * Decodes a base64 String to an array of bytes.
+     *
+     * @param data The base64 encoded String
+     * @return The bytes
+     */
+    public static byte[] decodeBase64(String data) {
+        return Base64.getDecoder().decode(data);
     }
 }

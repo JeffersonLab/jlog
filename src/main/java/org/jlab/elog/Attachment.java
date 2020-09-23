@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import org.jlab.elog.exception.LogIOException;
 import org.jlab.elog.exception.LogRuntimeException;
+import org.jlab.elog.util.IOUtil;
 import org.jlab.elog.util.XMLUtil;
 import org.w3c.dom.Element;
 
@@ -141,7 +142,7 @@ public class Attachment {
             }
         } else {
             String dataStr = dataElement.getTextContent();
-            byte[] data = XMLUtil.decodeBase64(dataStr);
+            byte[] data = IOUtil.decodeBase64(dataStr);
             is = new ByteArrayInputStream(data);
         }
 
