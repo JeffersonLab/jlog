@@ -1,0 +1,46 @@
+plugins {
+    id 'java-library'
+}
+
+description = "Jefferson Lab logbook API"
+group 'org.jlab'
+version = '4.0.0'
+
+ext {
+    releaseDate = 'Sep 22 2020'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+processResources {
+    filesMatching('release.properties') {
+        filter {
+            String line -> line.replaceAll("@VERSION@", version)
+        }
+        filter {
+            String line -> line.replaceAll("@RELEASE_DATE@", releaseDate)
+        }
+    }
+}
+
+javadoc {
+    options.overview = "src/main/java/overview.html"
+    options.source = 8
+    options.with {
+        links 'https://docs.oracle.com/javase/8/docs/api'
+    }
+}
+
+
