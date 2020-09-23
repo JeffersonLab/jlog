@@ -43,4 +43,7 @@ javadoc {
     }
 }
 
+test {
+    include '**/*Test.class'
+}
 
