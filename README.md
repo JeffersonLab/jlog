@@ -17,6 +17,9 @@ The default configuration properties are located in elog.properties.   You can o
 
 ## Usage
 ```
+import org.jlab.elog.LogEntry;
+import org.jlab.elog.exception.LogException;
+
 public class HelloWorldDemo {
     public static void main(String[] args) throws LogException {
         LogEntry entry = new LogEntry("Hello World", "TLOG");
