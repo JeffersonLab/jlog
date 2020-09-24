@@ -19,7 +19,7 @@ gradlew build
 The default configuration properties are located in [elog.properties](https://github.com/JeffersonLab/jlog/blob/master/src/main/resources/elog.properties).   You can override them by creating your own elog.properties and including it in the classpath before the elog.jar file (containing the defaults).   Or you can programmatically set properties within a Java application using [Library.setConfiguration()](https://jeffersonlab.github.io/jlog/org/jlab/elog/Library.html#setConfiguration(java.util.Properties)).
 
 ### Authentication
-In order to interact with the logbook server users must authenticate.  This is done using a [logbook server client certificate](https://logbooks.jlab.org/content/api-authentication), which is assumed to be located in the user's home directory in a file named _.elogcert_.
+In order to interact with the logbook server users must authenticate.  This is done using a [logbook server client certificate](https://logbooks.jlab.org/content/api-authentication), which is assumed to be located in the user's home directory in a file named _.elogcert_.  You can override the location of the certificate with [LogEntry.setClientCertificatePath()](https://jeffersonlab.github.io/jlog/org/jlab/elog/LogEntry.html#setClientCertificatePath(java.lang.String,boolean)).
 
 ## Usage
 ### API
