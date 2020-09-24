@@ -22,6 +22,9 @@ The default configuration properties are located in [elog.properties](https://gi
 In order to interact with the logbook server users must authenticate.  This is done using a [logbook server client certificate](https://logbooks.jlab.org/content/api-authentication), which is assumed to be located in the user's home directory in a file named _.elogcert_.
 
 ## Usage
+### API
+   - [Javadocs](https://jeffersonlab.github.io/jlog/)
+### Example
 ```
 import org.jlab.elog.LogEntry;
 import org.jlab.elog.exception.LogException;
@@ -39,6 +42,5 @@ public class HelloWorldDemo {
 
 ## See Also
    - [Download](https://github.com/JeffersonLab/jlog/releases)
-   - [Javadocs](https://jeffersonlab.github.io/jlog/)
    - [Old Release Notes](https://jeffersonlab.github.io/jlog/release-notes.html)
    - [Troubleshooting Tips](https://github.com/JeffersonLab/jlog/wiki/Troubleshooting)
