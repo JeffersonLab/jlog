@@ -2,10 +2,10 @@
 The Jefferson Lab Java Logbook API for programmatic access to the [logbook](https://logbooks.jlab.org/).
 
 ---
-   - [Build]()
-   - [Configure]()
-   - [Usage]()
-   - [See Also]()
+   - [Build](https://github.com/JeffersonLab/jlog/blob/master/README.md#build)
+   - [Configure](https://github.com/JeffersonLab/jlog/blob/master/README.md#configure)
+   - [Usage](https://github.com/JeffersonLab/jlog/blob/master/README.md#usage)
+   - [See Also](https://github.com/JeffersonLab/jlog/blob/master/README.md#see-also)
 ---
 
 ## Build
