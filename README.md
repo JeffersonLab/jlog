@@ -13,7 +13,12 @@ The Jefferson Lab Java Logbook API for programmatic access to the [logbook](http
 gradlew build
 ```
 ## Configure
+
+### Properties
 The default configuration properties are located in [elog.properties](https://github.com/JeffersonLab/jlog/blob/master/src/main/resources/elog.properties).   You can override them by creating your own elog.properties and including it in the classpath before the elog.jar file (containing the defaults).   Or you can programmatically set properties within a Java application using [Library.setConfiguration()](https://github.com/JeffersonLab/jlog/blob/master/src/main/java/org/jlab/elog/Library.java#L58).
+
+### Authentication
+In order to interact with the logbook server users must authenticate.  This is done using a [logbook server client certificate](https://logbooks.jlab.org/content/api-authentication).
 
 ## Usage
 ```
