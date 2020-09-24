@@ -12,6 +12,7 @@ The Jefferson Lab Java Logbook API for programmatic access to the [logbook](http
 ```
 gradlew build
 ```
+**Note:** You can skip the automated tests with extra argument __-x test__
 ## Configure
 
 ### Properties
