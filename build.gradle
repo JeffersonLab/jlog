@@ -43,6 +43,9 @@ javadoc {
     }
 }
 
+// We only automatically run tests that end with "Test".  That way, we can define
+// integration tests or other special tests that would fail in Travis, but we can manually
+// execute in special environments (Docker anyone).
 test {
     include '**/*Test.class'
 }

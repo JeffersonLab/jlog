@@ -13,17 +13,25 @@ import org.jlab.elog.exception.LogRuntimeException;
  */
 public final class Library {
 
-    private static final String VERSION = "3.3.1";
     private static Properties configuration;
 
+    /**
+     * Release properties are separate since they are managed by the build process - we don't want
+     * users confused or able to Library.setConfiguration() overriding release info.
+     */
+    private static Properties release;
+
     static {
-        InputStream in = Library.class.getClassLoader().getResourceAsStream(
-                "elog.properties");
+        try ( // If either one fails to load, we bail out!
+            InputStream elogIn = Library.class.getClassLoader().getResourceAsStream("elog.properties");
+            InputStream releaseIn = Library.class.getClassLoader().getResourceAsStream("release.properties");
+        ) {
 
-        configuration = new Properties();
+            configuration = new Properties();
+            release = new Properties();
 
-        try {
-            configuration.load(in);
+            configuration.load(elogIn);
+            release.load(releaseIn);
         } catch (IOException e) {
             throw new LogRuntimeException("Unable to load properties.", e);
         }
@@ -52,15 +60,23 @@ public final class Library {
     }
 
     /**
-     * Returns the library version String. A programmaticaly accessible version
+     * Returns the library version String. A programmatically accessible version
      * String is a requirement of JLab accelerator software certification.
      *
-     * The major version number corresponds to the API version. The minor
-     * version number corresponds to the implementation version.
+     * Versioning follows <a href="https://semver.org/">Semantic Versioning</a>.
      *
      * @return The version String
      */
     public static String getVersion() {
-        return VERSION;
+        return release.getProperty("VERSION");
+    }
+
+    /**
+     * The date in which this version of the library was released.
+     *
+     * @return The date string
+     */
+    public static String getReleaseDate() {
+        return release.getProperty("RELEASE_DATE");
     }
 }
