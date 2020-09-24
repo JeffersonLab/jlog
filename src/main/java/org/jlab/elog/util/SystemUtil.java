@@ -21,7 +21,7 @@ public final class SystemUtil {
      * id.
      *
      * The approach used is to check the RuntimeMXBean name field, which often
-     * is in the form <verbatim>pid@hostname</verbatim>, but isn't required to
+     * is in the form <code>pid@hostname</code>, but isn't required to
      * be (the value is JVM implementation dependent).
      *
      * @return The pid of the running JVM, or null if unable to obtain it.

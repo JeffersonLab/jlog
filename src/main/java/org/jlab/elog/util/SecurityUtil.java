@@ -254,8 +254,12 @@ public final class SecurityUtil {
      * encoded bytes. A PEM file may contain one or more of: a certificate,
      * private key, public key, certificate signing request, certificate signing
      * request response. The items in a PEM file each have a beginning and end
-     * delimiter. Example delimiters: <verbatim> -----BEGIN CERTIFICATE-----
-     * -----END CERTIFICATE----- </verbatim> PEM encoded bytes are base64
+     * delimiter. Example delimiters:
+     * <code>
+     * -----BEGIN CERTIFICATE-----
+     * -----END CERTIFICATE-----
+     * </code>
+     * PEM encoded bytes are base64
      * encoded. This method will convert the bytes back into non-base64 encoded
      * binary. This method may need to be called more than once; each time with
      * different delimiters, if the input bytes contain multiple items (i.e.
@@ -275,11 +279,11 @@ public final class SecurityUtil {
     }
 
     /**
-     * Get an X509Certificate from PEM bytes
+     * Get an X509Certificate from PEM bytes.
      * 
-     * @param pem
+     * @param pem The byte array
      * @return The X509Certificate
-     * @throws CertificateException
+     * @throws CertificateException If unable to obtain the certificate
      */
     public static X509Certificate fetchCertificateFromPEM(byte[] pem) throws CertificateException {
 		    String data = new String(pem);
@@ -291,12 +295,12 @@ public final class SecurityUtil {
 		}
     
     /**
-     * Get an RSAPublicKey from PEM bytes
+     * Get an RSAPublicKey from PEM bytes.
      * 
-     * @param pem
+     * @param pem The byte array
      * @return The RSAPrivateKey
-     * @throws InvalidKeySpecException
-     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException If unable to obtain the key
+     * @throws NoSuchAlgorithmException If unable to obtain the key
      */
     public static RSAPrivateKey fetchPrivateKeyFromPEM(byte[] pem) throws InvalidKeySpecException, NoSuchAlgorithmException {
 		    String data = new String(pem);
@@ -343,9 +347,9 @@ public final class SecurityUtil {
     /**
      * Get the CN from the subject DN on an X509Certificate
      * 
-     * @param cert
+     * @param cert The certificate
      * @return The CN string
-     * @throws InvalidNameException
+     * @throws InvalidNameException If the name is invalid
      */
     public static String getCommonNameFromCertificate(X509Certificate cert) throws InvalidNameException {
     		String commonName = null;

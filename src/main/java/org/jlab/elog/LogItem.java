@@ -1015,6 +1015,7 @@ abstract class LogItem {
      * @param certificatePath The path to the PEM-encoded client certificate
      * @param updateAuthor If true, the author field is updated to match
      * username in certificate
+     * @throws LogException If unable to set the certificate path
      */
     public void setClientCertificatePath(String certificatePath, boolean updateAuthor) throws LogException {
         Properties props = Library.getConfiguration();
