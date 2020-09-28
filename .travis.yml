@@ -1,6 +1,6 @@
 dist: xenial
 language: java
 jdk: openjdk8
-install skip
+install: skip
 script:
   - ./gradlew build --scan -s
