@@ -24,7 +24,7 @@ In order to interact with the logbook server users must authenticate.  This is d
 ## Usage
 You can [download](https://github.com/JeffersonLab/jlog/releases) the library as a single jar file (there are no dependencies other than the JVM standard library), or reference the artifact in the [JCenter repository](https://dl.bintray.com/slominskir/maven) from a Gradle/Maven/Ivy project:
 ```
-implementation 'org.jlab:jlog:4.0.0'
+implementation 'org.jlab:jlog:4.0.1'
 ```
 
 ### API
