@@ -1072,7 +1072,7 @@ public class LogEntry extends LogItem {
       	if (method.getName().startsWith("set")) {
       		java.lang.reflect.Parameter[] methodParams = method.getParameters();
       		if (methodParams != null && methodParams.length == 1 && methodParams[0].getType().equals(String.class)) {
-	      		char c[] = method.getName().substring(3).toCharArray();
+	      		char[] c = method.getName().substring(3).toCharArray();
 	      		c[0] = Character.toLowerCase(c[0]);
 	      		String arg = new String(c);
 	      		if (!possibleArgs.contains(arg)) {

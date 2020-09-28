@@ -25,7 +25,7 @@ import org.w3c.dom.NodeList;
  */
 public final class XMLUtil {
 
-    private static DatatypeFactory typeFactory;
+    private static final DatatypeFactory typeFactory;
 
     static {
         try {

@@ -10,6 +10,7 @@ import java.net.FileNameMap;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -884,7 +885,7 @@ abstract class LogItem {
             con.connect();
 
             try (OutputStream out = con.getOutputStream();
-                    OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8")) {
+                    OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
                 writer.write(xml);
             }
 
@@ -1197,7 +1198,7 @@ abstract class LogItem {
         String xml = getXML();
 
         try (FileOutputStream out = new FileOutputStream(filepath);
-                OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8")) {
+                OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
             writer.write(xml);
         } catch (IOException e) {
             throw new LogIOException("Unable to write XML file to queue.", e);

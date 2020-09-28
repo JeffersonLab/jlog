@@ -13,7 +13,8 @@ public class Body {
     public enum ContentType {
 
         TEXT, HTML
-    };
+    }
+
     private final ContentType type;
     private final String content;
     

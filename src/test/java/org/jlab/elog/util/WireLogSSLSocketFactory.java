@@ -27,7 +27,7 @@ import javax.net.ssl.SSLSocketFactory;
  */
 public class WireLogSSLSocketFactory extends SSLSocketFactory {
 
-    private SSLSocketFactory delegate;
+    private final SSLSocketFactory delegate;
     
     public WireLogSSLSocketFactory(SSLSocketFactory delegate) {
         this.delegate = delegate;
@@ -49,12 +49,12 @@ public class WireLogSSLSocketFactory extends SSLSocketFactory {
     }
 
     @Override
-    public Socket createSocket(String string, int i) throws IOException, UnknownHostException {
+    public Socket createSocket(String string, int i) throws IOException {
         return new WireLogSocket((SSLSocket)delegate.createSocket(string, i));
     }
 
     @Override
-    public Socket createSocket(String string, int i, InetAddress ia, int i1) throws IOException, UnknownHostException {
+    public Socket createSocket(String string, int i, InetAddress ia, int i1) throws IOException {
         return new WireLogSocket((SSLSocket)delegate.createSocket(string, i, ia, i1));
     }
 
@@ -71,7 +71,7 @@ public class WireLogSSLSocketFactory extends SSLSocketFactory {
 
 class WireLogSocket extends SSLSocket {
 
-    private SSLSocket delegate;
+    private final SSLSocket delegate;
     
     public WireLogSocket(SSLSocket delegate) {
         this.delegate = delegate;

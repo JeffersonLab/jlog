@@ -19,12 +19,12 @@ public final class Library {
      * Release properties are separate since they are managed by the build process - we don't want
      * users confused or able to Library.setConfiguration() overriding release info.
      */
-    private static Properties release;
+    private static final Properties release;
 
     static {
         try ( // If either one fails to load, we bail out!
             InputStream elogIn = Library.class.getClassLoader().getResourceAsStream("elog.properties");
-            InputStream releaseIn = Library.class.getClassLoader().getResourceAsStream("release.properties");
+            InputStream releaseIn = Library.class.getClassLoader().getResourceAsStream("release.properties")
         ) {
 
             configuration = new Properties();

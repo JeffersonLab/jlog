@@ -12,11 +12,11 @@ import static org.junit.Assert.assertEquals;
 
 public class LibraryUnitTest {
 
-    private static Properties release = new Properties();
+    private static final Properties release = new Properties();
 
     static {
         try (
-              InputStream releaseIn = Library.class.getClassLoader().getResourceAsStream("release.properties");
+              InputStream releaseIn = Library.class.getClassLoader().getResourceAsStream("release.properties")
         ) {
             release.load(releaseIn);
         } catch (IOException e) {
