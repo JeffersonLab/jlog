@@ -52,6 +52,12 @@ test {
     include '**/*UnitTest.class'
 }
 
+tasks.withType(Test) {
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
 task integrationTest(type: Test) {
     description = 'Runs integration tests.'
     group 'verification'
