@@ -114,7 +114,7 @@ bintray {
         licenses = ['MIT']
         vcsUrl = 'https://github.com/JeffersonLab/jlog.git'
         version {
-            name = '4.0.0'
+            name = project.version
         }
     }
 }
