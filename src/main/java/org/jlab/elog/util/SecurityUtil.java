@@ -1,10 +1,8 @@
 package org.jlab.elog.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -272,7 +270,7 @@ public final class SecurityUtil {
      */
     public static byte[] parseDERFromPEM(byte[] pem, String beginDelimiter,
             String endDelimiter) {
-        String data = new String(pem);
+        String data = new String(pem, StandardCharsets.UTF_8);
         String[] tokens = data.split(beginDelimiter);
         tokens = tokens[1].split(endDelimiter);
         return IOUtil.decodeBase64(tokens[0]);
@@ -286,7 +284,7 @@ public final class SecurityUtil {
      * @throws CertificateException If unable to obtain the certificate
      */
     public static X509Certificate fetchCertificateFromPEM(byte[] pem) throws CertificateException {
-		    String data = new String(pem);
+		    String data = new String(pem, StandardCharsets.UTF_8);
 		    String[] tokens = data.split("-----BEGIN CERTIFICATE-----");
 		    tokens = tokens[1].split( "-----END CERTIFICATE-----");
         byte[] certBytes = IOUtil.decodeBase64(tokens[0]);
@@ -303,7 +301,7 @@ public final class SecurityUtil {
      * @throws NoSuchAlgorithmException If unable to obtain the key
      */
     public static RSAPrivateKey fetchPrivateKeyFromPEM(byte[] pem) throws InvalidKeySpecException, NoSuchAlgorithmException {
-		    String data = new String(pem);
+		    String data = new String(pem, StandardCharsets.UTF_8);
 		    String[] tokens = data.split("-----BEGIN PRIVATE KEY-----");
 		    tokens = tokens[1].split("-----END PRIVATE KEY-----");
 		    byte[] keyBytes = IOUtil.decodeBase64(tokens[0]);

@@ -10,7 +10,7 @@ import java.util.Properties;
 import static org.junit.Assert.assertEquals;
 
 
-public class LibraryTest {
+public class LibraryUnitTest {
 
     private static Properties release = new Properties();
 

@@ -22,12 +22,12 @@ import org.junit.Test;
  *
  * @author ryans
  */
-public class LogEntryTest {
+public class LogEntryUnitTest {
 
     private LogEntry entry;
     private LogEntryAdminExtension extension;
 
-    public LogEntryTest() {
+    public LogEntryUnitTest() {
     }
 
     @BeforeClass

@@ -12,11 +12,11 @@ import org.junit.Test;
  * 
  * @author ryans
  */
-public class CommentTest {
+public class CommentUnitTest {
     
     private Comment comment;
     
-    public CommentTest() {
+    public CommentUnitTest() {
     }
     
     @BeforeClass

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.util.Properties;
 
@@ -29,12 +30,12 @@ import org.junit.Test;
  *
  * @author ryans
  */
-public class CertificateAndServerIntegration {
+public class CertificateAndServerIntegrationTest {
 
     private LogEntry entry;
     private LogEntryAdminExtension extension;
 
-    public CertificateAndServerIntegration() {
+    public CertificateAndServerIntegrationTest() {
     }
 
     @BeforeClass
@@ -233,7 +234,7 @@ public class CertificateAndServerIntegration {
 
         try {
 
-            in = new ByteArrayInputStream(builder.toString().getBytes("UTF-8"));
+            in = new ByteArrayInputStream(builder.toString().getBytes(StandardCharsets.UTF_8));
             out = new FileOutputStream(tmp);
 
             IOUtil.copy(in, out);
@@ -258,6 +259,7 @@ public class CertificateAndServerIntegration {
         if (entryId == 0) {
         	throw new Exception("It was queued!", entry.whyQueued());
         }
+        System.out.println("Created log entry: " + entryId);
     }
 
     @Test

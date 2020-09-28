@@ -11,9 +11,9 @@ import org.junit.Test;
  *
  * @author ryans
  */
-public class IOUtilTest {
+public class IOUtilUnitTest {
     
-    public IOUtilTest() {
+    public IOUtilUnitTest() {
     }
     
     @BeforeClass

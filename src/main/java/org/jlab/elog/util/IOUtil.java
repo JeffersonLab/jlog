@@ -165,7 +165,7 @@ public final class IOUtil {
      * @return A base64 encoded String
      */
     public static String encodeBase64(byte[] data) {
-        return Base64.getEncoder().encodeToString(data);
+        return Base64.getMimeEncoder().encodeToString(data);
     }
 
     /**
@@ -175,6 +175,6 @@ public final class IOUtil {
      * @return The bytes
      */
     public static byte[] decodeBase64(String data) {
-        return Base64.getDecoder().decode(data);
+        return Base64.getMimeDecoder().decode(data);
     }
 }
