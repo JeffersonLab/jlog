@@ -55,13 +55,13 @@ public class CommentUnitTest {
         assertEquals(expected.getType(), actual.getType());
     }    
     
-    @Test
+    //@Test
     public void testValidate() throws Exception {
         comment.validate();
     }
     
-    /*@Test
+    //@Test
     public void testSubmit() throws Exception {
         comment.submit();
-    }*/
+    }
 }
