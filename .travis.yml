@@ -3,4 +3,4 @@ language: java
 jdk: openjdk8
 install: skip
 script:
-  - ./gradlew build --scan -s
+  - ./gradlew test
