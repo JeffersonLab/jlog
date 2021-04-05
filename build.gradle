@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
+    id 'signing'
 }
 
 description = "Jefferson Lab logbook API"
@@ -76,6 +77,10 @@ task integrationTest(type: Test) {
     testLogging {
         showStandardStreams = true
     }
+}
+
+signing {
+    sign publishing.publications
 }
 
 publishing {
