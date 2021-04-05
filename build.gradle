@@ -99,6 +99,32 @@ publishing {
         publications {
             maven(MavenPublication) {
                 from(components.java)
+                pom {
+                    name = project.name
+                    description = project.description
+                    url = "https://github.com/JeffersonLab/jlog"
+                    licenses {
+                        license {
+                            name = "The MIT License"
+                            url = "https://github.com/JeffersonLab/jlog/blob/master/LICENSE"
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = "slominskir"
+                            name = "Ryan Slominski"
+                            email = "ryans@jlab.org"
+                        }
+                        developer {
+                            id = "dub357"
+                            name = "Bobby Lawrence"
+                            email = "robertl@jlab.org"
+                        }
+                    }
+                    scm {
+                        url = "https://github.com/JeffersonLab/jlog.git"
+                    }
+                }
             }
         }
         artifacts {
