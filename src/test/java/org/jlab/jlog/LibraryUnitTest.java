@@ -1,5 +1,6 @@
 package org.jlab.jlog;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -33,5 +34,15 @@ public class LibraryUnitTest {
 
         assertEquals(expectedReleaseDate, actualReleaseDate);
         assertEquals(expectedVersion, actualVersion);
+    }
+
+    @Test
+    @Ignore // Not really sure how else to test this other than manually
+    public void testUserProp() throws Exception {
+        Properties props = Library.getConfiguration();
+
+        System.out.println("QUEUE_PATH: " + props.getProperty("QUEUE_PATH"));
+
+        // Set config in ~/jlog.properties and see if they are read!
     }
 }
