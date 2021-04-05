@@ -11,26 +11,8 @@
             <h2>Usage</h2>
             <p>
                 In order to use the library you need to include it in the 
-                classpath of your Java program.  The most recent revision of the 
-                version 3 series of the library is available from the following 
-                paths:
-            </p>
-            <dl class="property-list">                
-                <dt>CUE Linux</dt>
-                <dd>/site/ace/certified/apps/eloglib/java/jlog3.jar</dd> 
-                <dt>ACE Linux</dt>
-                <dd>/cs/certified/apps/eloglib/java/jlog3.jar</dd>
-                <dt>CUE and ACE Windows</dt>
-                <dd>K:\ace\certified\apps\eloglib\java\jlog3.jar</dd>                
-            </dl>
-            <p>
-                Semantic versioning is used: "major.minor.patch", where major 
-                versions indicate API changes, minor versions are for new 
-                features, and patch versions are for bug 
-                fixes and implementation changes.  It is relatively safe to 
-                include the jlog3.jar in your classpath, but you may 
-                alternatively include a specified minor version such as 
-                jlog-2.3.jar. 
+                classpath of your Java program.  The software is packaged with
+                Maven and available from <a href="https://github.com/JeffersonLab/jlog">https://github.com/JeffersonLab/jlog</a>.
             </p>
             <p>
                 You need to have a client 
@@ -39,13 +21,13 @@
             <a href="https://logbooks.jlab.org/cert">
                 https://logbooks.jlab.org/cert</a>
             <p>You need to save the PEM formatted certificate as <em>.elogcert</em>
-                in your home directory.  If you install the certificate in your 
-                certificate store you can verify the server accepts it by navigating to:
+                in your home directory (or else be prepared to explicitly instruct the library where you saved the file if not in the default location).  If you install the
+                certificate in the certificate store used by your web browser you can verify the logbook server accepts it by navigating to:
             </p>
             <a href="https://logbooks.jlab.org/authtest/">
                 https://logbooks.jlab.org/authtest/</a>
-            <p><b>Note: </b>system administrators may have generated your 
-                certificate and placed it in your home directory for you already.
+            <p><b>Note: </b>JLab staff on JLab computers may have a
+                certificate already in your home directory placed there by a system administrator for you.
             </p>
             <b>Example Program 1: Hello World</b>
             <pre><code>
@@ -57,40 +39,6 @@
          System.<span class="ST3">out</span>.println(<span class="character">&quot;</span><span class="character">Successfully submitted log entry number: </span><span class="character">&quot;</span> + lognumber);
      }
             </code></pre>
-            <p>The example program is included with the <a href="#source">source</a> code and can be run 
-                on an accelerator Linux machine with the following commands:</p>
-            <pre><kbd>
-cd jlog
-javac -cp /cs/certified/apps/eloglib/java/jlog3.jar  test/org/jlab/elog/example/HelloWorldDemo.java
-java -cp /cs/certified/apps/eloglib/java/jlog3.jar:test org.jlab.jlog.example.HelloWorldDemo
-            </kbd></pre>
-            <p>Running the example on Windows is similar, but the classpath (-cp) 
-                delimiter is a semicolon instead of a colon.  The path to the 
-                library is different as well.</p>           
-            <b>Example Program 2: Basic Usage</b>
-            <pre><code>
-     <span class="keyword-directive">public</span> <span class="keyword-directive">static</span> <span class="keyword-directive">void</span> <span class="ST2">main</span>(String[] args) <span class="keyword-directive">throws</span> LogException {
-         LogEntry entry = <span class="keyword-directive">new</span> LogEntry(<span class="character">&quot;</span><span class="character">Drinking</span><span class="character">&quot;</span>, <span class="character">&quot;</span><span class="character">TLOG</span><span class="character">&quot;</span>);
-         entry.setBody(<span class="character">&quot;</span><span class="character">After I read about the evils of drinking, I gave up reading.</span><span class="character">&quot;</span>);
-         entry.setTags(<span class="character">&quot;</span><span class="character">Autolog,Readme</span><span class="character">&quot;</span>);
-         
-         <span class="keyword-directive">long</span> lognumber = entry.submit();
-         
-         <span class="keyword-directive">if</span>(lognumber == 0) {
-             System.<span class="ST3">out</span>.println(<span class="character">&quot;</span><span class="character">The log entry was queued.</span><span class="character">&quot;</span>);
-         } <span class="keyword-directive">else</span> {
-             Comment comment = <span class="keyword-directive">new</span> Comment(lognumber, <span class="character">&quot;</span><span class="character">24 hours in a day, 24 beers in a case.  Coincidence?</span><span class="character">&quot;</span>);
-             comment.submit();
-             
-             LogEntry revision = LogEntry.<span class="ST4">getLogEntry</span>(lognumber, <span class="character">&quot;</span><span class="character">Add notification</span><span class="character">&quot;</span>);
-             revision.setEmailNotify(<span class="character">&quot;</span><span class="character">ryans@jlab.org</span><span class="character">&quot;</span>);
-             revision.submit();
-             
-             System.<span class="ST3">out</span>.println(<span class="character">&quot;</span><span class="character">Done with submission, comment, and revision.</span><span class="character">&quot;</span>);
-         }
-     }
-            </code></pre>
-            <p>The example program is included with the <a href="#source">source</a> code and is named <em>org.jlab.jlog.example.BasicDemo</em></p>
             <b>Valid Tags, References, and Logbooks</b>
             <p>
                 The valid tags are listed here:
@@ -169,21 +117,6 @@ java -cp /cs/certified/apps/eloglib/java/jlog3.jar:test org.jlab.jlog.example.He
                     certificates such as those used on logbooktest.acc.jlab.org.
                 </dd>                 
             </dl>
-            <p>
-                If building from source then you can edit the properties file 
-                before running the build.  If you already have a compiled 
-                library in a jar file then you can modify the properties file 
-                that is included inside the jar.  On Windows a program such as
-                7-Zip can be used to edit the file in place.  Alternatively you
-                can extract the files in the jar, modify the properties,
-                (with vi for example), then combine the files back into a jar 
-                using the following commands:
-            </p>
-            <pre><kbd>
-jar xf jlog.jar
-vi org/jlab/elog/elog.properties
-jar cf jlog.jar org META-INF
-            </kbd></pre> 
             <b>Attachment Size Limits</b>
             <p>
                 Client-side size limits on attachments are enforced to help 
@@ -205,24 +138,7 @@ jar cf jlog.jar org META-INF
                 which references attachments (via URLs) which are larger than
                 these limits.  The library will download all of the attachments 
                 to verify they are within the client limits.
-            </p>        
-            <h2><a id="source">Source Code</a></h2>
-            <p>The Java electronic log book client API is named <em>jlog</em> 
-                and is stored in the JLab git repository on github.  It can be
-                accessed by members of the JLab github group <em>ACE</em> 
-                from an accelerator Linux machine with the command:</p>
-            <pre><kbd>
-git clone ssh://github.com/JeffersonLab/jlog.git 
-            </kbd></pre>
-            <p>
-                An Apache Ant build file (build.xml) is used to compile and
-                package the library.  The source includes JUnit tests; in order
-                to invoke the <em>test</em> ant target be sure to pass in the 
-                path to the JUnit 4 jar.  For example:
-            </p>   
-            <pre><kbd>
-ant -Djunit.jar.path="../lib/junit-4.10.jar" test                   
-            </kbd></pre>           
+            </p>
         </div>
     </body>
 </html>
