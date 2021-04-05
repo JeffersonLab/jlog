@@ -17,13 +17,27 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
+sourceSets {
+    integration {
+        java.srcDir "${projectDir}/src/integration/java"
+        resources.srcDir "${projectDir}/src/integration/resources"
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+configurations {
+    //testImplementation.extendsFrom compileOnly
+    integrationImplementation.extendsFrom testImplementation
+    integrationRuntimeOnly.extendsFrom runtimeOnly
+}
 
 repositories {
     jcenter()
 }
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
 }
 
 processResources {
@@ -45,23 +59,23 @@ javadoc {
     }
 }
 
-// We only automatically run tests that end with "Test".  That way, we can define
-// integration tests or other special tests that would fail in Travis, but we can manually
-// execute in special environments (Docker anyone).
-test {
-    include '**/*UnitTest.class'
-}
-
 tasks.withType(Test) {
     testLogging {
         events "passed", "skipped", "failed"
+        exceptionFormat "full"
     }
 }
 
 task integrationTest(type: Test) {
     description = 'Runs integration tests.'
     group 'verification'
-    include '**/*IntegrationTest.class'
+
+    testClassesDirs = sourceSets.integration.output.classesDirs
+    classpath = sourceSets.integration.runtimeClasspath
+
+    testLogging {
+        showStandardStreams = true
+    }
 }
 
 def pomConfig = {
