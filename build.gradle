@@ -5,7 +5,7 @@ plugins {
 
 description = "Jefferson Lab logbook API"
 group 'org.jlab'
-version = '4.1.0'
+version = '5.0.0'
 
 ext {
     releaseDate = 'April 05 2020'
@@ -91,7 +91,7 @@ publishing {
             url = uri("https://maven.pkg.github.com/JeffersonLab/jlog")
             credentials {
                 username = project.findProperty("github.user") ?: System.getenv("GITHUB_USER")
-                password = project.findProperty("github.key") ?: System.getenv("GITHUB_TOKEN")
+                password = project.findProperty("github.token") ?: System.getenv("GITHUB_TOKEN")
             }
         }
         publications {
