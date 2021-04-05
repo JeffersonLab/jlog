@@ -1,4 +1,4 @@
-# jlog [![Build Status](https://travis-ci.com/JeffersonLab/jlog.svg?branch=master)](https://travis-ci.com/JeffersonLab/jlog) [ ![Download](https://api.bintray.com/packages/slominskir/maven/jlog/images/download.svg?version=4.0.1) ](https://bintray.com/slominskir/maven/jlog/4.0.1/link)
+# jlog [![Java CI with Gradle](https://github.com/JeffersonLab/jlog/actions/workflows/gradle.yml/badge.svg)](https://github.com/JeffersonLab/jlog/actions/workflows/gradle.yml) [ ![Download](https://api.bintray.com/packages/slominskir/maven/jlog/images/download.svg?version=4.0.1) ](https://bintray.com/slominskir/maven/jlog/4.0.1/link)
 The Jefferson Lab Java Logbook API for programmatic access to the [logbook](https://logbooks.jlab.org/).
 
 ---
