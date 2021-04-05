@@ -8,6 +8,7 @@
         <p>The electronic log book client API allows programmers to easily add 
             the ability for their programs to make log entries.</p>
         <div class="overview">
+            <hr>
             <h2>Usage</h2>
             <p>
                 In order to use the library you need to include it in the 
@@ -17,15 +18,17 @@
             <p>
                 You need to have a client 
                 certificate to make direct submissions to the server.  JLab users
-                can obtain a certificate from the server at the following URL:</p>
+                can obtain a certificate from the server at the following URL:
             <a href="https://logbooks.jlab.org/cert">
                 https://logbooks.jlab.org/cert</a>
+            </p>
             <p>You need to save the PEM formatted certificate as <em>.elogcert</em>
                 in your home directory (or else be prepared to explicitly instruct the library where you saved the file if not in the default location).  If you install the
                 certificate in the certificate store used by your web browser you can verify the logbook server accepts it by navigating to:
-            </p>
+
             <a href="https://logbooks.jlab.org/authtest/">
                 https://logbooks.jlab.org/authtest/</a>
+            </p>
             <p><b>Note: </b>JLab staff on JLab computers may have a
                 certificate already in your home directory placed there by a system administrator for you.
             </p>
@@ -41,21 +44,22 @@
             </code></pre>
             <b>Valid Tags, References, and Logbooks</b>
             <p>
-                The valid tags are listed here:
+                Tags:
                 <a href="https://logbooks.jlab.org/tags">https://logbooks.jlab.org/tags</a>
             </p>
             <p>
-                The valid logbooks are listed here:
+                Logbooks:
                 <a href="https://logbooks.jlab.org/logbooks">https://logbooks.jlab.org/logbooks</a>
             </p>
             <p>
-                The valid references are listed here:
+                References:
                 <a href="https://logbooks.jlab.org/references">https://logbooks.jlab.org/references</a>
             </p>            
             <p>
-                All enumerations are defined in the schema here:
+                Enumerations:
                 <a href="http://logbooks.jlab.org/schema/TypeDefinitions.xsd">http://logbooks.jlab.org/schema/TypeDefinitions.xsd</a>
-            </p>           
+            </p>
+            <hr>
             <h2>Configuration</h2>
             <p>
                 A Java properties file is used to set configuration.   A default file is included inside the jar.
@@ -65,24 +69,24 @@
                 properties.  The properties include:
             </p>
             <dl class="property-list">
-                <dt>LOG_ENTRY_SCHEMA_URL</dt>
+                <dt><b>LOG_ENTRY_SCHEMA_URL</b></dt>
                 <dd>
                     The URL to the log entry schema.
                 </dd>
-                <dt>COMMENT_SCHEMA_URL</dt>
+                <dt><b>COMMENT_SCHEMA_URL</b></dt>
                 <dd>
                     The URL to the comment schema.
                 </dd>
-                <dt>SUBMIT_URL</dt>
+                <dt><b>SUBMIT_URL</b></dt>
                 <dd>
                     The URL to submit (HTTP PUT) entries and comments to the log 
                     book server.
                 </dd>
-                <dt>FETCH_URL</dt>
+                <dt><b>FETCH_URL</b></dt>
                 <dd>
                     The URL to fetch (HTTP GET) log entries and comments.
                 </dd>
-                <dt>QUEUE_PATH</dt>
+                <dt><b>QUEUE_PATH</b></dt>
                 <dd>
                     The path on the local workstation (usually a network file 
                     share) to drop (queue) log entries and comments.  If this
@@ -91,33 +95,35 @@
                     and use the default value for the OS type, as defined in 
                     DEFAULT_UNIX_QUEUE_PATH and DEFAULT_WINDOWS_QUEUE_PATH.
                 </dd>
-                <dt>DEFAULT_UNIX_QUEUE_PATH</dt>
+                <dt><b>DEFAULT_UNIX_QUEUE_PATH</b></dt>
                 <dd>
                     The default file path to queue files if the QUEUE_PATH 
                     property is undefined and the library determines that it is 
                     running on a UNIX system.
                 </dd>            
-                <dt>DEFAULT_WINDOWS_QUEUE_PATH</dt>
+                <dt><b>DEFAULT_WINDOWS_QUEUE_PATH</b></dt>
                 <dd>
                     The default file path to queue files if the QUEUE_PATH 
                     property is undefined and the library determines that it is 
                     running on a WINDOWS system.
                 </dd>   
-                <dt>ATTACH_SINGLE_MAX_BYTES</dt>
+                <dt><b>ATTACH_SINGLE_MAX_BYTES</b></dt>
                 <dd>
                     Maximum number of bytes allowed in a single attachment file.
                 </dd>
-                <dt>ATTACH_TOTAL_MAX_BYTES</dt>
+                <dt><b>ATTACH_TOTAL_MAX_BYTES</b></dt>
                 <dd>
                     Maximum number of bytes allowed across all attachments.
                 </dd>   
-                <dt>IGNORE_SERVER_CERT_ERRORS</dt>
+                <dt><b>IGNORE_SERVER_CERT_ERRORS</b></dt>
                 <dd>
                     For testing it is often useful to ignore self signed 
                     certificates such as those used on logbooktest.acc.jlab.org.
                 </dd>                 
             </dl>
+            <p>
             <b>Attachment Size Limits</b>
+            </p>
             <p>
                 Client-side size limits on attachments are enforced to help 
                 avoid an OutOfMemoryError or rejection by the server due to 
