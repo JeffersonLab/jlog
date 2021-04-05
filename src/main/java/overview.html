@@ -62,7 +62,7 @@
             <pre><kbd>
 cd jlog
 javac -cp /cs/certified/apps/eloglib/java/jlog3.jar  test/org/jlab/elog/example/HelloWorldDemo.java
-java -cp /cs/certified/apps/eloglib/java/jlog3.jar:test org.jlab.elog.example.HelloWorldDemo 
+java -cp /cs/certified/apps/eloglib/java/jlog3.jar:test org.jlab.jlog.example.HelloWorldDemo
             </kbd></pre>
             <p>Running the example on Windows is similar, but the classpath (-cp) 
                 delimiter is a semicolon instead of a colon.  The path to the 
@@ -90,7 +90,7 @@ java -cp /cs/certified/apps/eloglib/java/jlog3.jar:test org.jlab.elog.example.He
          }
      }
             </code></pre>
-            <p>The example program is included with the <a href="#source">source</a> code and is named <em>org.jlab.elog.example.BasicDemo</em></p>
+            <p>The example program is included with the <a href="#source">source</a> code and is named <em>org.jlab.jlog.example.BasicDemo</em></p>
             <b>Valid Tags, References, and Logbooks</b>
             <p>
                 The valid tags are listed here:
@@ -111,7 +111,7 @@ java -cp /cs/certified/apps/eloglib/java/jlog3.jar:test org.jlab.elog.example.He
             <h2>Configuration</h2>
             <p>
                 A Java properties file is located in the package 
-                <em>org.jlab.elog</em> and is named <em>elog.properties</em>. 
+                <em>org.jlab.jlog</em> and is named <em>elog.properties</em>.
                 This file contains the default properties.  You can use the 
                 <code>Library.setConfiguration</code> method to override the 
                 properties.  The properties include:
