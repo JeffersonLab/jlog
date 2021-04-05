@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"org.jlab.elog"},{"l":"org.jlab.elog.exception"},{"l":"org.jlab.elog.util"}]
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"org.jlab.jlog"},{"l":"org.jlab.jlog.exception"},{"l":"org.jlab.jlog.util"}]
