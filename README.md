@@ -1,4 +1,4 @@
-# jlog [![Java CI with Gradle](https://github.com/JeffersonLab/jlog/actions/workflows/gradle.yml/badge.svg)](https://github.com/JeffersonLab/jlog/actions/workflows/gradle.yml) [![Maven Central](https://img.shields.io/maven-central/v/org.jlab/jlog)](https://repo1.maven.org/maven2/org/jlab/jlog/5.0.0/)
+# jlog [![Java CI with Gradle](https://github.com/JeffersonLab/jlog/actions/workflows/gradle.yml/badge.svg)](https://github.com/JeffersonLab/jlog/actions/workflows/gradle.yml) [![Maven Central](https://img.shields.io/maven-central/v/org.jlab/jlog)](https://repo1.maven.org/maven2/org/jlab/jlog)
 The Jefferson Lab Java Logbook API for programmatic access to the [logbook](https://logbooks.jlab.org/).
 
 ---
@@ -22,9 +22,9 @@ The default configuration properties are located in [elog.properties](https://gi
 In order to interact with the logbook server users must authenticate.  This is done using a [logbook server client certificate](https://logbooks.jlab.org/content/api-authentication), which is assumed to be located in the user's home directory in a file named _.elogcert_.  You can override the location of the certificate with [LogEntry.setClientCertificatePath()](https://jeffersonlab.github.io/jlog/org/jlab/jlog/LogEntry.html#setClientCertificatePath(java.lang.String,boolean)).
 
 ## Usage
-You can [download](https://github.com/JeffersonLab/jlog/releases) the library as a single jar file (there are no dependencies other than the JVM standard library), or reference the artifact in the [JCenter repository](https://dl.bintray.com/slominskir/maven) from a Gradle/Maven/Ivy project:
+You can check the [Release Notes](https://github.com/JeffersonLab/jlog/releases) to see what has changed.  The library is a single jar file with no dependencies other than the JVM standard library.  You can obtain the jar file from the [Maven Central repository](https://repo1.maven.org/maven2/org/jlab/jlog) directly or from a Maven friendly build tool with the following coordinates (Gradle example shown):
 ```
-implementation 'org.jlab:jlog:4.0.1'
+implementation 'org.jlab:jlog:5.0.0'
 ```
 
 ### API
