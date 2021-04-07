@@ -1,4 +1,4 @@
-# jlog [![Java CI with Gradle](https://github.com/JeffersonLab/jlog/actions/workflows/gradle.yml/badge.svg)](https://github.com/JeffersonLab/jlog/actions/workflows/gradle.yml) [![Maven Central](https://img.shields.io/maven-central/v/org.jlab/jlog)](https://repo1.maven.org/maven2/org/jlab/jlog)
+# jlog [![Java CI with Gradle](https://github.com/JeffersonLab/jlog/actions/workflows/gradle.yml/badge.svg)](https://github.com/JeffersonLab/jlog/actions/workflows/gradle.yml) [![Maven Central](https://img.shields.io/maven-central/v/org.jlab/jlog)](https://repo1.maven.org/maven2/org/jlab/jlog/)
 The Jefferson Lab Java Logbook API for programmatic access to the [logbook server](https://logbooks.jlab.org/).
 
 ---
@@ -11,7 +11,7 @@ The Jefferson Lab Java Logbook API for programmatic access to the [logbook serve
 ---
 
 ## Usage
-The library is a single jar file with no dependencies other than the Java 8+ JVM and standard library.  You can obtain the jar file from the [Maven Central repository](https://repo1.maven.org/maven2/org/jlab/jlog) directly or from a Maven friendly build tool with the following coordinates (Gradle example shown):
+The library is a single jar file with no dependencies other than the Java 8+ JVM and standard library.  You can obtain the jar file from the [Maven Central repository](https://repo1.maven.org/maven2/org/jlab/jlog/) directly or from a Maven friendly build tool with the following coordinates (Gradle example shown):
 ```
 implementation 'org.jlab:jlog:5.0.0'
 ```
