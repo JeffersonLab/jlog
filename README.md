@@ -53,5 +53,6 @@ gradlew build
 **Note**: Jefferson Lab has an intercepting [proxy](https://gist.github.com/slominskir/92c25a033db93a90184a5994e71d0b78)
 
 ## See Also
-   - [Old Release Notes](https://jeffersonlab.github.io/jlog/release-notes.html)
+   - [Developer Notes](https://github.com/JeffersonLab/jlog/wiki/Developer-Notes)
    - [Troubleshooting Tips](https://github.com/JeffersonLab/jlog/wiki/Troubleshooting)
+   - [Old Release Notes](https://jeffersonlab.github.io/jlog/release-notes.html)
