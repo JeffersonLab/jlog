@@ -13,7 +13,7 @@ The Jefferson Lab Java Logbook API for programmatic access to the [logbook serve
 ## Install
 This library requires a Java 8+ JVM and standard library at run time. 
 
-You can obtain the jar file from the [Maven Central repository](https://repo1.maven.org/maven2/org/jlab/jlog/) directly or from a Maven friendly build tool with the following coordinates (Gradle example shown):
+You can obtain the library jar file from the [Maven Central repository](https://repo1.maven.org/maven2/org/jlab/jlog/) directly or from a Maven friendly build tool with the following coordinates (Gradle example shown):
 ```
 implementation 'org.jlab:jlog:<version>'
 ```
