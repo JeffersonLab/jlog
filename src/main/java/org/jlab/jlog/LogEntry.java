@@ -1064,7 +1064,13 @@ public class LogEntry extends LogItem {
     public void setBody(Body body) throws LogRuntimeException {
         super.setBody(body);
     }
-    
+
+    /**
+     * The entrypoint if this library is invoked as a command line application.
+     *
+     * @param args The command line arguments
+     * @throws Exception If something goes wrong
+     */
     public static void main(String[] args) throws Exception {
     	ArrayList<String> possibleArgs = new ArrayList<String>();
     	java.lang.reflect.Method[] methods = LogEntry.class.getDeclaredMethods();

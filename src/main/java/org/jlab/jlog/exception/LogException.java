@@ -10,11 +10,22 @@ package org.jlab.jlog.exception;
  */
 public class LogException extends Exception {
 
+    /**
+     * Create a new LogException with a message.
+     *
+     * @param msg The message
+     */
     public LogException(String msg) {
         super(msg);
     }
 
-    public LogException(String msg, Throwable t) {
-        super(msg, t);
+    /**
+     * Create a new LogException with a message and cause.
+     *
+     * @param msg The message
+     * @param cause The cause
+     */
+    public LogException(String msg, Throwable cause) {
+        super(msg, cause);
     }
 }

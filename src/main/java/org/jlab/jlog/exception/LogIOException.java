@@ -7,12 +7,23 @@ package org.jlab.jlog.exception;
  */
 public class LogIOException extends LogException {
 
+    /**
+     * Create a new LogIOException with a message.
+     *
+     * @param msg The message
+     */
     public LogIOException(String msg) {
         super(msg);
     }
-    
-    public LogIOException(String msg, Throwable t) {
-        super(msg, t);
+
+    /**
+     * Create a new LogIOException with a message and cause.
+     *
+     * @param msg The message
+     * @param cause The cause
+     */
+    public LogIOException(String msg, Throwable cause) {
+        super(msg, cause);
     }
     
 }

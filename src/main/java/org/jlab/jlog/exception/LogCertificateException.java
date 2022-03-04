@@ -6,11 +6,23 @@ package org.jlab.jlog.exception;
  * @author ryans
  */
 public class LogCertificateException extends LogException {
+
+    /**
+     * Create a new LogCertificateException with message.
+     *
+     * @param msg The message
+     */
     public LogCertificateException(String msg) {
         super(msg);
     }
-    
-    public LogCertificateException(String msg, Throwable t) {
-        super(msg, t);
+
+    /**
+     * Create a new LogCertificateException with message and cause.
+     *
+     * @param msg The message
+     * @param cause The cause
+     */
+    public LogCertificateException(String msg, Throwable cause) {
+        super(msg, cause);
     }
 }

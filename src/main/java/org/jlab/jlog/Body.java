@@ -12,7 +12,14 @@ public class Body {
      */
     public enum ContentType {
 
-        TEXT, HTML
+        /**
+         * Plain Text Body
+         */
+        TEXT,
+        /**
+         * HTML Body
+         */
+        HTML
     }
 
     private final ContentType type;

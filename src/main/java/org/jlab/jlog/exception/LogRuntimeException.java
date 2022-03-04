@@ -14,11 +14,22 @@ package org.jlab.jlog.exception;
  */
 public class LogRuntimeException extends RuntimeException {
 
+    /**
+     * Create a new LogRuntimeException with a message.
+     *
+     * @param msg The message
+     */
     public LogRuntimeException(String msg) {
         super(msg);
     }
 
-    public LogRuntimeException(String msg, Throwable t) {
-        super(msg, t);
+    /**
+     * Create a new LogRuntimeException with a message and cause.
+     *
+     * @param msg The message
+     * @param cause The cause
+     */
+    public LogRuntimeException(String msg, Throwable cause) {
+        super(msg, cause);
     }
 }

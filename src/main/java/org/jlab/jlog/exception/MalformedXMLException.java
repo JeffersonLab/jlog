@@ -7,12 +7,23 @@ package org.jlab.jlog.exception;
  */
 public class MalformedXMLException extends LogException {
 
+    /**
+     * Create a new MalformedXMLException with a message.
+     *
+     * @param msg The message
+     */
     public MalformedXMLException(String msg) {
         super(msg);
     }
-    
-    public MalformedXMLException(String msg, Throwable t) {
-        super(msg, t);
+
+    /**
+     * Create a new MalformedXMLException with a message and cause.
+     *
+     * @param msg The message
+     * @param cause The cause
+     */
+    public MalformedXMLException(String msg, Throwable cause) {
+        super(msg, cause);
     }
     
 }
