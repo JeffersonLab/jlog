@@ -1,4 +1,4 @@
-# jlog [![Java CI with Gradle](https://github.com/JeffersonLab/jlog/actions/workflows/gradle.yml/badge.svg)](https://github.com/JeffersonLab/jlog/actions/workflows/gradle.yml) [![Maven Central](https://badgen.net/maven/v/maven-central/org.jlab/jlog)](https://repo1.maven.org/maven2/org/jlab/jlog/)
+# jlog [![CI](https://github.com/JeffersonLab/jlog/actions/workflows/ci.yml/badge.svg)](https://github.com/JeffersonLab/jlog/actions/workflows/ci.yml) [![Maven Central](https://badgen.net/maven/v/maven-central/org.jlab/jlog)](https://repo1.maven.org/maven2/org/jlab/jlog/)
 The Jefferson Lab Java Logbook API for programmatic access to the [logbook server](https://logbooks.jlab.org/).
 
 ---
