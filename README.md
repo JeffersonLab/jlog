@@ -3,10 +3,11 @@ The Jefferson Lab Java Logbook API for programmatic access to the [logbook serve
 
 ---
    - [Install](https://github.com/JeffersonLab/jlog#install)
-   - [API](https://github.com/JeffersonLab/jlog#api) 
-   - [Example](https://github.com/JeffersonLab/jlog#example) 
-   - [Configure](https://github.com/JeffersonLab/jlog#configure) 
+   - [API](https://github.com/JeffersonLab/jlog#api)
+   - [Example](https://github.com/JeffersonLab/jlog#example)
+   - [Configure](https://github.com/JeffersonLab/jlog#configure)
    - [Build](https://github.com/JeffersonLab/jlog#build)
+   - [Release](https://github.com/JeffersonLab/jlog#release)
    - [See Also](https://github.com/JeffersonLab/jlog#see-also)
 ---
 
@@ -58,6 +59,13 @@ gradlew build
 **Note**: If you do not already have Gradle installed, it will be installed automatically by the wrapper script included in the source
 
 **Note for JLab On-Site Users**: Jefferson Lab has an intercepting [proxy](https://gist.github.com/slominskir/92c25a033db93a90184a5994e71d0b78)
+
+## Release
+1. Bump the version number in the build.gradle file and commit and push to GitHub (using [Semantic Versioning](https://semver.org/)).
+2. Create a new release on the GitHub [Releases](https://github.com/JeffersonLab/jlog/releases) page corresponding to the version in build.gradle (Enumerate changes and link issues).
+3. A new artifact should be automatically published to maven central when a new release is published on GitHub, however if something goes wrong you can also manually run the [Publish to Maven Central](https://github.com/JeffersonLab/jlog/actions/workflows/maven-publish.yml) GitHub Action.
+4. Update javadocs by copying them from build dir into gh-pages branch and updating index.html (commit, push).  This should occur automatically via [Publish to gh-pages](https://github.com/JeffersonLab/jlog/actions/workflows/gh-pages-publish.yml) GitHub Action.
+
 
 ## See Also
    - [Developer Notes](https://github.com/JeffersonLab/jlog/wiki/Developer-Notes)
