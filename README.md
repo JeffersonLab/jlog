@@ -70,4 +70,3 @@ gradlew build
 ## See Also
    - [Developer Notes](https://github.com/JeffersonLab/jlog/wiki/Developer-Notes)
    - [Troubleshooting Tips](https://github.com/JeffersonLab/jlog/wiki/Troubleshooting)
-   - [Old Release Notes](https://jeffersonlab.github.io/jlog/release-notes.html)
