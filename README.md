@@ -63,7 +63,7 @@ gradlew build
 ## Release
 1. Bump the version number in the build.gradle file and commit and push to GitHub (using [Semantic Versioning](https://semver.org/)).
 2. Create a new release on the GitHub [Releases](https://github.com/JeffersonLab/jlog/releases) page corresponding to the version in build.gradle (Enumerate changes and link issues).
-3. A new artifact should be automatically published to maven central when a new release is published on GitHub, however if something goes wrong you can also manually run the [Publish to Maven Central](https://github.com/JeffersonLab/jlog/actions/workflows/maven-publish.yml) GitHub Action.
+3. A new artifact should be automatically published to maven central when a new release is published on GitHub, however if something goes wrong you can also manually run the [Publish to Maven Central](https://github.com/JeffersonLab/jlog/actions/workflows/maven-publish.yml) GitHub Action.  See [Gradle Publish Notes](https://gist.github.com/slominskir/5fcd5cf84182bf1542c07cbca953904a)
 4. Update javadocs by copying them from build dir into gh-pages branch and updating index.html (commit, push).  This should occur automatically via [Publish to gh-pages](https://github.com/JeffersonLab/jlog/actions/workflows/gh-pages-publish.yml) GitHub Action.
 
 
