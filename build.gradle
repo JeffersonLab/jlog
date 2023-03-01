@@ -63,6 +63,7 @@ javadoc {
     options.with {
         links 'https://devdocs.io/openjdk~8/'
     }
+    failOnError = false // Inside acc network devdocs.io blocked
 }
 
 tasks.withType(Test) {
