@@ -93,4 +93,18 @@ public final class Library {
     public static String getReleaseDate() {
         return release.getProperty("RELEASE_DATE");
     }
+
+    /**
+     * Set the logbook server.  This updates the SUBMIT, FETCH, SCHEMA, and COMMENT URLs.
+     *
+     * @param server The logbook server
+     */
+    public static void setServer(String server) {
+        Properties config = Library.getConfiguration();
+
+        config.setProperty("SUBMIT_URL", "https://" + server + "/incoming");
+        config.setProperty("FETCH_URL", "https://" + server + "/entry");
+        config.setProperty("LOG_ENTRY_SCHEMA_URL", "https://" + server + "/schema/Logentry.xsd");
+        config.setProperty("COMMENT_SCHEMA_URL", "https://" + server + "/schema/Comment.xsd");
+    }
 }

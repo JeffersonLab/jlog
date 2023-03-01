@@ -86,10 +86,10 @@ task integrationTest(type: Test) {
 
 signing {
     sign publishing.publications
-    
+
     def signingKey = findProperty("signingKey")
     def signingPassword = findProperty("signingPassword")
-    useInMemoryPgpKeys(signingKey, signingPassword)    
+    useInMemoryPgpKeys(signingKey, signingPassword)
 }
 
 publishing {
@@ -145,6 +145,12 @@ publishing {
             archives javadocJar, sourcesJar
         }
     }
+}
+
+task tlog(type: JavaExec, dependsOn: build) {
+    classpath = files('src/integration/resources')
+    classpath += sourceSets.integration.runtimeClasspath
+    mainClass.set('org.jlab.jlog.example.TLog')
 }
 
 nexusPublishing {
