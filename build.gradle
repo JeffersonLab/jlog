@@ -151,6 +151,8 @@ task tlog(type: JavaExec, dependsOn: build) {
     classpath = files('src/integration/resources')
     classpath += sourceSets.integration.runtimeClasspath
     mainClass.set('org.jlab.jlog.example.TLog')
+    systemProperties System.getProperties() // forward all; example: setenv JAVA_OPTS -Djavax.net.debug=ssl:handshake
+    //systemProperties = ['javax.net.debug': 'ssl:handshake']
 }
 
 nexusPublishing {
