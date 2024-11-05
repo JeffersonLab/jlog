@@ -53,7 +53,7 @@ public class CertificateAndServerIntegrationTest {
 
         Properties config = Library.getConfiguration();
 
-        String logbookHostname = "logbooktest.acc.jlab.org";
+        String logbookHostname = "logbooks9.jlab.org";
 
         config.setProperty("SUBMIT_URL", "https://" + logbookHostname + "/incoming");
         config.setProperty("FETCH_URL", "https://" + logbookHostname + "/entry");

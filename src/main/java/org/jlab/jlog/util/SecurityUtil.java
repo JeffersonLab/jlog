@@ -175,6 +175,42 @@ public final class SecurityUtil {
         return context.getSocketFactory();
     }
 
+    public static SSLContext getContext(String pemPath,
+                                        boolean verifyPeer) throws NoSuchAlgorithmException, IOException, CertificateException, InvalidKeySpecException, KeyStoreException, UnrecoverableKeyException, KeyManagementException {
+        SSLContext context = SSLContext.getInstance("TLSv1.2");
+
+        byte[] certAndKey = IOUtil.fileToBytes(new File(pemPath));
+        X509Certificate cert = fetchCertificateFromPEM(certAndKey);
+        RSAPrivateKey key = fetchPrivateKeyFromPEM(certAndKey);
+
+        KeyStore keystore = KeyStore.getInstance("JKS");
+        keystore.load(null);
+        keystore.setCertificateEntry("cert-alias", cert);
+        keystore.setKeyEntry("key-alias", key, "changeit".toCharArray(),
+                new Certificate[]{cert});
+
+        logger.log(Level.FINEST, "Keystore entry count: {0}", keystore.size());
+        logger.log(Level.FINEST, "Client Certificate: {0}",
+                keystore.getCertificate("cert-alias"));
+        //logger.log(Level.FINEST, "Private Key: {0}", keystore.getKey(
+        //        "key-alias", "changeit".toCharArray()));
+
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+        kmf.init(keystore, "changeit".toCharArray());
+
+        KeyManager[] km = kmf.getKeyManagers();
+
+        TrustManager[] tm = null;
+
+        if (!verifyPeer) {
+            tm = new TrustManager[]{new TrustyTrustManager()};
+        }
+
+        context.init(km, tm, null);
+
+        return context;
+    }
+
     /**
      * Obtain a SSLSocketFactory that provides a client certificate from a
      * PKCS12 file.
