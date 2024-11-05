@@ -890,12 +890,9 @@ abstract class LogItem {
                             .PUT(HttpRequest.BodyPublishers.ofString(xml))
                             .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
 
-            System.err.println(response.body());
-
-            id = 0;
-            //id = parseServerResponse(response.body());
+            id = parseServerResponse(response.body());
 
             /*URL url = new URL(putUrl);
             con = (HttpsURLConnection) url.openConnection();
