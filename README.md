@@ -14,7 +14,7 @@ The Jefferson Lab Java Logbook API for programmatic access to the [logbook serve
 ## Install
 This library requires a Java 11+ JVM and standard library at run time. 
 
-You can obtain the library jar file from the [Maven Central repository](https://repo1.maven.org/maven2/org/jlab/jlog/) directly or from a Maven friendly build tool with the following coordinates (Gradle example shown):
+You can obtain the library jar file from the [Maven Central repository](https://repo1.maven.org/maven2/org/jlab/jlog/) or ([Sonatype backing store](https://s01.oss.sonatype.org/content/repositories/releases/org/jlab/jlog/)) or from a Maven friendly build tool with the following coordinates (Gradle example shown):
 ```
 implementation 'org.jlab:jlog:<version>'
 ```
@@ -61,11 +61,11 @@ gradlew build
 **Note for JLab On-Site Users**: Jefferson Lab has an intercepting [proxy](https://gist.github.com/slominskir/92c25a033db93a90184a5994e71d0b78)
 
 ## Release
-1. Bump the version number in the build.gradle file and commit and push to GitHub (using [Semantic Versioning](https://semver.org/)).
-2. Create a new release on the GitHub [Releases](https://github.com/JeffersonLab/jlog/releases) page corresponding to the version in build.gradle (Enumerate changes and link issues).
-3. A new artifact should be automatically published to maven central when a new release is published on GitHub, however if something goes wrong you can also manually run the [Publish to Maven Central](https://github.com/JeffersonLab/jlog/actions/workflows/maven-publish.yml) GitHub Action.  See [Gradle Publish Notes](https://gist.github.com/slominskir/5fcd5cf84182bf1542c07cbca953904a)
-4. Update javadocs by copying them from build dir into gh-pages branch and updating index.html (commit, push).  This should occur automatically via [Publish to gh-pages](https://github.com/JeffersonLab/jlog/actions/workflows/gh-pages-publish.yml) GitHub Action.
-
+1. Bump the version number in the VERSION file and commit and push to GitHub (using [Semantic Versioning](https://semver.org/)).
+2. The [CD](https://github.com/JeffersonLab/jlog/blob/main/.github/workflows/cd.yaml) GitHub Action should run automatically invoking:
+   - The [Create release](https://github.com/JeffersonLab/java-workflows/blob/main/.github/workflows/gh-release.yaml) GitHub Action to tag the source and create release notes summarizing any pull requests.   Edit the release notes to add any missing details.
+   - The [Publish artifact](https://github.com/JeffersonLab/java-workflows/blob/main/.github/workflows/maven-publish.yaml) GitHub Action to create a deployment artifact on maven central.
+   - The [Publish docs](https://github.com/JeffersonLab/java-workflows/blob/main/.github/workflows/gh-pages-publish.yaml) GitHub Action to create javadocs.
 
 ## See Also
    - [logentrycli](https://github.com/JeffersonLab/logentrycli)
