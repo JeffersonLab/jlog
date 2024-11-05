@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.net.FileNameMap;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -27,6 +27,7 @@ import java.util.Properties;
 import javax.naming.InvalidNameException;
 
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
 import javax.xml.XMLConstants;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -873,15 +874,34 @@ abstract class LogItem {
         boolean ignoreServerCert = "true".equals(props.getProperty("IGNORE_SERVER_CERT_ERRORS"));
 
         try {
+
             String putUrl = buildHttpPutUrl();
-            URL url = new URL(putUrl);
+
+
+            SSLContext sslContext = SecurityUtil.getContext(pemFilePath, !ignoreServerCert);
+
+            HttpClient httpClient = HttpClient.newBuilder()
+                    .sslContext(sslContext)
+                    .build();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                            .uri(URI.create(putUrl))
+                            .expectContinue(true)
+                            .PUT(HttpRequest.BodyPublishers.ofString(xml))
+                            .build();
+
+            HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+
+            id = parseServerResponse(response.body());
+
+            /*URL url = new URL(putUrl);
             con = (HttpsURLConnection) url.openConnection();
             con.setSSLSocketFactory(SecurityUtil.getClientCertSocketFactoryPEM(
                     pemFilePath, !ignoreServerCert));
             con.setRequestMethod("PUT");
             con.setDoOutput(true);
-            con.setChunkedStreamingMode(0);
-            con.setRequestProperty("Expect", "100-Continue");
+            //con.setChunkedStreamingMode(0);
+            //con.setRequestProperty("Expect", "100-Continue");
             con.connect();
 
             try (OutputStream out = con.getOutputStream();
@@ -898,7 +918,7 @@ abstract class LogItem {
 
             try (InputStream is = con.getInputStream()) {
                 id = parseServerResponse(is);
-            }
+            }*/
         } catch (MalformedURLException e) {
             throw new LogIOException(
                     "Invalid submission URL: check config file.", e);
@@ -930,6 +950,8 @@ abstract class LogItem {
             throw new LogCertificateException(
                     "Unable to obtain SSL connection due to certificate error.",
                     e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
 
         return id;
