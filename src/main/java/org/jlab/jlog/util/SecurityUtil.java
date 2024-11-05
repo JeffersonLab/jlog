@@ -175,6 +175,21 @@ public final class SecurityUtil {
         return context.getSocketFactory();
     }
 
+    /**
+     * Get SSLContext
+     *
+     * @param pemPath The PEM file path
+     * @param verifyPeer true to verify peer hostname
+     * @return The SSLContext
+     * @throws NoSuchAlgorithmException If unable to create the SocketFactory
+     * @throws FileNotFoundException If the PEM file cannot be found
+     * @throws IOException If unable to read the PEM file
+     * @throws KeyStoreException If unable to create the SocketFactory
+     * @throws CertificateException If unable to create the SocketFactory
+     * @throws UnrecoverableKeyException If unable to create the SocketFactory
+     * @throws KeyManagementException If unable to create the SocketFactory
+     * @throws InvalidKeySpecException If unable to create the SocketFactory
+     */
     public static SSLContext getContext(String pemPath,
                                         boolean verifyPeer) throws NoSuchAlgorithmException, IOException, CertificateException, InvalidKeySpecException, KeyStoreException, UnrecoverableKeyException, KeyManagementException {
         SSLContext context = SSLContext.getInstance("TLSv1.2");
