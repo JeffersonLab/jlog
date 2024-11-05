@@ -886,6 +886,7 @@ abstract class LogItem {
 
             HttpRequest request = HttpRequest.newBuilder()
                             .uri(URI.create(putUrl))
+                            .expectContinue(true)
                             .PUT(HttpRequest.BodyPublishers.ofString(xml))
                             .build();
 
