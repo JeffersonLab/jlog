@@ -43,11 +43,11 @@ processResources {
 }
 javadoc {
     options.overview = "src/main/java/overview.html"
-    options.source = 8
+    options.source = 11
     options.with {
-        links 'https://devdocs.io/openjdk~8/'
+        links 'https://docs.oracle.com/en/java/javase/11/docs/api'
     }
-    failOnError = false // Inside acc network devdocs.io blocked
+    failOnError = false // Inside acc network links may fail to resolve
 }
 tasks.withType(Test).configureEach {
     testLogging {
