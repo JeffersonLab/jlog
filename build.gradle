@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'com.diffplug.spotless' version '7.2.1'
     id "com.vanniktech.maven.publish" version "0.34.0"
 }
 
@@ -73,6 +74,11 @@ tasks.register('tlog', JavaExec) {
     mainClass.set('org.jlab.jlog.example.TLog')
     systemProperties System.getProperties() // forward all; example: setenv JAVA_OPTS -Djavax.net.debug=ssl:handshake
     //systemProperties = ['javax.net.debug': 'ssl:handshake']
+}
+spotless {
+    java {
+        googleJavaFormat()
+    }
 }
 mavenPublishing {
     publishToMavenCentral(true)

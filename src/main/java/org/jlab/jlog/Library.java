@@ -5,106 +5,107 @@ import java.util.Properties;
 import org.jlab.jlog.exception.LogRuntimeException;
 
 /**
- * Captures the jlog library global version and configuration information.
- * The Overview page contains a list of all available configuration properties.
- * 
+ * Captures the jlog library global version and configuration information. The Overview page
+ * contains a list of all available configuration properties.
+ *
  * @author ryans
  */
 public final class Library {
 
-    private static final Properties defaultConfiguration;
-    private static Properties userConfiguration;
+  private static final Properties defaultConfiguration;
+  private static Properties userConfiguration;
 
-    /**
-     * Release properties are separate since they are managed by the build process - we don't want
-     * users confused or able to Library.setConfiguration() overriding release info.
-     */
-    private static final Properties release;
+  /**
+   * Release properties are separate since they are managed by the build process - we don't want
+   * users confused or able to Library.setConfiguration() overriding release info.
+   */
+  private static final Properties release;
 
-    static {
-        try ( // If either one fails to load, we bail out!
-              InputStream defaultIn = Library.class.getClassLoader().getResourceAsStream("jlog-default.properties");
-              InputStream releaseIn = Library.class.getClassLoader().getResourceAsStream("release.properties")
-        ) {
+  static {
+    try ( // If either one fails to load, we bail out!
+    InputStream defaultIn =
+            Library.class.getClassLoader().getResourceAsStream("jlog-default.properties");
+        InputStream releaseIn =
+            Library.class.getClassLoader().getResourceAsStream("release.properties")) {
 
-            defaultConfiguration = new Properties();
-            release = new Properties();
+      defaultConfiguration = new Properties();
+      release = new Properties();
 
-            defaultConfiguration.load(defaultIn);
-            release.load(releaseIn);
-        } catch (IOException e) {
-            throw new LogRuntimeException("Unable to load properties.", e);
-        }
-
-        userConfiguration = new Properties(defaultConfiguration);
-
-        // If user configuration exists in home dir, load it
-        // If we want to get fancy (and complex) consider: https://github.com/harawata/appdirs
-        String home = System.getProperty("user.home");
-        File userPropsFile = new File(home + "/jlog.properties");
-        try(InputStream userIn = new FileInputStream(userPropsFile)) {
-            userConfiguration.load(userIn);
-        } catch (FileNotFoundException e) {
-            // OK, no user props, fine.
-        } catch (IOException e) {
-            e.printStackTrace(); // Probably a permissions or format issue...
-        }
+      defaultConfiguration.load(defaultIn);
+      release.load(releaseIn);
+    } catch (IOException e) {
+      throw new LogRuntimeException("Unable to load properties.", e);
     }
 
-    private Library() {
-        // Can't instantiate publicly
-    }
+    userConfiguration = new Properties(defaultConfiguration);
 
-    /**
-     * Get the configuration properties.
-     * 
-     * @return The configuration
-     */
-    public static Properties getConfiguration() {
-        return userConfiguration;
+    // If user configuration exists in home dir, load it
+    // If we want to get fancy (and complex) consider: https://github.com/harawata/appdirs
+    String home = System.getProperty("user.home");
+    File userPropsFile = new File(home + "/jlog.properties");
+    try (InputStream userIn = new FileInputStream(userPropsFile)) {
+      userConfiguration.load(userIn);
+    } catch (FileNotFoundException e) {
+      // OK, no user props, fine.
+    } catch (IOException e) {
+      e.printStackTrace(); // Probably a permissions or format issue...
     }
+  }
 
-    /**
-     * Set the configuration properties.
-     * 
-     * @param configuration The configuration
-     */
-    public static void setConfiguration(Properties configuration) {
-        Library.userConfiguration = configuration;
-    }
+  private Library() {
+    // Can't instantiate publicly
+  }
 
-    /**
-     * Returns the library version String. A programmatically accessible version
-     * String is a requirement of JLab accelerator software certification.
-     *
-     * Versioning follows <a href="https://semver.org/">Semantic Versioning</a>.
-     *
-     * @return The version String
-     */
-    public static String getVersion() {
-        return release.getProperty("VERSION");
-    }
+  /**
+   * Get the configuration properties.
+   *
+   * @return The configuration
+   */
+  public static Properties getConfiguration() {
+    return userConfiguration;
+  }
 
-    /**
-     * The date in which this version of the library was released.
-     *
-     * @return The date string
-     */
-    public static String getReleaseDate() {
-        return release.getProperty("RELEASE_DATE");
-    }
+  /**
+   * Set the configuration properties.
+   *
+   * @param configuration The configuration
+   */
+  public static void setConfiguration(Properties configuration) {
+    Library.userConfiguration = configuration;
+  }
 
-    /**
-     * Set the logbook server.  This updates the SUBMIT, FETCH, SCHEMA, and COMMENT URLs.
-     *
-     * @param server The logbook server
-     */
-    public static void setServer(String server) {
-        Properties config = Library.getConfiguration();
+  /**
+   * Returns the library version String. A programmatically accessible version String is a
+   * requirement of JLab accelerator software certification.
+   *
+   * <p>Versioning follows <a href="https://semver.org/">Semantic Versioning</a>.
+   *
+   * @return The version String
+   */
+  public static String getVersion() {
+    return release.getProperty("VERSION");
+  }
 
-        config.setProperty("SUBMIT_URL", "https://" + server + "/incoming");
-        config.setProperty("FETCH_URL", "https://" + server + "/entry");
-        config.setProperty("LOG_ENTRY_SCHEMA_URL", "https://" + server + "/schema/Logentry.xsd");
-        config.setProperty("COMMENT_SCHEMA_URL", "https://" + server + "/schema/Comment.xsd");
-    }
+  /**
+   * The date in which this version of the library was released.
+   *
+   * @return The date string
+   */
+  public static String getReleaseDate() {
+    return release.getProperty("RELEASE_DATE");
+  }
+
+  /**
+   * Set the logbook server. This updates the SUBMIT, FETCH, SCHEMA, and COMMENT URLs.
+   *
+   * @param server The logbook server
+   */
+  public static void setServer(String server) {
+    Properties config = Library.getConfiguration();
+
+    config.setProperty("SUBMIT_URL", "https://" + server + "/incoming");
+    config.setProperty("FETCH_URL", "https://" + server + "/entry");
+    config.setProperty("LOG_ENTRY_SCHEMA_URL", "https://" + server + "/schema/Logentry.xsd");
+    config.setProperty("COMMENT_SCHEMA_URL", "https://" + server + "/schema/Comment.xsd");
+  }
 }
