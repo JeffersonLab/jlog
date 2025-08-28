@@ -74,3 +74,32 @@ tasks.register('tlog', JavaExec) {
     systemProperties System.getProperties() // forward all; example: setenv JAVA_OPTS -Djavax.net.debug=ssl:handshake
     //systemProperties = ['javax.net.debug': 'ssl:handshake']
 }
+mavenPublishing {
+    publishToMavenCentral(true)
+    signAllPublications()
+    coordinates("org.jlab", "jlog", version)
+
+    pom {
+        name = project.name
+        description = project.description
+        url = "https://github.com/JeffersonLab/jlog/"
+        licenses {
+            license {
+                name = "The MIT License"
+                url = "https://github.com/JeffersonLab/jlog/blob/master/LICENSE"
+            }
+        }
+        developers {
+            developer {
+                id = "slominskir"
+                name = "Ryan Slominski"
+                url = "https://github.com/slominskir/"
+            }
+        }
+        scm {
+            url = "https://github.com/JeffersonLab/jlog"
+            connection = "scm:git:git://github.com/JeffersonLab/jlog.git"
+            developerConnection = "scm:git:ssh://git@github.com/JeffersonLab/jlog.git"
+        }
+    }
+}
