@@ -29,7 +29,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    testImplementation 'junit:junit:4.13'
+    testImplementation 'junit:junit:4.13.1'
 }
 processResources {
     filesMatching('release.properties') {
