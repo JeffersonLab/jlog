@@ -1,26 +1,18 @@
 plugins {
     id 'java-library'
-    id 'maven-publish'
-    id 'signing'
-    id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
+    id "com.vanniktech.maven.publish" version "0.34.0"
 }
 
 description = "Jefferson Lab logbook API"
-group 'org.jlab'
-version new File("${projectDir}/VERSION").text.trim()
+group = 'org.jlab'
+version = new File("${projectDir}/VERSION").text.trim()
 ext.releaseDate = new Date().format('MMM dd yyyy')
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.release = 11
     options.encoding = 'UTF-8'
     options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
 sourceSets {
     integration {
         java.srcDir "${projectDir}/src/integration/java"
@@ -29,20 +21,16 @@ sourceSets {
         runtimeClasspath += sourceSets.main.output
     }
 }
-
 configurations {
     integrationImplementation.extendsFrom testImplementation
     integrationRuntimeOnly.extendsFrom runtimeOnly
 }
-
 repositories {
     mavenCentral()
 }
-
 dependencies {
     testImplementation 'junit:junit:4.13'
 }
-
 processResources {
     filesMatching('release.properties') {
         filter {
@@ -53,7 +41,6 @@ processResources {
         }
     }
 }
-
 javadoc {
     options.overview = "src/main/java/overview.html"
     options.source = 8
@@ -62,15 +49,13 @@ javadoc {
     }
     failOnError = false // Inside acc network devdocs.io blocked
 }
-
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     testLogging {
         events "passed", "skipped", "failed"
-        exceptionFormat "full"
+        exceptionFormat = "full"
     }
 }
-
-task integrationTest(type: Test) {
+tasks.register('integrationTest', Test) {
     description = 'Runs integration tests.'
     group 'verification'
 
@@ -81,83 +66,11 @@ task integrationTest(type: Test) {
         showStandardStreams = true
     }
 }
-
-signing {
-    sign publishing.publications
-
-    def signingKey = findProperty("signingKey")
-    def signingPassword = findProperty("signingPassword")
-    useInMemoryPgpKeys(signingKey, signingPassword)
-}
-
-publishing {
-    repositories {
-        maven {
-            name "OSSRH"
-            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-            credentials {
-                username = project.findProperty("ossrh.user") ?: System.getenv("OSSRH_USER")
-                password = project.findProperty("ossrh.token") ?: System.getenv("OSSRH_TOKEN")
-            }
-        }
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/JeffersonLab/jlog")
-            credentials {
-                username = project.findProperty("github.user") ?: System.getenv("GITHUB_USER")
-                password = project.findProperty("github.token") ?: System.getenv("GITHUB_TOKEN")
-            }
-        }
-        publications {
-            maven(MavenPublication) {
-                from(components.java)
-                pom {
-                    name = project.name
-                    description = project.description
-                    url = "https://github.com/JeffersonLab/jlog"
-                    licenses {
-                        license {
-                            name = "The MIT License"
-                            url = "https://github.com/JeffersonLab/jlog/blob/master/LICENSE"
-                        }
-                    }
-                    developers {
-                        developer {
-                            id = "slominskir"
-                            name = "Ryan Slominski"
-                            email = "ryans@jlab.org"
-                        }
-                        developer {
-                            id = "dub357"
-                            name = "Bobby Lawrence"
-                            email = "robertl@jlab.org"
-                        }
-                    }
-                    scm {
-                        url = "https://github.com/JeffersonLab/jlog.git"
-                    }
-                }
-            }
-        }
-        artifacts {
-            archives javadocJar, sourcesJar
-        }
-    }
-}
-
-task tlog(type: JavaExec, dependsOn: build) {
+tasks.register('tlog', JavaExec) {
+    dependsOn build
     classpath = files('src/integration/resources')
     classpath += sourceSets.integration.runtimeClasspath
     mainClass.set('org.jlab.jlog.example.TLog')
     systemProperties System.getProperties() // forward all; example: setenv JAVA_OPTS -Djavax.net.debug=ssl:handshake
     //systemProperties = ['javax.net.debug': 'ssl:handshake']
-}
-
-nexusPublishing {
-    repositories {
-        sonatype {  //only for users registered in Sonatype after 24 Feb 2021
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
-        }
-    }
 }
